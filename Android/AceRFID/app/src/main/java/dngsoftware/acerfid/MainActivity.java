@@ -89,18 +89,17 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         main = ActivityMainBinding.inflate(getLayoutInflater());
         View rv = main.getRoot();
         setContentView(rv);
-        main.addbutton.setVisibility(View.INVISIBLE);
+
         main.editbutton.setVisibility(View.INVISIBLE);
         main.deletebutton.setVisibility(View.INVISIBLE);
-
 
         main.colorview.setOnClickListener(view -> openPicker());
         main.colorview.setBackgroundColor(Color.argb(255, 0, 0, 255));
         main.readbutton.setOnClickListener(view -> readTag(currentTag));
         main.writebutton.setOnClickListener(view -> writeTag(currentTag));
 
-       // main.addbutton.setOnClickListener(view -> openAddDialog(false));
-      //  main.editbutton.setOnClickListener(view -> openAddDialog(true));
+        main.addbutton.setOnClickListener(view -> openAddDialog(false));
+        main.editbutton.setOnClickListener(view -> openAddDialog(true));
 
         main.deletebutton.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -229,10 +228,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                         GetTemps(matDb, MaterialName)[0], GetTemps(matDb, MaterialName)[1], GetTemps(matDb, MaterialName)[2], GetTemps(matDb, MaterialName)[3]));
 
                 if (position <= 11){
-                  //  main.editbutton.setVisibility(View.INVISIBLE);
+                    main.editbutton.setVisibility(View.INVISIBLE);
                     main.deletebutton.setVisibility(View.INVISIBLE);
                 }else {
-                   // main.editbutton.setVisibility(View.VISIBLE);
+                    main.editbutton.setVisibility(View.VISIBLE);
                     main.deletebutton.setVisibility(View.VISIBLE);
                 }
 
@@ -491,6 +490,22 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     void openAddDialog(boolean edit) {
         try {
+
+            if (!Utils.GetSetting(this,"CFN",false)) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.notice);
+                builder.setMessage(R.string.cf_notice);
+                builder.setPositiveButton(R.string.accept, (dialog, which) -> {
+                    Utils.SaveSetting(this, "CFN", true);
+                    dialog.dismiss();
+                    openAddDialog(edit);
+                });
+                builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+                AlertDialog alert = builder.create();
+                alert.show();
+                return;
+            }
+
             addDialog = new Dialog(this, R.style.Theme_AceRFID);
             addDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             addDialog.setCanceledOnTouchOutside(false);
