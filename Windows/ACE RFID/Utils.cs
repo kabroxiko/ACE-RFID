@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-
+using Microsoft.Win32;
 
 namespace ACE_RFID
 {
@@ -368,6 +368,45 @@ namespace ACE_RFID
                     comboBox.SelectedIndex = i;
                     return;
                 }
+            }
+        }
+
+
+        public static void SaveSetting(string keyName, bool value)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey("ACE RFID\\Settings"))
+                {
+                    if (key != null)
+                    {
+                        key.SetValue(keyName, value ? 1 : 0, RegistryValueKind.DWord);
+                    }
+                }
+            }
+            catch (Exception){}
+        }
+
+        public static bool GetSetting(string keyName, bool defaultValue = false)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("ACE RFID\\Settings"))
+                {
+                    if (key != null)
+                    {
+                        object value = key.GetValue(keyName);
+                        if (value != null && value is int intValue)
+                        {
+                            return intValue != 0;
+                        }
+                    }
+                    return defaultValue;
+                }
+            }
+            catch (Exception)
+            {
+                return defaultValue; 
             }
         }
 

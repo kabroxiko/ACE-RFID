@@ -36,7 +36,6 @@ namespace ACE_RFID
             btnSave.BackColor = ColorTranslator.FromHtml("#1976D2");
             btnCls.BackColor = ColorTranslator.FromHtml("#1976D2");
 
-            btnAdd.Visible = false;
             btnDel.Visible = false;
             btnEdit.Visible = false;
 
@@ -264,6 +263,19 @@ namespace ACE_RFID
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
+            if (Utils.GetSetting("CFN", false) == false)
+            {
+                DialogResult result = MessageBox.Show("Custom filament settings do not currently work with remote print or cloud print functions.", "Notice", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+                if (result == DialogResult.OK)
+                {
+                    Utils.SaveSetting("CFN", true);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             cboType.Text = cboType.Items[0].ToString();
             cboVendor.Text = cboVendor.Items[0].ToString();
             btnSave.Text = "Add";
@@ -273,6 +285,19 @@ namespace ACE_RFID
 
         private void btnEdit_Click(object sender, EventArgs e)
         {
+            if (Utils.GetSetting("CFN", false) == false)
+            {
+                DialogResult result = MessageBox.Show("Custom filament settings do not currently work with remote print or cloud print functions.", "Notice", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+                if (result == DialogResult.OK)
+                {
+                    Utils.SaveSetting("CFN", true);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             Filament filament = MatDB.GetFilamentByName(materialType.Text);
             int pos = filament.Position;
             if (pos > 11)
@@ -366,13 +391,13 @@ namespace ACE_RFID
         {
             if (materialType.SelectedIndex > 11)
             {
-               // btnDel.Visible = true;
-               // btnEdit.Visible = true;
+                btnDel.Visible = true;
+                btnEdit.Visible = true;
             }
             else
             {
-              //  btnDel.Visible = false;
-              //  btnEdit.Visible = false;
+                btnDel.Visible = false;
+                btnEdit.Visible = false;
             }
 
             Filament filament = MatDB.GetFilamentByName(materialType.Text);
