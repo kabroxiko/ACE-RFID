@@ -71,6 +71,15 @@ namespace ACE_RFID.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Custom filament settings do not currently work with remote print or cloud print functions..
+        /// </summary>
+        internal static string customMessage {
+            get {
+                return ResourceManager.GetString("customMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap delete {
@@ -87,6 +96,16 @@ namespace ACE_RFID.Properties {
             get {
                 object obj = ResourceManager.GetObject("edit", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extruder Temp: {0:d} min | {1:d} max
+        ///Bed Temp: {2:d} min | {3:d} max.
+        /// </summary>
+        internal static string tempMessage {
+            get {
+                return ResourceManager.GetString("tempMessage", resourceCulture);
             }
         }
     }

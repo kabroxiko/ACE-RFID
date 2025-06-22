@@ -21,7 +21,6 @@ namespace ACE_RFID
             return materials;
         }
 
-
         public static int[] GetTemps(string materialName)
         {
             Filament item = MatDB.GetFilamentByName(materialName);
@@ -48,8 +47,6 @@ namespace ACE_RFID
             }
         }
 
-
-
         public static byte[] GetSku(string materialName)
         {
             byte[] skuData = new byte[20];
@@ -63,7 +60,6 @@ namespace ACE_RFID
             return skuData;
         }
 
-
         public static byte[] GetBrand(string materialName)
         {
             byte[] brandData = new byte[20];
@@ -76,7 +72,6 @@ namespace ACE_RFID
             }
             return brandData;
         }
-
 
         public static int GetMaterialLength(String materialWeight)
         {
@@ -96,7 +91,6 @@ namespace ACE_RFID
             return 330;
         }
 
-
         public static String GetMaterialWeight(int materialLength)
         {
             switch (materialLength)
@@ -114,7 +108,6 @@ namespace ACE_RFID
             }
             return "1 KG";
         }
-
 
         public static int[] GetDefaultTemps(String materialType)
         {
@@ -150,8 +143,7 @@ namespace ACE_RFID
             return new int[] { 185, 300, 45, 110 };
         }
 
-
-        public static String[] filamentVendors = {
+        public static string[] filamentVendors = {
             "3Dgenius",
             "3DJake",
             "3DXTECH",
@@ -173,6 +165,7 @@ namespace ACE_RFID
             "California Filament",
             "Capricorn",
             "CC3D",
+            "Colour Dream",
             "colorFabb",
             "Comgrow",
             "Cookiecad",
@@ -199,6 +192,7 @@ namespace ACE_RFID
             "FilamentOne",
             "Fil X",
             "GEEETECH",
+            "Generic",
             "Giantarm",
             "Gizmo Dorks",
             "GreenGate3D",
@@ -251,28 +245,38 @@ namespace ACE_RFID
             "Ziro",
             "Zyltech"};
 
-
-        public static String[] filamentTypes = {
+        public static string[] filamentTypes = {
             "ABS",
             "ASA",
             "HIPS",
             "PA",
             "PA-CF",
             "PC",
-            "PETG",
             "PLA",
             "PLA-CF",
             "PVA",
             "PP",
-            "TPU"};
-
+            "TPU",
+            "PETG",
+            "BVOH",
+            "PET-CF",
+            "PETG-CF",
+            "PA6-CF",
+            "PAHT-CF",
+            "PPS",
+            "PPS-CF",
+            "PET",
+            "ASA-CF",
+            "PA-GF",
+            "PETG-GF",
+            "PP-CF",
+            "PCTG"};
 
         public static byte[] RevArray(byte[] array)
         {
             Array.Reverse(array);
             return array;
         }
-
 
         public static int ParseNumber(byte[] byteArray)
         {
@@ -284,12 +288,10 @@ namespace ACE_RFID
             return result;
         }
 
-
         public static byte[] NumToBytes(int value)
         {
             return RevArray(new byte[] { (byte)(value >> 8), (byte)value });
         }
-
 
         public static byte[] ParseColor(string hexString)
         {
@@ -309,7 +311,6 @@ namespace ACE_RFID
             return RevArray(byteArray);
         }
 
-
         public static string ParseColor(byte[] byteArray)
         {
             try
@@ -326,7 +327,6 @@ namespace ACE_RFID
                 return "0000FF";
             }
         }
-
 
         public static byte[] SubArray(byte[] source, int startIndex, int length)
         {
@@ -348,7 +348,6 @@ namespace ACE_RFID
             return result;
         }
 
-
         public static bool ArrayContains(string[] array, string str)
         {
             if (array == null || str == null)
@@ -357,7 +356,6 @@ namespace ACE_RFID
             }
             return array.Any(s => s != null && s.Contains(str.Trim()));
         }
-
 
         public static void SetTypeByItem(ComboBox comboBox, string itemName)
         {
@@ -371,6 +369,14 @@ namespace ACE_RFID
             }
         }
 
+        public static string ReaderVersion(Reader reader)
+        {
+            try
+            {
+                return Encoding.ASCII.GetString(reader.GetFirmwareVersion());
+            }
+            catch { return string.Empty; }
+        }
 
         public static void SaveSetting(string keyName, bool value)
         {
@@ -378,10 +384,7 @@ namespace ACE_RFID
             {
                 using (RegistryKey key = Registry.CurrentUser.CreateSubKey("ACE RFID\\Settings"))
                 {
-                    if (key != null)
-                    {
-                        key.SetValue(keyName, value ? 1 : 0, RegistryValueKind.DWord);
-                    }
+                    key?.SetValue(keyName, value ? 1 : 0, RegistryValueKind.DWord);
                 }
             }
             catch (Exception){}
