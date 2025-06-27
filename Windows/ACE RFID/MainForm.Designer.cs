@@ -81,9 +81,9 @@
             this.btnRead.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRead.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnRead.ForeColor = System.Drawing.Color.White;
-            this.btnRead.Location = new System.Drawing.Point(34, 510);
+            this.btnRead.Location = new System.Drawing.Point(37, 508);
             this.btnRead.Name = "btnRead";
-            this.btnRead.Size = new System.Drawing.Size(126, 47);
+            this.btnRead.Size = new System.Drawing.Size(140, 47);
             this.btnRead.TabIndex = 1;
             this.btnRead.Text = "Read Tag";
             this.btnRead.UseVisualStyleBackColor = false;
@@ -95,9 +95,9 @@
             this.btnWrite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnWrite.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnWrite.ForeColor = System.Drawing.Color.White;
-            this.btnWrite.Location = new System.Drawing.Point(225, 510);
+            this.btnWrite.Location = new System.Drawing.Point(213, 508);
             this.btnWrite.Name = "btnWrite";
-            this.btnWrite.Size = new System.Drawing.Size(126, 47);
+            this.btnWrite.Size = new System.Drawing.Size(140, 47);
             this.btnWrite.TabIndex = 3;
             this.btnWrite.Text = "Write Tag";
             this.btnWrite.UseVisualStyleBackColor = false;
@@ -492,6 +492,7 @@
             this.Text = "Ace RFID";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.LocationChanged += new System.EventHandler(this.MainForm_LocationChanged);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);

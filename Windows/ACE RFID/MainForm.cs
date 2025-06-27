@@ -4,7 +4,6 @@ using PCSC.Monitoring;
 using System;
 using System.Drawing;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 using static ACE_RFID.Utils;
 
@@ -95,12 +94,13 @@ namespace ACE_RFID
                 else
                 {
                     lblConnect.Visible = true;
+                    Toast.Show(this, "Connect Failed", Toast.LENGTH_SHORT);
                 }
             }
             catch (Exception e)
             {
                 lblConnect.Visible = true;
-                MessageBox.Show(this, e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Toast.Show(this, e.Message, Toast.LENGTH_LONG, true);
             }
         }
 
@@ -126,31 +126,28 @@ namespace ACE_RFID
             }
 
             materialType.Items.AddRange(GetAllMaterials());
-
-
             cboType.Items.AddRange(filamentTypes);
             cboType.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             cboType.AutoCompleteSource = AutoCompleteSource.ListItems;
             cboType.DropDownStyle = ComboBoxStyle.DropDown;
-
-
             cboVendor.Items.AddRange(filamentVendors);
             cboVendor.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             cboVendor.AutoCompleteSource = AutoCompleteSource.ListItems;
             cboVendor.DropDownStyle = ComboBoxStyle.DropDown;
 
-
-
-
-
-
-
-
-
             materialType.Text = "PLA";
             materialWeight.Text = "1 KG";
             materialColor = "0000FF";
             btnColor.BackColor = ColorTranslator.FromHtml("#" + materialColor);
+
+            btnRead.FlatAppearance.BorderSize = 0;
+            btnWrite.FlatAppearance.BorderSize = 0;
+            btnColor.FlatAppearance.BorderSize = 0;
+            btnSave.FlatAppearance.BorderSize = 0;
+            btnCls.FlatAppearance.BorderSize = 0;
+            btnDel.FlatAppearance.BorderSize = 0;
+            btnEdit.FlatAppearance.BorderSize = 0;
+            btnAdd.FlatAppearance.BorderSize = 0;
 
             toolTip.SetToolTip(btnDel, "Delete selected filament");
             toolTip.SetToolTip(btnEdit, "Edit selected filament");
@@ -196,12 +193,16 @@ namespace ACE_RFID
 
                     reader.WriteData(buffer);
 
-                    ShowMsg("Data written to TAG");
+                    Toast.Show(this, "Data written to TAG");
+                }
+                else
+                {
+                    Toast.Show(this, "Tag not found");
                 }
             }
             catch (Exception)
             {
-                ShowMsg("Error writing to TAG");
+                Toast.Show(this, "Error writing to TAG");
             }
         }
 
@@ -233,29 +234,18 @@ namespace ACE_RFID
                     // int diameter = ParseNumber(SubArray(buffer,104,2));
                     materialWeight.Text = GetMaterialWeight(ParseNumber(SubArray(buffer, 106, 2)));
 
-                    ShowMsg("Data read from TAG");
+                    Toast.Show(this, "Data read from TAG");
+                }
+                else
+                {
+                    Toast.Show(this, "Tag not found");
                 }
             }
             catch (Exception)
             {
-                ShowMsg("Error reading TAG");
+                Toast.Show(this, "Error reading TAG");
             }
 
-        }
-
-        private void ShowMsg(String message)
-        {
-            Invoke((MethodInvoker)delegate ()
-           {
-               lblMsg.Text = message;
-           });
-            System.Threading.Timer timer = new System.Threading.Timer(t =>
-            {
-                Invoke((MethodInvoker)delegate ()
-                {
-                    lblMsg.Text = String.Empty;
-                });
-            }, null, 3000, Timeout.Infinite);
         }
 
         private void BtnRead_Click(object sender, EventArgs e)
@@ -363,7 +353,7 @@ namespace ACE_RFID
                 txtSerial.Text.Equals(String.Empty) || txtExtMin.Text.Equals(String.Empty) ||
                 txtExtMax.Text.Equals(String.Empty) || txtBedMin.Text.Equals(String.Empty) || txtBedMax.Text.Equals(String.Empty))
             {
-                MessageBox.Show("You must fill all fields", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Toast.Show(this, "You must fill all fields", Toast.LENGTH_LONG, true);
                 return;
             }
 
@@ -457,7 +447,7 @@ namespace ACE_RFID
             {
                 Clipboard.Clear();
                 Clipboard.SetText("UID: " + lblUid.Text);
-                ShowMsg("UID copied to clipboard");
+                Toast.Show(this, "UID copied to clipboard");
             }
             catch { }
         }
@@ -489,6 +479,14 @@ namespace ACE_RFID
             int pos = comboBox.SelectionStart;
             comboBox.Text = comboBox.Text.ToUpper();
             comboBox.SelectionStart = pos;
+        }
+
+        private void MainForm_LocationChanged(object sender, EventArgs e)
+        {
+            if (Toast.currentToastInstance != null && !Toast.currentToastInstance.IsDisposed)
+            {
+                Toast.currentToastInstance.UpdatePosition(this);
+            }
         }
 
         private void TxtBedMin_KeyPress(object sender, KeyPressEventArgs e)
