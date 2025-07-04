@@ -11,13 +11,16 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
     func didSaveFilament(_ filament: Filament)
 }
 
-class AddEditFilamentViewController: UIViewController {
+class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - Properties
 
     weak var delegate: AddEditFilamentViewControllerDelegate?
     private var filament: Filament?
     private var isEditMode: Bool { return filament != nil }
+    
+    // Brand management
+    private var availableBrands: [String] = []
 
     // MARK: - UI Elements
 
@@ -56,6 +59,7 @@ class AddEditFilamentViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        initializeBrands()
         setupUI()
         setupNavigationBar()
         fillFormWithFilament()
@@ -134,8 +138,9 @@ class AddEditFilamentViewController: UIViewController {
     private func setupFormFields() {
         // Brand section
         stackView.addArrangedSubview(createSectionLabel("Brand"))
-        brandTextField.placeholder = "Select brand"
+        brandTextField.placeholder = "Enter brand name or select from list"
         brandTextField.inputView = brandPickerView
+        brandTextField.delegate = self // Add text field delegate
         brandPickerView.delegate = self
         brandPickerView.dataSource = self
         brandPickerView.tag = 0 // Tag to identify picker
@@ -163,7 +168,7 @@ class AddEditFilamentViewController: UIViewController {
         stackView.addArrangedSubview(createSectionLabel("Weight (grams)"))
         weightTextField.placeholder = "1000"
         weightTextField.text = "1000" // Default value
-        weightTextField.keyboardType = .decimalPad
+        weightTextField.keyboardType = .numberPad // Changed from .decimalPad to .numberPad for integers only
         stackView.addArrangedSubview(createFormField(weightTextField))
 
         // Diameter section
@@ -171,6 +176,7 @@ class AddEditFilamentViewController: UIViewController {
         diameterTextField.placeholder = "1.75"
         diameterTextField.text = "1.75" // Default value
         diameterTextField.keyboardType = .decimalPad
+        // Note: iOS uses the system locale for decimal separator display
         stackView.addArrangedSubview(createFormField(diameterTextField))
 
         // Print temperature section
@@ -288,7 +294,7 @@ class AddEditFilamentViewController: UIViewController {
         brandTextField.text = filament.brand
         materialTextField.text = filament.material
         colorTextField.text = filament.color
-        weightTextField.text = String(filament.weight)
+        weightTextField.text = String(Int(filament.weight)) // Display weight as integer
         diameterTextField.text = String(filament.diameter)
         printTemperatureTextField.text = String(filament.printTemperature)
         bedTemperatureTextField.text = String(filament.bedTemperature)
@@ -297,8 +303,15 @@ class AddEditFilamentViewController: UIViewController {
         notesTextView.text = filament.notes
 
         // Set picker views to correct selections
-        if let brandIndex = Filament.Brand.allCases.firstIndex(where: { $0.rawValue == filament.brand }) {
+        if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
             brandPickerView.selectRow(brandIndex, inComponent: 0, animated: false)
+        } else {
+            // Add custom brand if not in list
+            availableBrands.insert(filament.brand, at: availableBrands.count - 1)
+            brandPickerView.reloadAllComponents()
+            if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
+                brandPickerView.selectRow(brandIndex, inComponent: 0, animated: false)
+            }
         }
 
         if let materialIndex = Filament.Material.allCases.firstIndex(where: { $0.rawValue == filament.material }) {
@@ -314,7 +327,9 @@ class AddEditFilamentViewController: UIViewController {
         // Set default brand (first one - Anycubic)
         let defaultBrand = Filament.Brand.anycubic
         brandTextField.text = defaultBrand.rawValue
-        brandPickerView.selectRow(0, inComponent: 0, animated: false)
+        if let index = availableBrands.firstIndex(of: defaultBrand.rawValue) {
+            brandPickerView.selectRow(index, inComponent: 0, animated: false)
+        }
 
         // Set default material (PLA)
         let defaultMaterial = Filament.Material.pla
@@ -333,6 +348,13 @@ class AddEditFilamentViewController: UIViewController {
         printSpeedTextField.text = String(defaultMaterial.defaultPrintSpeed)
     }
 
+    private func initializeBrands() {
+        // Start with predefined brands
+        availableBrands = Filament.Brand.allCases.map { $0.rawValue }
+        // Add "Add Custom Brand..." option at the end
+        availableBrands.append("Add Custom Brand...")
+    }
+
     // MARK: - Actions
 
     @objc private func cancelTapped() {
@@ -345,7 +367,7 @@ class AddEditFilamentViewController: UIViewController {
         let brand = brandTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let material = materialTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let color = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let weight = Double(weightTextField.text ?? "0") ?? 0
+        let weight = Double(Int(weightTextField.text ?? "0") ?? 0) // Convert to Int first, then to Double for Filament struct
         let diameter = Double(diameterTextField.text ?? "1.75") ?? 1.75
         let printTemp = Int(printTemperatureTextField.text ?? "200") ?? 200
         let bedTemp = Int(bedTemperatureTextField.text ?? "60") ?? 60
@@ -417,9 +439,9 @@ class AddEditFilamentViewController: UIViewController {
         }
 
         guard let weightText = weightTextField.text,
-              let weight = Double(weightText),
+              let weight = Int(weightText),
               weight > 0 else {
-            showAlert(title: "Invalid Weight", message: "Please enter a valid weight in grams.")
+            showAlert(title: "Invalid Weight", message: "Please enter a valid weight in grams (whole numbers only).")
             return false
         }
 
@@ -429,6 +451,57 @@ class AddEditFilamentViewController: UIViewController {
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    // MARK: - Custom Brand Management
+    
+    private func showAddCustomBrandAlert() {
+        let alert = UIAlertController(title: "Add Custom Brand", message: "Enter the name of the filament brand", preferredStyle: .alert)
+        
+        alert.addTextField { textField in
+            textField.placeholder = "Brand name"
+            textField.autocapitalizationType = .words
+        }
+        
+        let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
+            guard let self = self,
+                  let textField = alert.textFields?.first,
+                  let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !brandName.isEmpty else { return }
+            
+            // Check if brand already exists
+            if !self.availableBrands.contains(brandName) {
+                // Insert before "Add Custom Brand..." option
+                self.availableBrands.insert(brandName, at: self.availableBrands.count - 1)
+                self.brandPickerView.reloadAllComponents()
+            }
+            
+            // Set the custom brand as selected
+            self.brandTextField.text = brandName
+            
+            // Select the new brand in the picker
+            if let index = self.availableBrands.firstIndex(of: brandName) {
+                self.brandPickerView.selectRow(index, inComponent: 0, animated: true)
+            }
+            
+            self.dismissKeyboard()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
+            // Reset picker to first item (or current selection)
+            guard let self = self else { return }
+            if let currentBrand = self.brandTextField.text, 
+               let index = self.availableBrands.firstIndex(of: currentBrand) {
+                self.brandPickerView.selectRow(index, inComponent: 0, animated: true)
+            } else {
+                self.brandPickerView.selectRow(0, inComponent: 0, animated: true)
+            }
+        }
+        
+        alert.addAction(addAction)
+        alert.addAction(cancelAction)
+        
         present(alert, animated: true)
     }
 
@@ -459,12 +532,20 @@ class AddEditFilamentViewController: UIViewController {
 
         let keyboardHeight = keyboardFrame.height
         scrollView.contentInset.bottom = keyboardHeight
-        scrollView.scrollIndicatorInsets.bottom = keyboardHeight
+        if #available(iOS 13.0, *) {
+            scrollView.verticalScrollIndicatorInsets.bottom = keyboardHeight
+        } else {
+            scrollView.scrollIndicatorInsets.bottom = keyboardHeight
+        }
     }
 
     @objc private func keyboardWillHide(notification: NSNotification) {
         scrollView.contentInset.bottom = 0
-        scrollView.scrollIndicatorInsets.bottom = 0
+        if #available(iOS 13.0, *) {
+            scrollView.verticalScrollIndicatorInsets.bottom = 0
+        } else {
+            scrollView.scrollIndicatorInsets.bottom = 0
+        }
     }
 }
 
@@ -479,7 +560,7 @@ extension AddEditFilamentViewController: UIPickerViewDataSource {
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         switch pickerView.tag {
         case 0: // Brand picker
-            return Filament.Brand.allCases.count
+            return availableBrands.count
         case 1: // Material picker
             return Filament.Material.allCases.count
         case 2: // Color picker
@@ -538,7 +619,7 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
             switch pickerView.tag {
             case 0: // Brand picker
-                label.text = Filament.Brand.allCases[row].rawValue
+                label.text = availableBrands[row]
             case 1: // Material picker
                 label.text = Filament.Material.allCases[row].rawValue
             default:
@@ -553,7 +634,7 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
         // This method is now only used as fallback for older iOS versions
         switch pickerView.tag {
         case 0: // Brand picker
-            return Filament.Brand.allCases[row].rawValue
+            return availableBrands[row]
         case 1: // Material picker
             return Filament.Material.allCases[row].rawValue
         case 2: // Color picker
@@ -566,15 +647,23 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         switch pickerView.tag {
         case 0: // Brand picker
-            let selectedBrand = Filament.Brand.allCases[row]
-            brandTextField.text = selectedBrand.rawValue
-
-            // Update weight and diameter defaults when brand changes
-            if weightTextField.text?.isEmpty ?? true || weightTextField.text == "1000" {
-                weightTextField.text = String(selectedBrand.defaultWeight)
-            }
-            if diameterTextField.text?.isEmpty ?? true || diameterTextField.text == "1.75" {
-                diameterTextField.text = String(selectedBrand.defaultDiameter)
+            let selectedBrandName = availableBrands[row]
+            
+            if selectedBrandName == "Add Custom Brand..." {
+                // Show alert to add custom brand
+                showAddCustomBrandAlert()
+            } else {
+                brandTextField.text = selectedBrandName
+                
+                // Update weight and diameter defaults when brand changes (only for predefined brands)
+                if let predefinedBrand = Filament.Brand.allCases.first(where: { $0.rawValue == selectedBrandName }) {
+                    if weightTextField.text?.isEmpty ?? true || weightTextField.text == "1000" {
+                        weightTextField.text = String(Int(predefinedBrand.defaultWeight))
+                    }
+                    if diameterTextField.text?.isEmpty ?? true || diameterTextField.text == "1.75" {
+                        diameterTextField.text = String(predefinedBrand.defaultDiameter)
+                    }
+                }
             }
 
         case 1: // Material picker
@@ -596,3 +685,24 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
         }
     }
 }
+
+// MARK: - UITextFieldDelegate
+    
+extension AddEditFilamentViewController {
+
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if textField == brandTextField {
+            guard let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !brandName.isEmpty else { return }
+            
+            // Check if this is a new custom brand
+            if !availableBrands.contains(brandName) && brandName != "Add Custom Brand..." {
+                // Insert before "Add Custom Brand..." option
+                availableBrands.insert(brandName, at: availableBrands.count - 1)
+                brandPickerView.reloadAllComponents()
+            }
+        }
+    }
+}
+
+

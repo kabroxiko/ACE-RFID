@@ -156,6 +156,7 @@ extension Filament {
         case inland = "Inland"
         case tianse = "TIANSE"
         case reprapper = "RepRapper"
+        case generic = "Generic"
         case other = "Other"
 
         var defaultWeight: Double {
