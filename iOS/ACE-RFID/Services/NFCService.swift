@@ -151,7 +151,7 @@ extension NFCService: NFCNDEFReaderSessionDelegate {
 
                 // Create NDEF message with filament data
                 guard let jsonString = filament.toJSONString(),
-                      let data = jsonString.data(using: .utf8) else {
+                      let _ = jsonString.data(using: .utf8) else {
                     session.invalidate(errorMessage: "Failed to encode filament data.")
                     return
                 }

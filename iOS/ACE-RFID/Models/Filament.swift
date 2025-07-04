@@ -166,6 +166,11 @@ extension Filament {
         var defaultDiameter: Double {
             return 1.75 // Most common diameter
         }
+
+        /// Returns brands sorted alphabetically by display name
+        static var sortedCases: [Brand] {
+            return allCases.sorted { $0.rawValue.localizedCaseInsensitiveCompare($1.rawValue) == .orderedAscending }
+        }
     }
 }
 
@@ -255,5 +260,38 @@ extension Filament: Codable {
             print("Error decoding filament from JSON: \(error)")
             return nil
         }
+    }
+}
+
+// MARK: - Predefined Values
+extension Filament {
+    /// Temperature values in multiples of 5 (160-300°C)
+    static var temperatureOptions: [Int] {
+        return Array(stride(from: 160, through: 300, by: 5))
+    }
+
+    /// Bed temperature values in multiples of 5 (0-120°C)
+    static var bedTemperatureOptions: [Int] {
+        return Array(stride(from: 0, through: 120, by: 5))
+    }
+
+    /// Fan speed values in multiples of 5 (0-100%)
+    static var fanSpeedOptions: [Int] {
+        return Array(stride(from: 0, through: 100, by: 5))
+    }
+
+    /// Print speed values in multiples of 5 (10-150 mm/s)
+    static var printSpeedOptions: [Int] {
+        return Array(stride(from: 10, through: 150, by: 5))
+    }
+
+    /// Common weight values in grams
+    static var weightOptions: [Double] {
+        return [250, 500, 750, 1000, 1200, 1500, 2000, 2300, 2500, 3000, 5000, 10000]
+    }
+
+    /// Common diameter values in mm
+    static var diameterOptions: [Double] {
+        return [1.75, 2.85, 3.0]
     }
 }

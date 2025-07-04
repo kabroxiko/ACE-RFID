@@ -6,9 +6,13 @@ An iOS application for managing 3D printing filament using RFID/NFC tags, specif
 
 - **NFC/RFID Tag Reading & Writing**: Read and write filament information to NFC tags
 - **Filament Database**: Store and manage detailed filament information
-- **Material Support**: Support for various filament types (PLA, ABS, PETG, TPU, etc.)
-- **Temperature Profiles**: Store print and bed temperature settings for each filament
-- **Weight Tracking**: Track filament weight and remaining amount
+- **Smart Brand Selection**: 18+ predefined brands sorted alphabetically with custom brand support
+- **Advanced Material Support**: 10 material types with automatic temperature and speed defaults
+- **Professional Color Picker**: 23 common colors with visual color swatches
+- **Intelligent Value Selection**: Predefined options for weights, diameters, temperatures, and speeds
+- **Temperature Profiles**: Precise temperature control in 5°C increments (160-300°C print, 0-120°C bed)
+- **Speed Control**: Fan speed and print speed selection in 5% and 5mm/s increments respectively
+- **Weight & Diameter Options**: Standard filament weights and common diameter choices
 - **Usage History**: Track when filaments were last used
 - **Core Data Integration**: Local data persistence using Core Data
 
@@ -31,17 +35,18 @@ An iOS application for managing 3D printing filament using RFID/NFC tags, specif
 ### Adding Filaments
 
 1. Tap the "+" button in the navigation bar
-2. Fill in the filament details:
-   - Brand name
-   - Material type (PLA, ABS, PETG, etc.)
-   - Color
-   - Weight in grams
-   - Diameter (typically 1.75mm)
-   - Print temperature
-   - Bed temperature
-   - Fan speed and print speed
-   - Optional notes
-3. Tap "Save" to store the filament
+2. Fill in the filament details using intelligent pickers:
+   - **Brand**: Select from 18+ sorted brands or add custom brands
+   - **Material**: Choose from 10 material types (PLA, ABS, PETG, TPU, etc.)
+   - **Color**: Pick from 23 colors with visual color swatches
+   - **Weight**: Select from standard weights (250g to 10kg)
+   - **Diameter**: Choose from common diameters (1.75mm, 2.85mm, 3.0mm)
+   - **Print Temperature**: Select in 5°C increments (160-300°C)
+   - **Bed Temperature**: Choose in 5°C increments (0-120°C)
+   - **Fan Speed**: Pick percentage in 5% increments (0-100%)
+   - **Print Speed**: Select in 5mm/s increments (10-150mm/s)
+   - **Notes**: Optional additional information
+3. Tap "Save" to store the filament with intelligent defaults applied
 
 ### Reading NFC Tags
 

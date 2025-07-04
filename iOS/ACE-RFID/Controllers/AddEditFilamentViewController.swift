@@ -18,7 +18,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     weak var delegate: AddEditFilamentViewControllerDelegate?
     private var filament: Filament?
     private var isEditMode: Bool { return filament != nil }
-    
+
     // Brand management
     private var availableBrands: [String] = []
 
@@ -35,11 +35,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     private let colorTextField = UITextField()
     private let colorPickerView = UIPickerView()
     private let weightTextField = UITextField()
+    private let weightPickerView = UIPickerView()
     private let diameterTextField = UITextField()
+    private let diameterPickerView = UIPickerView()
     private let printTemperatureTextField = UITextField()
+    private let printTemperaturePickerView = UIPickerView()
     private let bedTemperatureTextField = UITextField()
+    private let bedTemperaturePickerView = UIPickerView()
     private let fanSpeedTextField = UITextField()
+    private let fanSpeedPickerView = UIPickerView()
     private let printSpeedTextField = UITextField()
+    private let printSpeedPickerView = UIPickerView()
     private let notesTextView = UITextView()
 
     private let materialTextField = UITextField()
@@ -166,45 +172,62 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         // Weight section
         stackView.addArrangedSubview(createSectionLabel("Weight (grams)"))
-        weightTextField.placeholder = "1000"
+        weightTextField.placeholder = "Select weight"
         weightTextField.text = "1000" // Default value
-        weightTextField.keyboardType = .numberPad // Changed from .decimalPad to .numberPad for integers only
+        weightTextField.inputView = weightPickerView
+        weightPickerView.delegate = self
+        weightPickerView.dataSource = self
+        weightPickerView.tag = 3 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(weightTextField))
 
         // Diameter section
         stackView.addArrangedSubview(createSectionLabel("Diameter (mm)"))
-        diameterTextField.placeholder = "1.75"
+        diameterTextField.placeholder = "Select diameter"
         diameterTextField.text = "1.75" // Default value
-        diameterTextField.keyboardType = .decimalPad
-        // Note: iOS uses the system locale for decimal separator display
+        diameterTextField.inputView = diameterPickerView
+        diameterPickerView.delegate = self
+        diameterPickerView.dataSource = self
+        diameterPickerView.tag = 4 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(diameterTextField))
 
         // Print temperature section
         stackView.addArrangedSubview(createSectionLabel("Print Temperature (°C)"))
-        printTemperatureTextField.placeholder = "200"
+        printTemperatureTextField.placeholder = "Select temperature"
         printTemperatureTextField.text = "200" // Default value
-        printTemperatureTextField.keyboardType = .numberPad
+        printTemperatureTextField.inputView = printTemperaturePickerView
+        printTemperaturePickerView.delegate = self
+        printTemperaturePickerView.dataSource = self
+        printTemperaturePickerView.tag = 5 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(printTemperatureTextField))
 
         // Bed temperature section
         stackView.addArrangedSubview(createSectionLabel("Bed Temperature (°C)"))
-        bedTemperatureTextField.placeholder = "60"
+        bedTemperatureTextField.placeholder = "Select temperature"
         bedTemperatureTextField.text = "60" // Default value
-        bedTemperatureTextField.keyboardType = .numberPad
+        bedTemperatureTextField.inputView = bedTemperaturePickerView
+        bedTemperaturePickerView.delegate = self
+        bedTemperaturePickerView.dataSource = self
+        bedTemperaturePickerView.tag = 6 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(bedTemperatureTextField))
 
         // Fan speed section
         stackView.addArrangedSubview(createSectionLabel("Fan Speed (%)"))
-        fanSpeedTextField.placeholder = "100"
+        fanSpeedTextField.placeholder = "Select fan speed"
         fanSpeedTextField.text = "100" // Default value
-        fanSpeedTextField.keyboardType = .numberPad
+        fanSpeedTextField.inputView = fanSpeedPickerView
+        fanSpeedPickerView.delegate = self
+        fanSpeedPickerView.dataSource = self
+        fanSpeedPickerView.tag = 7 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(fanSpeedTextField))
 
         // Print speed section
         stackView.addArrangedSubview(createSectionLabel("Print Speed (mm/s)"))
-        printSpeedTextField.placeholder = "50"
+        printSpeedTextField.placeholder = "Select print speed"
         printSpeedTextField.text = "50" // Default value
-        printSpeedTextField.keyboardType = .numberPad
+        printSpeedTextField.inputView = printSpeedPickerView
+        printSpeedPickerView.delegate = self
+        printSpeedPickerView.dataSource = self
+        printSpeedPickerView.tag = 8 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(printSpeedTextField))
 
         // Notes section
@@ -276,12 +299,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         toolbar.items = [flexSpace, doneButton]
 
-        weightTextField.inputAccessoryView = toolbar
-        diameterTextField.inputAccessoryView = toolbar
-        printTemperatureTextField.inputAccessoryView = toolbar
-        bedTemperatureTextField.inputAccessoryView = toolbar
-        fanSpeedTextField.inputAccessoryView = toolbar
-        printSpeedTextField.inputAccessoryView = toolbar
+        // All form fields now use pickers, so only add toolbar to text view
+        notesTextView.inputAccessoryView = toolbar
     }
 
     private func fillFormWithFilament() {
@@ -294,12 +313,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         brandTextField.text = filament.brand
         materialTextField.text = filament.material
         colorTextField.text = filament.color
-        weightTextField.text = String(Int(filament.weight)) // Display weight as integer
-        diameterTextField.text = String(filament.diameter)
-        printTemperatureTextField.text = String(filament.printTemperature)
-        bedTemperatureTextField.text = String(filament.bedTemperature)
-        fanSpeedTextField.text = String(filament.fanSpeed)
-        printSpeedTextField.text = String(filament.printSpeed)
+
+        // Format weight display
+        let weight = filament.weight
+        weightTextField.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
+
+        // Format other fields
+        diameterTextField.text = String(format: "%.2f mm", filament.diameter)
+        printTemperatureTextField.text = "\(filament.printTemperature)°C"
+        bedTemperatureTextField.text = "\(filament.bedTemperature)°C"
+        fanSpeedTextField.text = "\(filament.fanSpeed)%"
+        printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
 
         // Set picker views to correct selections
@@ -321,6 +345,33 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         if let colorIndex = Filament.Color.allCases.firstIndex(where: { $0.rawValue == filament.color }) {
             colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
         }
+
+        // Set weight picker selection
+        if let weightIndex = Filament.weightOptions.firstIndex(of: weight) {
+            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
+        }
+
+        // Set diameter picker selection
+        if let diameterIndex = Filament.diameterOptions.firstIndex(of: filament.diameter) {
+            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
+        }
+
+        // Set temperature and speed picker selections
+        if let printTempIndex = Filament.temperatureOptions.firstIndex(of: filament.printTemperature) {
+            printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
+        }
+
+        if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: filament.bedTemperature) {
+            bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
+        }
+
+        if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: filament.fanSpeed) {
+            fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+        }
+
+        if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: filament.printSpeed) {
+            printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
+        }
     }
 
     private func setDefaultValues() {
@@ -341,16 +392,48 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         colorTextField.text = defaultColor.rawValue
         colorPickerView.selectRow(0, inComponent: 0, animated: false)
 
-        // Apply material-based defaults for temperatures and speeds
-        printTemperatureTextField.text = String(defaultMaterial.defaultPrintTemperature)
-        bedTemperatureTextField.text = String(defaultMaterial.defaultBedTemperature)
-        fanSpeedTextField.text = String(defaultMaterial.defaultFanSpeed)
-        printSpeedTextField.text = String(defaultMaterial.defaultPrintSpeed)
+        // Set default weight and diameter with proper formatting
+        let defaultWeight = defaultBrand.defaultWeight
+        weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
+        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight) {
+            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
+        }
+
+        let defaultDiameter = defaultBrand.defaultDiameter
+        diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
+        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter) {
+            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
+        }
+
+        // Apply material-based defaults for temperatures and speeds with proper formatting
+        let printTemp = defaultMaterial.defaultPrintTemperature
+        let bedTemp = defaultMaterial.defaultBedTemperature
+        let fanSpeed = defaultMaterial.defaultFanSpeed
+        let printSpeed = defaultMaterial.defaultPrintSpeed
+
+        printTemperatureTextField.text = "\(printTemp)°C"
+        bedTemperatureTextField.text = "\(bedTemp)°C"
+        fanSpeedTextField.text = "\(fanSpeed)%"
+        printSpeedTextField.text = "\(printSpeed) mm/s"
+
+        // Set picker selections for temperatures and speeds
+        if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp) {
+            printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
+        }
+        if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp) {
+            bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
+        }
+        if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed) {
+            fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+        }
+        if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed) {
+            printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
+        }
     }
 
     private func initializeBrands() {
-        // Start with predefined brands
-        availableBrands = Filament.Brand.allCases.map { $0.rawValue }
+        // Start with predefined brands (sorted alphabetically)
+        availableBrands = Filament.Brand.sortedCases.map { $0.rawValue }
         // Add "Add Custom Brand..." option at the end
         availableBrands.append("Add Custom Brand...")
     }
@@ -367,12 +450,42 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let brand = brandTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let material = materialTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let color = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let weight = Double(Int(weightTextField.text ?? "0") ?? 0) // Convert to Int first, then to Double for Filament struct
-        let diameter = Double(diameterTextField.text ?? "1.75") ?? 1.75
-        let printTemp = Int(printTemperatureTextField.text ?? "200") ?? 200
-        let bedTemp = Int(bedTemperatureTextField.text ?? "60") ?? 60
-        let fanSpeed = Int(fanSpeedTextField.text ?? "100") ?? 100
-        let printSpeed = Int(printSpeedTextField.text ?? "50") ?? 50
+
+        // Parse weight from formatted text (e.g., "1000 g" or "1.0 kg")
+        let weightText = weightTextField.text ?? "1000"
+        let weight: Double
+        if weightText.contains("kg") {
+            let weightString = weightText.replacingOccurrences(of: " kg", with: "")
+            weight = (Double(weightString) ?? 1.0) * 1000
+        } else {
+            let weightString = weightText.replacingOccurrences(of: " g", with: "")
+            weight = Double(weightString) ?? 1000
+        }
+
+        // Parse diameter from formatted text (e.g., "1.75 mm")
+        let diameterText = diameterTextField.text ?? "1.75"
+        let diameterString = diameterText.replacingOccurrences(of: " mm", with: "")
+        let diameter = Double(diameterString) ?? 1.75
+
+        // Parse temperatures from formatted text (e.g., "200°C")
+        let printTempText = printTemperatureTextField.text ?? "200"
+        let printTempString = printTempText.replacingOccurrences(of: "°C", with: "")
+        let printTemp = Int(printTempString) ?? 200
+
+        let bedTempText = bedTemperatureTextField.text ?? "60"
+        let bedTempString = bedTempText.replacingOccurrences(of: "°C", with: "")
+        let bedTemp = Int(bedTempString) ?? 60
+
+        // Parse fan speed from formatted text (e.g., "100%")
+        let fanSpeedText = fanSpeedTextField.text ?? "100"
+        let fanSpeedString = fanSpeedText.replacingOccurrences(of: "%", with: "")
+        let fanSpeed = Int(fanSpeedString) ?? 100
+
+        // Parse print speed from formatted text (e.g., "50 mm/s")
+        let printSpeedText = printSpeedTextField.text ?? "50"
+        let printSpeedString = printSpeedText.replacingOccurrences(of: " mm/s", with: "")
+        let printSpeed = Int(printSpeedString) ?? 50
+
         let notes = notesTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if isEditMode {
@@ -455,53 +568,53 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     // MARK: - Custom Brand Management
-    
+
     private func showAddCustomBrandAlert() {
         let alert = UIAlertController(title: "Add Custom Brand", message: "Enter the name of the filament brand", preferredStyle: .alert)
-        
+
         alert.addTextField { textField in
             textField.placeholder = "Brand name"
             textField.autocapitalizationType = .words
         }
-        
+
         let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
             guard let self = self,
                   let textField = alert.textFields?.first,
                   let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !brandName.isEmpty else { return }
-            
+
             // Check if brand already exists
             if !self.availableBrands.contains(brandName) {
                 // Insert before "Add Custom Brand..." option
                 self.availableBrands.insert(brandName, at: self.availableBrands.count - 1)
                 self.brandPickerView.reloadAllComponents()
             }
-            
+
             // Set the custom brand as selected
             self.brandTextField.text = brandName
-            
+
             // Select the new brand in the picker
             if let index = self.availableBrands.firstIndex(of: brandName) {
                 self.brandPickerView.selectRow(index, inComponent: 0, animated: true)
             }
-            
+
             self.dismissKeyboard()
         }
-        
+
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
             // Reset picker to first item (or current selection)
             guard let self = self else { return }
-            if let currentBrand = self.brandTextField.text, 
+            if let currentBrand = self.brandTextField.text,
                let index = self.availableBrands.firstIndex(of: currentBrand) {
                 self.brandPickerView.selectRow(index, inComponent: 0, animated: true)
             } else {
                 self.brandPickerView.selectRow(0, inComponent: 0, animated: true)
             }
         }
-        
+
         alert.addAction(addAction)
         alert.addAction(cancelAction)
-        
+
         present(alert, animated: true)
     }
 
@@ -565,6 +678,18 @@ extension AddEditFilamentViewController: UIPickerViewDataSource {
             return Filament.Material.allCases.count
         case 2: // Color picker
             return Filament.Color.allCases.count
+        case 3: // Weight picker
+            return Filament.weightOptions.count
+        case 4: // Diameter picker
+            return Filament.diameterOptions.count
+        case 5: // Print temperature picker
+            return Filament.temperatureOptions.count
+        case 6: // Bed temperature picker
+            return Filament.bedTemperatureOptions.count
+        case 7: // Fan speed picker
+            return Filament.fanSpeedOptions.count
+        case 8: // Print speed picker
+            return Filament.printSpeedOptions.count
         default:
             return 0
         }
@@ -611,7 +736,7 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
             return containerView
         } else {
-            // For brand and material pickers, use default text
+            // For all other pickers, use standard text label
             let label = UILabel()
             label.textAlignment = .center
             label.font = UIFont.systemFont(ofSize: 17)
@@ -622,6 +747,19 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
                 label.text = availableBrands[row]
             case 1: // Material picker
                 label.text = Filament.Material.allCases[row].rawValue
+            case 3: // Weight picker
+                let weight = Filament.weightOptions[row]
+                label.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
+            case 4: // Diameter picker
+                label.text = String(format: "%.2f mm", Filament.diameterOptions[row])
+            case 5: // Print temperature picker
+                label.text = "\(Filament.temperatureOptions[row])°C"
+            case 6: // Bed temperature picker
+                label.text = "\(Filament.bedTemperatureOptions[row])°C"
+            case 7: // Fan speed picker
+                label.text = "\(Filament.fanSpeedOptions[row])%"
+            case 8: // Print speed picker
+                label.text = "\(Filament.printSpeedOptions[row]) mm/s"
             default:
                 label.text = ""
             }
@@ -648,20 +786,32 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
         switch pickerView.tag {
         case 0: // Brand picker
             let selectedBrandName = availableBrands[row]
-            
+
             if selectedBrandName == "Add Custom Brand..." {
                 // Show alert to add custom brand
                 showAddCustomBrandAlert()
             } else {
                 brandTextField.text = selectedBrandName
-                
+
                 // Update weight and diameter defaults when brand changes (only for predefined brands)
                 if let predefinedBrand = Filament.Brand.allCases.first(where: { $0.rawValue == selectedBrandName }) {
                     if weightTextField.text?.isEmpty ?? true || weightTextField.text == "1000" {
-                        weightTextField.text = String(Int(predefinedBrand.defaultWeight))
+                        let defaultWeight = predefinedBrand.defaultWeight
+                        weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
+
+                        // Update weight picker selection
+                        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight) {
+                            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
+                        }
                     }
                     if diameterTextField.text?.isEmpty ?? true || diameterTextField.text == "1.75" {
-                        diameterTextField.text = String(predefinedBrand.defaultDiameter)
+                        let defaultDiameter = predefinedBrand.defaultDiameter
+                        diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
+
+                        // Update diameter picker selection
+                        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter) {
+                            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
+                        }
                     }
                 }
             }
@@ -671,14 +821,57 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
             materialTextField.text = selectedMaterial.rawValue
 
             // Auto-fill temperature and speed defaults based on material
-            printTemperatureTextField.text = String(selectedMaterial.defaultPrintTemperature)
-            bedTemperatureTextField.text = String(selectedMaterial.defaultBedTemperature)
-            fanSpeedTextField.text = String(selectedMaterial.defaultFanSpeed)
-            printSpeedTextField.text = String(selectedMaterial.defaultPrintSpeed)
+            let printTemp = selectedMaterial.defaultPrintTemperature
+            let bedTemp = selectedMaterial.defaultBedTemperature
+            let fanSpeed = selectedMaterial.defaultFanSpeed
+            let printSpeed = selectedMaterial.defaultPrintSpeed
+
+            printTemperatureTextField.text = "\(printTemp)°C"
+            bedTemperatureTextField.text = "\(bedTemp)°C"
+            fanSpeedTextField.text = "\(fanSpeed)%"
+            printSpeedTextField.text = "\(printSpeed) mm/s"
+
+            // Update picker selections
+            if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp) {
+                printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
+            }
+            if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp) {
+                bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
+            }
+            if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed) {
+                fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+            }
+            if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed) {
+                printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
+            }
 
         case 2: // Color picker
             let selectedColor = Filament.Color.allCases[row]
             colorTextField.text = selectedColor.rawValue
+
+        case 3: // Weight picker
+            let selectedWeight = Filament.weightOptions[row]
+            weightTextField.text = selectedWeight < 1000 ? String(format: "%.0f g", selectedWeight) : String(format: "%.1f kg", selectedWeight / 1000)
+
+        case 4: // Diameter picker
+            let selectedDiameter = Filament.diameterOptions[row]
+            diameterTextField.text = String(format: "%.2f mm", selectedDiameter)
+
+        case 5: // Print temperature picker
+            let selectedTemp = Filament.temperatureOptions[row]
+            printTemperatureTextField.text = "\(selectedTemp)°C"
+
+        case 6: // Bed temperature picker
+            let selectedTemp = Filament.bedTemperatureOptions[row]
+            bedTemperatureTextField.text = "\(selectedTemp)°C"
+
+        case 7: // Fan speed picker
+            let selectedSpeed = Filament.fanSpeedOptions[row]
+            fanSpeedTextField.text = "\(selectedSpeed)%"
+
+        case 8: // Print speed picker
+            let selectedSpeed = Filament.printSpeedOptions[row]
+            printSpeedTextField.text = "\(selectedSpeed) mm/s"
 
         default:
             break
@@ -687,14 +880,14 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 }
 
 // MARK: - UITextFieldDelegate
-    
+
 extension AddEditFilamentViewController {
 
     func textFieldDidEndEditing(_ textField: UITextField) {
         if textField == brandTextField {
             guard let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !brandName.isEmpty else { return }
-            
+
             // Check if this is a new custom brand
             if !availableBrands.contains(brandName) && brandName != "Add Custom Brand..." {
                 // Insert before "Add Custom Brand..." option
@@ -704,5 +897,3 @@ extension AddEditFilamentViewController {
         }
     }
 }
-
-
