@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 /// Represents a 3D printing filament with all its properties
 struct Filament {
@@ -102,6 +103,36 @@ extension Filament {
             case .other: return 60
             }
         }
+
+        var defaultFanSpeed: Int {
+            switch self {
+            case .pla: return 100
+            case .abs: return 0
+            case .petg: return 50
+            case .tpu: return 30
+            case .wood: return 100
+            case .metal: return 80
+            case .carbon: return 50
+            case .glow: return 100
+            case .water: return 100
+            case .other: return 50
+            }
+        }
+
+        var defaultPrintSpeed: Int {
+            switch self {
+            case .pla: return 60
+            case .abs: return 50
+            case .petg: return 50
+            case .tpu: return 25
+            case .wood: return 40
+            case .metal: return 45
+            case .carbon: return 40
+            case .glow: return 50
+            case .water: return 40
+            case .other: return 50
+            }
+        }
     }
 }
 
@@ -115,7 +146,82 @@ extension Filament {
         case esun = "eSUN"
         case polymaker = "Polymaker"
         case prusament = "Prusament"
+        case bambu = "Bambu Lab"
+        case creality = "Creality"
+        case amazon = "Amazon Basics"
+        case geeetech = "GEEETECH"
+        case jayo = "JAYO"
+        case tecbears = "TECBEARS"
+        case solutech = "SOLUTECH"
+        case inland = "Inland"
+        case tianse = "TIANSE"
+        case reprapper = "RepRapper"
         case other = "Other"
+
+        var defaultWeight: Double {
+            return 1000.0 // 1kg standard
+        }
+
+        var defaultDiameter: Double {
+            return 1.75 // Most common diameter
+        }
+    }
+}
+
+// MARK: - Filament Color Types
+extension Filament {
+    enum Color: String, CaseIterable {
+        case black = "Black"
+        case white = "White"
+        case red = "Red"
+        case blue = "Blue"
+        case green = "Green"
+        case yellow = "Yellow"
+        case orange = "Orange"
+        case purple = "Purple"
+        case pink = "Pink"
+        case gray = "Gray"
+        case brown = "Brown"
+        case transparent = "Transparent"
+        case translucent = "Translucent"
+        case silver = "Silver"
+        case gold = "Gold"
+        case bronze = "Bronze"
+        case copper = "Copper"
+        case rainbow = "Rainbow"
+        case glow = "Glow"
+        case marble = "Marble"
+        case wood = "Wood"
+        case carbon = "Carbon"
+        case other = "Other"
+
+        var displayColor: UIColor {
+            switch self {
+            case .black: return UIColor.black
+            case .white: return UIColor.white
+            case .red: return UIColor.red
+            case .blue: return UIColor.blue
+            case .green: return UIColor.green
+            case .yellow: return UIColor.yellow
+            case .orange: return UIColor.orange
+            case .purple: return UIColor.purple
+            case .pink: return UIColor.systemPink
+            case .gray: return UIColor.gray
+            case .brown: return UIColor.brown
+            case .transparent: return UIColor.clear
+            case .translucent: return UIColor.systemGray6
+            case .silver: return UIColor.lightGray
+            case .gold: return UIColor.systemYellow
+            case .bronze: return UIColor.brown
+            case .copper: return UIColor.systemOrange
+            case .rainbow: return UIColor.systemIndigo
+            case .glow: return UIColor.systemGreen
+            case .marble: return UIColor.systemGray
+            case .wood: return UIColor.brown
+            case .carbon: return UIColor.darkGray
+            case .other: return UIColor.systemGray
+            }
+        }
     }
 }
 
