@@ -17,6 +17,7 @@
 		3A1B2C3D4E5F6708 /* NFCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6727 /* NFCService.swift */; };
 		3A1B2C3D4E5F6709 /* FilamentDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */; };
 		3A1B2C3D4E5F670A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */; };
+		3A1B2C3D4E5F670B /* CustomColorPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672B /* ACE-RFID.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ACE-RFID.entitlements"; sourceTree = "<group>"; };
+		3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomColorPickerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 			children = (
 				3A1B2C3D4E5F6722 /* MainViewController.swift */,
 				3A1B2C3D4E5F6723 /* AddEditFilamentViewController.swift */,
+				3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -132,7 +135,7 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3A1B2C3D4E5F672C /* ACE-RFID */ = {
+		3A1B2C3D4E5F672E /* ACE-RFID */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3A1B2C3D4E5F6813 /* Build configuration list for PBXNativeTarget "ACE-RFID" */;
 			buildPhases = (
@@ -159,7 +162,7 @@
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					3A1B2C3D4E5F672C = {
+					3A1B2C3D4E5F672E = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
@@ -177,7 +180,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3A1B2C3D4E5F672C /* ACE-RFID */,
+				3A1B2C3D4E5F672E /* ACE-RFID */,
 			);
 		};
 /* End PBXProject section */
@@ -200,6 +203,7 @@
 			files = (
 				3A1B2C3D4E5F6706 /* Filament.swift in Sources */,
 				3A1B2C3D4E5F6704 /* AddEditFilamentViewController.swift in Sources */,
+				3A1B2C3D4E5F670B /* CustomColorPickerViewController.swift in Sources */,
 				3A1B2C3D4E5F6707 /* CoreDataManager.swift in Sources */,
 				3A1B2C3D4E5F6708 /* NFCService.swift in Sources */,
 				3A1B2C3D4E5F6701 /* AppDelegate.swift in Sources */,
@@ -415,14 +419,14 @@
 		3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				3A1B2C3D4E5F672D /* FilamentDataModel.xcdatamodel */,
+				3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */,
 			);
-			currentVersion = 3A1B2C3D4E5F672D /* FilamentDataModel.xcdatamodel */;
+			currentVersion = 3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */;
 			path = FilamentDataModel.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
-		3A1B2C3D4E5F672D /* FilamentDataModel.xcdatamodel */ = {
+		3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.xcdatamodel;
 			path = FilamentDataModel.xcdatamodel;

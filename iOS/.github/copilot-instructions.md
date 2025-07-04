@@ -1,10 +1,29 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more ### Build & Deployment Status ✅
+<!-- Use this file to provide workspace-specific custom instructions ### Key Files & Components
+
+### Models
+- `Filament.swift` - Complete data model with enums for Brand, Material, Color + custom color support
+- `CoreDataManager.swift` - Core Data stack management and operations
+
+### Views
+- `FilamentTableViewCell.swift` - Custom table view cell for filament display
+- `MainViewController.swift` - Primary interface with table view and NFC controls
+- `AddEditFilamentViewController.swift` - Form interface with advanced pickers and custom color integration
+
+### Controllers
+- `CustomColorPickerViewController.swift` - Circle color wheel picker with HSB selection and brightness control
+
+### Services
+- `NFCService.swift` - NFC tag reading/writing with simulator fallbacks
+
+### Core Data
+- `FilamentDataModel.xcdatamodeld` - Core Data model with proper versioningmore ### Build & Deployment Status ✅
 - ✅ **Xcode Project**: Properly configured with all dependencies resolved
 - ✅ **No Build Errors**: Clean builds for both simulator and device targets
 - ✅ **Code Signing**: Proper entitlements setup for both free and paid developer accounts
 - ✅ **NFC Compatibility**: Works with or without NFC hardware/entitlements
 - ✅ **Production Ready**: App Store deployment ready with proper Info.plist and project structure
-- ✅ **Testing Complete**: Comprehensive simulator testing and form validation verifiedhttps://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+- ✅ **Testing Complete**: Comprehensive simulator testing, app installation, and launch verification
+- ✅ **Deployment Verified**: Successfully builds, installs, and runs on iOS Simulator
 
 # ACE RFID iOS App Instructions
 
@@ -34,6 +53,8 @@ The app successfully builds and runs on both iOS simulator and device. All core 
 ### Enhanced User Experience ✅
 - ✅ **Smart Brand Management**: 18+ predefined brands sorted alphabetically + custom brand addition
 - ✅ **Professional Color Selection**: 23 common colors with visual color swatches and UIColor mapping
+- ✅ **Custom Color System**: Circle color wheel picker with HSB selection and brightness slider
+- ✅ **Color Persistence**: Custom colors saved via UserDefaults and integrated with predefined colors
 - ✅ **Material Intelligence**: 10 material types with automatic default temperature/speed settings
 - ✅ **Intelligent Value Selection**: Predefined picker options for all numeric values
 - ✅ **Advanced Temperature Control**: Print (160-300°C) and bed (0-120°C) temperatures in 5°C increments
@@ -47,6 +68,7 @@ The app successfully builds and runs on both iOS simulator and device. All core 
 - ✅ **Intelligent Parsing**: Robust parsing of formatted text back to numeric values
 - ✅ **Synchronized Defaults**: Material selection automatically updates temperatures and speeds
 - ✅ **Brand Intelligence**: Brand selection updates weight and diameter defaults appropriately
+- ✅ **Custom Color Integration**: Circle color wheel picker with real-time preview and custom color persistence
 - ✅ **Multi-Component Validation**: Comprehensive form validation with user-friendly error messages
 
 ### Data Model
@@ -104,6 +126,8 @@ The app successfully builds and runs on both iOS simulator and device. All core 
 - JSON serialization for NFC storage
 - Default value management
 - Material-specific intelligent defaults
+- Custom color persistence via UserDefaults
+- Dynamic color list management with predefined and custom colors
 
 ## Build & Deployment
 
@@ -131,6 +155,7 @@ This project is **FEATURE-COMPLETE** and **PRODUCTION-READY**. All planned funct
 - Enhanced picker interfaces for all numeric values with proper formatting
 - Alphabetically sorted brands with custom brand support
 - Predefined value lists for temperatures, speeds, weights, and diameters
+- Custom color system with circle color wheel picker and persistence
 - NFC service ready for device testing (requires paid Apple Developer account)
 - Comprehensive input validation and error handling
 - Responsive design following iOS Human Interface Guidelines
@@ -176,13 +201,11 @@ This project is **FEATURE-COMPLETE** and **PRODUCTION-READY**. All planned funct
 
 While the app is feature-complete, potential enhancements could include:
 - Additional filament brands or material types
-- More color options or custom color picker with color wheel
 - Export/import functionality for sharing filament databases
 - Cloud synchronization via iCloud or custom backend
 - Apple Watch companion app for quick filament checking
 - Advanced printing statistics and usage analytics
 - Integration with 3D printer APIs for automatic filament detection
-- Cloud synchronization via iCloud or custom backend
 - Apple Watch companion app for quick filament checking
 - Advanced printing statistics and usage analytics
 - Integration with 3D printer APIs for automatic filament detection
@@ -193,7 +216,8 @@ While the app is feature-complete, potential enhancements could include:
 - **All Picker-Based**: No keyboard input required - everything uses professional picker views
 - **Smart Formatting**: All values displayed with proper units (°C, %, mm/s, g/kg, mm)
 - **Intelligent Synchronization**: Material changes auto-update temps/speeds, brand changes auto-update weight/diameter
-- **Comprehensive Options**: 18+ brands, 10 materials, 23 colors, standard weights/diameters, precision temperature/speed control
+- **Custom Color System**: Circle color wheel picker with HSB selection and custom color persistence
+- **Comprehensive Options**: 18+ brands, 10 materials, 23+ colors (predefined + unlimited custom), standard weights/diameters, precision temperature/speed control
 
 ### Predefined Value Lists
 - **Print Temperatures**: 160-300°C in 5°C increments (61 options)
@@ -206,6 +230,7 @@ While the app is feature-complete, potential enhancements could include:
 ### Smart Data Management
 - **Alphabetical Brand Sorting**: Brands displayed in logical alphabetical order
 - **Custom Brand Support**: Add unlimited custom brands that persist in sorted order
+- **Custom Color System**: Circle color wheel with HSB selection, brightness control, and persistent storage
 - **Material-Specific Defaults**: Each material type has intelligent temperature and speed defaults
 - **Robust Parsing**: Converts formatted display text back to numeric values for storage
 - **Form Validation**: Comprehensive validation with user-friendly error messages

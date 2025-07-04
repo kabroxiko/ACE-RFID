@@ -22,6 +22,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     // Brand management
     private var availableBrands: [String] = []
 
+    // Color management
+    private var availableColors: [(name: String, color: UIColor)] = []
+
     // MARK: - UI Elements
 
     private let scrollView = UIScrollView()
@@ -31,6 +34,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     // Form fields
     private let brandTextField = UITextField()
     private let brandPickerView = UIPickerView()
+    private let materialTextField = UITextField()
     private let materialPickerView = UIPickerView()
     private let colorTextField = UITextField()
     private let colorPickerView = UIPickerView()
@@ -48,8 +52,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     private let printSpeedPickerView = UIPickerView()
     private let notesTextView = UITextView()
 
-    private let materialTextField = UITextField()
-
     // MARK: - Initialization
 
     init(filament: Filament? = nil) {
@@ -66,6 +68,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         initializeBrands()
+        initializeColors()
         setupUI()
         setupNavigationBar()
         fillFormWithFilament()
@@ -74,6 +77,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         registerKeyboardNotifications()
+        // Refresh colors in case custom colors were added elsewhere
+        refreshColors()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -342,7 +347,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             materialPickerView.selectRow(materialIndex, inComponent: 0, animated: false)
         }
 
-        if let colorIndex = Filament.Color.allCases.firstIndex(where: { $0.rawValue == filament.color }) {
+        if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
             colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
         }
 
@@ -436,6 +441,13 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         availableBrands = Filament.Brand.sortedCases.map { $0.rawValue }
         // Add "Add Custom Brand..." option at the end
         availableBrands.append("Add Custom Brand...")
+    }
+
+    private func initializeColors() {
+        // Get all available colors (predefined + custom)
+        availableColors = Filament.Color.allAvailableColors
+        // Add "Add Custom Color..." option at the end
+        availableColors.append(("Add Custom Color...", UIColor.systemBlue))
     }
 
     // MARK: - Actions
@@ -618,6 +630,31 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         present(alert, animated: true)
     }
 
+    // MARK: - Custom Color Picker
+
+    private func showCustomColorPicker() {
+        let customColorPicker = CustomColorPickerViewController()
+        customColorPicker.delegate = self
+
+        let navController = UINavigationController(rootViewController: customColorPicker)
+        navController.modalPresentationStyle = .pageSheet
+
+        if #available(iOS 15.0, *) {
+            if let sheet = navController.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+            }
+        }
+
+        present(navController, animated: true)
+    }
+
+    private func refreshColors() {
+        // Refresh the colors list and reload the picker
+        initializeColors()
+        colorPickerView.reloadAllComponents()
+    }
+
     // MARK: - Keyboard Handling
 
     private func registerKeyboardNotifications() {
@@ -677,7 +714,7 @@ extension AddEditFilamentViewController: UIPickerViewDataSource {
         case 1: // Material picker
             return Filament.Material.allCases.count
         case 2: // Color picker
-            return Filament.Color.allCases.count
+            return availableColors.count
         case 3: // Weight picker
             return Filament.weightOptions.count
         case 4: // Diameter picker
@@ -702,20 +739,20 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
         if pickerView.tag == 2 { // Color picker
-            let color = Filament.Color.allCases[row]
+            let colorInfo = availableColors[row]
 
             let containerView = UIView()
             containerView.frame = CGRect(x: 0, y: 0, width: 200, height: 30)
 
             let colorIndicator = UIView()
-            colorIndicator.backgroundColor = color.displayColor
+            colorIndicator.backgroundColor = colorInfo.color
             colorIndicator.layer.cornerRadius = 8
             colorIndicator.layer.borderWidth = 1
             colorIndicator.layer.borderColor = UIColor.systemGray4.cgColor
             colorIndicator.translatesAutoresizingMaskIntoConstraints = false
 
             let label = UILabel()
-            label.text = color.rawValue
+            label.text = colorInfo.name
             label.font = UIFont.systemFont(ofSize: 17)
             label.textColor = .label
             label.translatesAutoresizingMaskIntoConstraints = false
@@ -776,7 +813,7 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
         case 1: // Material picker
             return Filament.Material.allCases[row].rawValue
         case 2: // Color picker
-            return Filament.Color.allCases[row].rawValue
+            return availableColors[row].name
         default:
             return nil
         }
@@ -846,8 +883,14 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
             }
 
         case 2: // Color picker
-            let selectedColor = Filament.Color.allCases[row]
-            colorTextField.text = selectedColor.rawValue
+            let selectedColorInfo = availableColors[row]
+
+            if selectedColorInfo.name == "Add Custom Color..." {
+                // Show custom color picker
+                showCustomColorPicker()
+            } else {
+                colorTextField.text = selectedColorInfo.name
+            }
 
         case 3: // Weight picker
             let selectedWeight = Filament.weightOptions[row]
@@ -894,6 +937,26 @@ extension AddEditFilamentViewController {
                 availableBrands.insert(brandName, at: availableBrands.count - 1)
                 brandPickerView.reloadAllComponents()
             }
+        }
+    }
+}
+
+// MARK: - CustomColorPickerDelegate
+
+extension AddEditFilamentViewController: CustomColorPickerDelegate {
+    func customColorPicker(_ picker: CustomColorPickerViewController, didSelectColor color: UIColor, withName name: String) {
+        // Save the custom color
+        CustomColorManager.shared.addCustomColor(name: name, color: color)
+
+        // Refresh the color list
+        refreshColors()
+
+        // Set the new color as selected
+        colorTextField.text = name
+
+        // Update picker selection to the new color
+        if let colorIndex = availableColors.firstIndex(where: { $0.name == name }) {
+            colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
         }
     }
 }

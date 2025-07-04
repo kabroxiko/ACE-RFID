@@ -1,0 +1,128 @@
+{
+  "" : {
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/ACE-RFID-master.dia",
+    "emit-module-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/ACE-RFID-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/ACE-RFID-master-emit-module.dia",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/ACE-RFID-master.swiftdeps"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/AppDelegate.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AppDelegate~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Controllers/AddEditFilamentViewController.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/AddEditFilamentViewController~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Controllers/CustomColorPickerViewController.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CustomColorPickerViewController~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Controllers/MainViewController.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/MainViewController~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Core Data/CoreDataManager.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/CoreDataManager~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Models/Filament.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/Filament~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/SceneDelegate.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/SceneDelegate~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Services/NFCService.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/NFCService~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/ACE-RFID/Views/FilamentTableViewCell.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentTableViewCell~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/DerivedSources/CoreDataGenerated/FilamentDataModel/FilamentDataModel+CoreDataModel.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentDataModel+CoreDataModel~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/DerivedSources/CoreDataGenerated/FilamentDataModel/FilamentEntity+CoreDataClass.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataClass~partial.swiftmodule"
+  },
+  "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/DerivedSources/CoreDataGenerated/FilamentDataModel/FilamentEntity+CoreDataProperties.swift" : {
+    "const-values" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.swiftconstvalues",
+    "dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.d",
+    "diagnostics" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.dia",
+    "index-unit-output-path" : "/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.o",
+    "llvm-bc" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.bc",
+    "object" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.o",
+    "swift-dependencies" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties.swiftdeps",
+    "swiftmodule" : "/Users/kabroxiko/ACE-RFID/iOS/build/Build/Intermediates.noindex/ACE-RFID.build/Debug-iphonesimulator/ACE-RFID.build/Objects-normal/arm64/FilamentEntity+CoreDataProperties~partial.swiftmodule"
+  }
+}
