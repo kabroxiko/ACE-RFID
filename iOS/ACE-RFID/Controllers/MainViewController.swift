@@ -73,7 +73,8 @@ class MainViewController: UIViewController {
             #if targetEnvironment(simulator)
             showAlert(title: "NFC Not Available", message: "NFC is not supported in the iOS Simulator. Deploy to a physical iPhone device to test NFC functionality. You can still manage filaments manually.")
             #else
-            showAlert(title: "NFC Not Available", message: "This device does not support NFC. You can still manage filaments manually.")
+            showAlert(title: "NFC Requires Paid Developer Account",
+                     message: "NFC functionality requires a paid Apple Developer Program membership ($99/year). Personal development teams cannot use NFC features. You can still manage filaments manually and the NFC features will work once deployed with a paid developer account.")
             #endif
         }
     }
@@ -103,7 +104,13 @@ class MainViewController: UIViewController {
 
     @objc private func scanNFCTapped() {
         guard NFCService.isNFCAvailable else {
-            showAlert(title: "NFC Not Available", message: "This device does not support NFC.")
+            #if targetEnvironment(simulator)
+            showAlert(title: "NFC Not Available",
+                     message: "NFC is not supported in the iOS Simulator. Deploy to a physical device to test NFC functionality.")
+            #else
+            showAlert(title: "NFC Requires Paid Developer Account",
+                     message: "NFC functionality requires a paid Apple Developer Program membership ($99/year). Personal development teams cannot use NFC features.\n\nYou can still:\n• Add filaments manually\n• Edit filament details\n• Track usage\n\nNFC scanning and writing will work once deployed with a paid developer account.")
+            #endif
             return
         }
 
