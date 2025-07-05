@@ -313,6 +313,22 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func addToolbarToPickers() {
+        // Create individual toolbars for each field to avoid constraint conflicts
+        let textFields = [
+            brandTextField, materialTextField, colorTextField, weightTextField,
+            diameterTextField, printTemperatureTextField, bedTemperatureTextField,
+            fanSpeedTextField, printSpeedTextField
+        ]
+
+        for textField in textFields {
+            textField.inputAccessoryView = createInputToolbar()
+        }
+
+        // Add toolbar to notes text view
+        notesTextView.inputAccessoryView = createInputToolbar()
+    }
+
+    private func createInputToolbar() -> UIToolbar {
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
 
@@ -320,20 +336,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
 
         toolbar.items = [flexSpace, doneButton]
-
-        // Add toolbar to all picker fields
-        brandTextField.inputAccessoryView = toolbar
-        materialTextField.inputAccessoryView = toolbar
-        colorTextField.inputAccessoryView = toolbar
-        weightTextField.inputAccessoryView = toolbar
-        diameterTextField.inputAccessoryView = toolbar
-        printTemperatureTextField.inputAccessoryView = toolbar
-        bedTemperatureTextField.inputAccessoryView = toolbar
-        fanSpeedTextField.inputAccessoryView = toolbar
-        printSpeedTextField.inputAccessoryView = toolbar
-
-        // Add toolbar to notes text view
-        notesTextView.inputAccessoryView = toolbar
+        return toolbar
     }
 
     private func createSectionLabel(_ text: String) -> UILabel {
