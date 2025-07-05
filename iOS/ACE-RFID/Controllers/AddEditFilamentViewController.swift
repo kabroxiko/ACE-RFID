@@ -6,12 +6,13 @@
 //
 
 import UIKit
+import CoreNFC
 
 protocol AddEditFilamentViewControllerDelegate: AnyObject {
     func didSaveFilament(_ filament: Filament)
 }
 
-class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
+class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCServiceDelegate {
 
     // MARK: - Properties
 
@@ -19,11 +20,28 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     private var filament: Filament?
     private var isEditMode: Bool { return filament != nil }
 
+    // NFC Service
+    private let nfcService = NFCService()
+
     // Brand management
-    private var availableBrands: [String] = []
+    private lazy var availableBrands: [String] = {
+        var brands = Filament.Brand.allCases.map { $0.rawValue }.sorted()
+        brands.append("Add Custom Brand...")
+        return brands
+    }()
 
     // Color management
-    private var availableColors: [(name: String, color: UIColor)] = []
+    private lazy var availableColors: [(name: String, color: UIColor)] = {
+        // Combine predefined and custom colors
+        var colors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
+        let customColors = CustomColorManager.shared.getCustomColors()
+        colors.append(contentsOf: customColors)
+        colors.append(("Add Custom Color...", UIColor.systemGray))
+        return colors
+    }()
+
+    // Picker view caching for performance - lazy initialization
+    private lazy var cachedPickerViews: [Int: UIPickerView] = [:]
 
     // MARK: - UI Elements
 
@@ -33,24 +51,18 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     // Form fields
     private let brandTextField = UITextField()
-    private let brandPickerView = UIPickerView()
     private let materialTextField = UITextField()
-    private let materialPickerView = UIPickerView()
     private let colorTextField = UITextField()
-    private let colorPickerView = UIPickerView()
     private let weightTextField = UITextField()
-    private let weightPickerView = UIPickerView()
     private let diameterTextField = UITextField()
-    private let diameterPickerView = UIPickerView()
     private let printTemperatureTextField = UITextField()
-    private let printTemperaturePickerView = UIPickerView()
     private let bedTemperatureTextField = UITextField()
-    private let bedTemperaturePickerView = UIPickerView()
     private let fanSpeedTextField = UITextField()
-    private let fanSpeedPickerView = UIPickerView()
     private let printSpeedTextField = UITextField()
-    private let printSpeedPickerView = UIPickerView()
     private let notesTextView = UITextView()
+
+    // Cache for color swatch - much faster than view hierarchy search
+    private weak var colorSwatchView: UIView?
 
     // MARK: - Initialization
 
@@ -67,11 +79,15 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        initializeBrands()
-        initializeColors()
+        setupNFC()
         setupUI()
         setupNavigationBar()
         fillFormWithFilament()
+
+        // Pre-warm pickers in background for faster first access
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.preWarmPickers()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -86,7 +102,63 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         unregisterKeyboardNotifications()
     }
 
+    // MARK: - Picker Performance Optimization
+
+    private func preWarmPickers() {
+        // Pre-create all picker views in background to avoid first-time delays
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            // Create all pickers but don't assign them yet to avoid blocking UI
+            for tag in 0...8 {
+                _ = self.getCachedPickerView(tag: tag)
+            }
+        }
+    }
+
+    private func getCachedPickerView(tag: Int) -> UIPickerView {
+        if let cachedPicker = cachedPickerViews[tag] {
+            return cachedPicker
+        }
+
+        let picker = UIPickerView()
+        picker.delegate = self
+        picker.dataSource = self
+        picker.tag = tag
+
+        // Pre-warm the picker by calling reloadAllComponents in background
+        DispatchQueue.global(qos: .userInitiated).async { [weak picker] in
+            DispatchQueue.main.async {
+                picker?.reloadAllComponents()
+            }
+        }
+
+        cachedPickerViews[tag] = picker
+        return picker
+    }
+
+    private func refreshColors() {
+        // Only reload if colors actually changed to avoid unnecessary work
+        let newColors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) } +
+                       CustomColorManager.shared.getCustomColors() +
+                       [("Add Custom Color...", UIColor.systemGray)]
+
+        let hasChanged = newColors.count != availableColors.count ||
+                        !zip(newColors, availableColors).allSatisfy { $0.0.name == $0.1.name }
+
+        if hasChanged {
+            availableColors = newColors
+            if let colorPicker = cachedPickerViews[2] {
+                colorPicker.reloadAllComponents()
+            }
+        }
+    }
+
     // MARK: - Setup
+
+    private func setupNFC() {
+        nfcService.delegate = self
+    }
 
     private func setupUI() {
         // Enhanced background with gradient
@@ -101,8 +173,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         gradientLayer.locations = [0, 1]
         view.layer.insertSublayer(gradientLayer, at: 0)
 
-        // Update gradient frame when view layout changes
-        DispatchQueue.main.async {
+        // Update gradient frame when view layout changes - optimized
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             gradientLayer.frame = self.view.bounds
         }
 
@@ -177,84 +250,68 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func setupFormFields() {
+        // NFC Controls section at the top
+        stackView.addArrangedSubview(createNFCControlsSection())
+
         // Brand section
         stackView.addArrangedSubview(createSectionLabel("Brand"))
         brandTextField.placeholder = "Enter brand name or select from list"
-        brandTextField.inputView = brandPickerView
+        brandTextField.inputView = getCachedPickerView(tag: 0)
         brandTextField.delegate = self // Add text field delegate
-        brandPickerView.delegate = self
-        brandPickerView.dataSource = self
-        brandPickerView.tag = 0 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(brandTextField))
 
         // Material and Color side by side
         materialTextField.placeholder = "Select material"
-        materialTextField.inputView = materialPickerView
-        materialPickerView.delegate = self
-        materialPickerView.dataSource = self
-        materialPickerView.tag = 1 // Tag to identify picker
+        materialTextField.inputView = getCachedPickerView(tag: 1)
 
         colorTextField.placeholder = "Select color"
-        colorTextField.inputView = colorPickerView
-        colorPickerView.delegate = self
-        colorPickerView.dataSource = self
-        colorPickerView.tag = 2 // Tag to identify picker
+        colorTextField.inputView = getCachedPickerView(tag: 2)
 
         stackView.addArrangedSubview(createSideBySideFormFields(materialTextField, leftLabel: "Material", colorTextField, rightLabel: "Color"))
 
         // Weight and Diameter side by side
         weightTextField.placeholder = "Select weight"
         weightTextField.text = "1.0 kg" // Default value - properly formatted
-        weightTextField.inputView = weightPickerView
-        weightPickerView.delegate = self
-        weightPickerView.dataSource = self
-        weightPickerView.tag = 3 // Tag to identify picker
+        weightTextField.inputView = getCachedPickerView(tag: 3)
 
         diameterTextField.placeholder = "Select diameter"
         diameterTextField.text = "1.75 mm" // Default value - properly formatted
-        diameterTextField.inputView = diameterPickerView
-        diameterPickerView.delegate = self
-        diameterPickerView.dataSource = self
-        diameterPickerView.tag = 4 // Tag to identify picker
+        diameterTextField.inputView = getCachedPickerView(tag: 4)
 
         stackView.addArrangedSubview(createSideBySideFormFields(weightTextField, leftLabel: "Weight", diameterTextField, rightLabel: "Diameter"))
 
         // Print and Bed Temperature side by side
         printTemperatureTextField.placeholder = "Select temperature"
         printTemperatureTextField.text = "200°C" // Default value - properly formatted
-        printTemperatureTextField.inputView = printTemperaturePickerView
-        printTemperaturePickerView.delegate = self
-        printTemperaturePickerView.dataSource = self
-        printTemperaturePickerView.tag = 5 // Tag to identify picker
+        printTemperatureTextField.inputView = getCachedPickerView(tag: 5)
 
         bedTemperatureTextField.placeholder = "Select temperature"
         bedTemperatureTextField.text = "60°C" // Default value - properly formatted
-        bedTemperatureTextField.inputView = bedTemperaturePickerView
-        bedTemperaturePickerView.delegate = self
-        bedTemperaturePickerView.dataSource = self
-        bedTemperaturePickerView.tag = 6 // Tag to identify picker
+        bedTemperatureTextField.inputView = getCachedPickerView(tag: 6)
 
         stackView.addArrangedSubview(createSideBySideFormFields(printTemperatureTextField, leftLabel: "Print Temperature", bedTemperatureTextField, rightLabel: "Bed Temperature"))
 
         // Fan Speed and Print Speed side by side
         fanSpeedTextField.placeholder = "Select fan speed"
         fanSpeedTextField.text = "100%" // Default value - properly formatted
-        fanSpeedTextField.inputView = fanSpeedPickerView
-        fanSpeedPickerView.delegate = self
-        fanSpeedPickerView.dataSource = self
-        fanSpeedPickerView.tag = 7 // Tag to identify picker
+        fanSpeedTextField.inputView = getCachedPickerView(tag: 7)
 
         printSpeedTextField.placeholder = "Select print speed"
         printSpeedTextField.text = "50 mm/s" // Default value - properly formatted
-        printSpeedTextField.inputView = printSpeedPickerView
-        printSpeedPickerView.delegate = self
-        printSpeedPickerView.dataSource = self
-        printSpeedPickerView.tag = 8 // Tag to identify picker
+        printSpeedTextField.inputView = getCachedPickerView(tag: 8)
 
         stackView.addArrangedSubview(createSideBySideFormFields(fanSpeedTextField, leftLabel: "Fan Speed", printSpeedTextField, rightLabel: "Print Speed"))
 
         // Notes section
         stackView.addArrangedSubview(createSectionLabel("Notes"))
+        setupNotesTextView()
+        stackView.addArrangedSubview(notesTextView)
+
+        // Add toolbar to all text fields for easy dismissal
+        addToolbarToPickers()
+    }
+
+    private func setupNotesTextView() {
         notesTextView.backgroundColor = .tertiarySystemBackground
         notesTextView.layer.borderColor = UIColor.systemGray5.cgColor
         notesTextView.layer.borderWidth = 0.5
@@ -271,12 +328,30 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         notesTextView.layer.shadowRadius = 2
 
         notesTextView.heightAnchor.constraint(equalToConstant: 120).isActive = true
-        stackView.addArrangedSubview(notesTextView)
+    }
 
-        // Add toolbar to picker keyboards
-        addToolbarToPickers()
-        // Add toolbar to number pad keyboards
-        addToolbarToKeyboard()
+    private func addToolbarToPickers() {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
+
+        toolbar.items = [flexSpace, doneButton]
+
+        // Add toolbar to all picker fields
+        brandTextField.inputAccessoryView = toolbar
+        materialTextField.inputAccessoryView = toolbar
+        colorTextField.inputAccessoryView = toolbar
+        weightTextField.inputAccessoryView = toolbar
+        diameterTextField.inputAccessoryView = toolbar
+        printTemperatureTextField.inputAccessoryView = toolbar
+        bedTemperatureTextField.inputAccessoryView = toolbar
+        fanSpeedTextField.inputAccessoryView = toolbar
+        printSpeedTextField.inputAccessoryView = toolbar
+
+        // Add toolbar to notes text view
+        notesTextView.inputAccessoryView = toolbar
     }
 
     private func createSectionLabel(_ text: String) -> UILabel {
@@ -398,6 +473,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         containerView.tag = 999 // Special tag to identify color field container
         colorSwatchView.tag = 1000 // Special tag to identify color swatch
 
+        // Cache the color swatch for fast access
+        self.colorSwatchView = colorSwatchView
+
         return containerView
     }
 
@@ -467,6 +545,71 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         return containerView
     }
 
+    private func createNFCControlsSection() -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = .systemGroupedBackground
+        containerView.layer.cornerRadius = 12
+        containerView.layer.borderWidth = 0.5
+        containerView.layer.borderColor = UIColor.systemBlue.cgColor
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Title label
+        let titleLabel = UILabel()
+        titleLabel.text = "NFC Tag Actions"
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .systemBlue
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // Button stack
+        let buttonStack = UIStackView()
+        buttonStack.axis = .horizontal
+        buttonStack.spacing = 12
+        buttonStack.distribution = .fillEqually
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+
+        // Read button
+        let readButton = UIButton(type: .system)
+        readButton.setTitle("📱 Read from NFC Tag", for: .normal)
+        readButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        readButton.backgroundColor = .systemBlue
+        readButton.setTitleColor(.white, for: .normal)
+        readButton.layer.cornerRadius = 8
+        readButton.addTarget(self, action: #selector(readFromNFCTapped), for: .touchUpInside)
+
+        // Write button
+        let writeButton = UIButton(type: .system)
+        writeButton.setTitle("💾 Write to NFC Tag", for: .normal)
+        writeButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        writeButton.backgroundColor = .systemGreen
+        writeButton.setTitleColor(.white, for: .normal)
+        writeButton.layer.cornerRadius = 8
+        writeButton.addTarget(self, action: #selector(writeToNFCTapped), for: .touchUpInside)
+
+        buttonStack.addArrangedSubview(readButton)
+        buttonStack.addArrangedSubview(writeButton)
+
+        containerView.addSubview(titleLabel)
+        containerView.addSubview(buttonStack)
+
+        NSLayoutConstraint.activate([
+            containerView.heightAnchor.constraint(equalToConstant: 100),
+
+            titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+
+            buttonStack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
+            buttonStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            buttonStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            buttonStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
+
+            readButton.heightAnchor.constraint(equalToConstant: 44),
+            writeButton.heightAnchor.constraint(equalToConstant: 44)
+        ])
+
+        return containerView
+    }
+
     private func createFieldLabel(_ text: String) -> UILabel {
         let label = UILabel()
         label.text = text
@@ -474,40 +617,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }
-
-    private func addToolbarToPickers() {
-        let toolbar = UIToolbar()
-        toolbar.sizeToFit()
-
-        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
-
-        toolbar.items = [flexSpace, doneButton]
-
-        // Add toolbar to all picker fields
-        brandTextField.inputAccessoryView = toolbar
-        materialTextField.inputAccessoryView = toolbar
-        colorTextField.inputAccessoryView = toolbar
-        weightTextField.inputAccessoryView = toolbar
-        diameterTextField.inputAccessoryView = toolbar
-        printTemperatureTextField.inputAccessoryView = toolbar
-        bedTemperatureTextField.inputAccessoryView = toolbar
-        fanSpeedTextField.inputAccessoryView = toolbar
-        printSpeedTextField.inputAccessoryView = toolbar
-    }
-
-    private func addToolbarToKeyboard() {
-        let toolbar = UIToolbar()
-        toolbar.sizeToFit()
-
-        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
-
-        toolbar.items = [flexSpace, doneButton]
-
-        // All form fields now use pickers, so only add toolbar to text view
-        notesTextView.inputAccessoryView = toolbar
     }
 
     private func fillFormWithFilament() {
@@ -533,53 +642,53 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
 
-        // Set picker views to correct selections
+        // Set picker views to correct selections using cached pickers
         if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
-            brandPickerView.selectRow(brandIndex, inComponent: 0, animated: false)
+            cachedPickerViews[0]?.selectRow(brandIndex, inComponent: 0, animated: false)
         } else {
             // Add custom brand if not in list
             availableBrands.insert(filament.brand, at: availableBrands.count - 1)
-            brandPickerView.reloadAllComponents()
+            cachedPickerViews[0]?.reloadAllComponents()
             if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
-                brandPickerView.selectRow(brandIndex, inComponent: 0, animated: false)
+                cachedPickerViews[0]?.selectRow(brandIndex, inComponent: 0, animated: false)
             }
         }
 
         if let materialIndex = Filament.Material.allCases.firstIndex(where: { $0.rawValue == filament.material }) {
-            materialPickerView.selectRow(materialIndex, inComponent: 0, animated: false)
+            cachedPickerViews[1]?.selectRow(materialIndex, inComponent: 0, animated: false)
         }
 
         if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
-            colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
+            cachedPickerViews[2]?.selectRow(colorIndex, inComponent: 0, animated: false)
             // Update color swatch with the selected color
             updateColorSwatch(availableColors[colorIndex].color)
         }
 
         // Set weight picker selection
         if let weightIndex = Filament.weightOptions.firstIndex(of: weight) {
-            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
+            cachedPickerViews[3]?.selectRow(weightIndex, inComponent: 0, animated: false)
         }
 
         // Set diameter picker selection
         if let diameterIndex = Filament.diameterOptions.firstIndex(of: filament.diameter) {
-            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
+            cachedPickerViews[4]?.selectRow(diameterIndex, inComponent: 0, animated: false)
         }
 
         // Set temperature and speed picker selections
         if let printTempIndex = Filament.temperatureOptions.firstIndex(of: filament.printTemperature) {
-            printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
+            cachedPickerViews[5]?.selectRow(printTempIndex, inComponent: 0, animated: false)
         }
 
         if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: filament.bedTemperature) {
-            bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
+            cachedPickerViews[6]?.selectRow(bedTempIndex, inComponent: 0, animated: false)
         }
 
         if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: filament.fanSpeed) {
-            fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+            cachedPickerViews[7]?.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
         }
 
         if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: filament.printSpeed) {
-            printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
+            cachedPickerViews[8]?.selectRow(printSpeedIndex, inComponent: 0, animated: false)
         }
     }
 
@@ -588,18 +697,18 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let defaultBrand = Filament.Brand.anycubic
         brandTextField.text = defaultBrand.rawValue
         if let index = availableBrands.firstIndex(of: defaultBrand.rawValue) {
-            brandPickerView.selectRow(index, inComponent: 0, animated: false)
+            cachedPickerViews[0]?.selectRow(index, inComponent: 0, animated: false)
         }
 
         // Set default material (PLA)
         let defaultMaterial = Filament.Material.pla
         materialTextField.text = defaultMaterial.rawValue
-        materialPickerView.selectRow(0, inComponent: 0, animated: false)
+        cachedPickerViews[1]?.selectRow(0, inComponent: 0, animated: false)
 
         // Set default color (Black)
         let defaultColor = Filament.Color.black
         colorTextField.text = defaultColor.rawValue
-        colorPickerView.selectRow(0, inComponent: 0, animated: false)
+        cachedPickerViews[2]?.selectRow(0, inComponent: 0, animated: false)
         // Set default color swatch
         updateColorSwatch(defaultColor.displayColor)
 
@@ -607,13 +716,13 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let defaultWeight = defaultBrand.defaultWeight
         weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
         if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight) {
-            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
+            cachedPickerViews[3]?.selectRow(weightIndex, inComponent: 0, animated: false)
         }
 
         let defaultDiameter = defaultBrand.defaultDiameter
         diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
         if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter) {
-            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
+            cachedPickerViews[4]?.selectRow(diameterIndex, inComponent: 0, animated: false)
         }
 
         // Apply material-based defaults for temperatures and speeds with proper formatting
@@ -629,16 +738,16 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         // Set picker selections for temperatures and speeds
         if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp) {
-            printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
+            cachedPickerViews[5]?.selectRow(printTempIndex, inComponent: 0, animated: false)
         }
         if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp) {
-            bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
+            cachedPickerViews[6]?.selectRow(bedTempIndex, inComponent: 0, animated: false)
         }
         if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed) {
-            fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+            cachedPickerViews[7]?.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
         }
         if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed) {
-            printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
+            cachedPickerViews[8]?.selectRow(printSpeedIndex, inComponent: 0, animated: false)
         }
     }
 
@@ -647,13 +756,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         availableBrands = Filament.Brand.sortedCases.map { $0.rawValue }
         // Add "Add Custom Brand..." option at the end
         availableBrands.append("Add Custom Brand...")
-    }
-
-    private func initializeColors() {
-        // Get all available colors (predefined + custom)
-        availableColors = Filament.Color.allAvailableColors
-        // Add "Add Custom Color..." option at the end
-        availableColors.append(("Add Custom Color...", UIColor.systemBlue))
     }
 
     // MARK: - Actions
@@ -751,6 +853,85 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         view.endEditing(true)
     }
 
+    // MARK: - NFC Actions
+
+    @objc private func readFromNFCTapped() {
+        #if targetEnvironment(simulator)
+        showAlert(title: "NFC Unavailable", message: "NFC reading is not available in the simulator. This feature works on physical devices with NFC capability.")
+        #else
+        nfcService.startReading()
+        #endif
+    }
+
+    @objc private func writeToNFCTapped() {
+        // First validate the form
+        guard validateForm() else { return }
+
+        // Create filament from current form data
+        let filamentToWrite = createFilamentFromForm()
+
+        #if targetEnvironment(simulator)
+        showAlert(title: "NFC Unavailable", message: "NFC writing is not available in the simulator. This feature works on physical devices with NFC capability.")
+        #else
+        nfcService.writeFilament(filamentToWrite)
+        #endif
+    }
+
+    private func createFilamentFromForm() -> Filament {
+        let brand = brandTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let material = materialTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let color = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        // Parse weight from formatted text
+        let weightText = weightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "1000"
+        let weight: Double
+        if weightText.contains("kg") {
+            let weightString = weightText.replacingOccurrences(of: "kg", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            weight = (Double(weightString) ?? 1.0) * 1000
+        } else if weightText.contains("g") {
+            let weightString = weightText.replacingOccurrences(of: "g", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            weight = Double(weightString) ?? 1000
+        } else {
+            weight = Double(weightText) ?? 1000
+        }
+
+        // Parse other values
+        let diameterText = diameterTextField.text ?? "1.75"
+        let diameterString = diameterText.replacingOccurrences(of: " mm", with: "")
+        let diameter = Double(diameterString) ?? 1.75
+
+        let printTempText = printTemperatureTextField.text ?? "200"
+        let printTempString = printTempText.replacingOccurrences(of: "°C", with: "")
+        let printTemp = Int(printTempString) ?? 200
+
+        let bedTempText = bedTemperatureTextField.text ?? "60"
+        let bedTempString = bedTempText.replacingOccurrences(of: "°C", with: "")
+        let bedTemp = Int(bedTempString) ?? 60
+
+        let fanSpeedText = fanSpeedTextField.text ?? "100"
+        let fanSpeedString = fanSpeedText.replacingOccurrences(of: "%", with: "")
+        let fanSpeed = Int(fanSpeedString) ?? 100
+
+        let printSpeedText = printSpeedTextField.text ?? "50"
+        let printSpeedString = printSpeedText.replacingOccurrences(of: " mm/s", with: "")
+        let printSpeed = Int(printSpeedString) ?? 50
+
+        let notes = notesTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return Filament(
+            brand: brand,
+            material: material,
+            color: color,
+            weight: weight,
+            diameter: diameter,
+            printTemperature: printTemp,
+            bedTemperature: bedTemp,
+            fanSpeed: fanSpeed,
+            printSpeed: printSpeed,
+            notes: notes?.isEmpty == true ? nil : notes
+        )
+    }
+
     // MARK: - Validation
 
     private func validateForm() -> Bool {
@@ -782,10 +963,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func updateColorSwatch(_ color: UIColor) {
-        // Direct search for color swatch by tag - much faster
-        if let colorSwatch = view.viewWithTag(1000) {
-            colorSwatch.backgroundColor = color
-        }
+        // Use cached reference for instant updates
+        colorSwatchView?.backgroundColor = color
     }
 
     // MARK: - Custom Brand Management
@@ -808,7 +987,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             if !self.availableBrands.contains(brandName) {
                 // Insert before "Add Custom Brand..." option
                 self.availableBrands.insert(brandName, at: self.availableBrands.count - 1)
-                self.brandPickerView.reloadAllComponents()
+                if let brandPicker = self.cachedPickerViews[0] {
+                    brandPicker.reloadAllComponents()
+                }
             }
 
             // Set the custom brand as selected
@@ -816,7 +997,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
             // Select the new brand in the picker
             if let index = self.availableBrands.firstIndex(of: brandName) {
-                self.brandPickerView.selectRow(index, inComponent: 0, animated: true)
+                self.cachedPickerViews[0]?.selectRow(index, inComponent: 0, animated: true)
             }
 
             self.dismissKeyboard()
@@ -826,10 +1007,11 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             // Reset picker to first item (or current selection)
             guard let self = self else { return }
             if let currentBrand = self.brandTextField.text,
-               let index = self.availableBrands.firstIndex(of: currentBrand) {
-                self.brandPickerView.selectRow(index, inComponent: 0, animated: true)
-            } else {
-                self.brandPickerView.selectRow(0, inComponent: 0, animated: true)
+               let index = self.availableBrands.firstIndex(of: currentBrand),
+               let brandPicker = self.cachedPickerViews[0] {
+                brandPicker.selectRow(index, inComponent: 0, animated: true)
+            } else if let brandPicker = self.cachedPickerViews[0] {
+                brandPicker.selectRow(0, inComponent: 0, animated: true)
             }
         }
 
@@ -850,12 +1032,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         navController.isModalInPresentation = true  // Prevent swipe-to-dismiss
 
         present(navController, animated: true)
-    }
-
-    private func refreshColors() {
-        // Refresh the colors list and reload the picker
-        initializeColors()
-        colorPickerView.reloadAllComponents()
     }
 
     // MARK: - Keyboard Handling
@@ -942,45 +1118,61 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
         if pickerView.tag == 2 { // Color picker
+            // Reuse views for better performance
+            let containerView: UIView
+            let colorIndicator: UIView
+            let label: UILabel
+
+            if let reusableView = view {
+                containerView = reusableView
+                colorIndicator = containerView.subviews[0]
+                label = containerView.subviews[1] as! UILabel
+            } else {
+                containerView = UIView()
+                containerView.frame = CGRect(x: 0, y: 0, width: 200, height: 30)
+
+                colorIndicator = UIView()
+                colorIndicator.layer.cornerRadius = 8
+                colorIndicator.layer.borderWidth = 1
+                colorIndicator.layer.borderColor = UIColor.systemGray4.cgColor
+                colorIndicator.translatesAutoresizingMaskIntoConstraints = false
+
+                label = UILabel()
+                label.font = UIFont.systemFont(ofSize: 17)
+                label.textColor = .label
+                label.translatesAutoresizingMaskIntoConstraints = false
+
+                containerView.addSubview(colorIndicator)
+                containerView.addSubview(label)
+
+                NSLayoutConstraint.activate([
+                    colorIndicator.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+                    colorIndicator.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+                    colorIndicator.widthAnchor.constraint(equalToConstant: 16),
+                    colorIndicator.heightAnchor.constraint(equalToConstant: 16),
+
+                    label.leadingAnchor.constraint(equalTo: colorIndicator.trailingAnchor, constant: 12),
+                    label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
+                    label.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+                ])
+            }
+
             let colorInfo = availableColors[row]
-
-            let containerView = UIView()
-            containerView.frame = CGRect(x: 0, y: 0, width: 200, height: 30)
-
-            let colorIndicator = UIView()
             colorIndicator.backgroundColor = colorInfo.color
-            colorIndicator.layer.cornerRadius = 8
-            colorIndicator.layer.borderWidth = 1
-            colorIndicator.layer.borderColor = UIColor.systemGray4.cgColor
-            colorIndicator.translatesAutoresizingMaskIntoConstraints = false
-
-            let label = UILabel()
             label.text = colorInfo.name
-            label.font = UIFont.systemFont(ofSize: 17)
-            label.textColor = .label
-            label.translatesAutoresizingMaskIntoConstraints = false
-
-            containerView.addSubview(colorIndicator)
-            containerView.addSubview(label)
-
-            NSLayoutConstraint.activate([
-                colorIndicator.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-                colorIndicator.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-                colorIndicator.widthAnchor.constraint(equalToConstant: 16),
-                colorIndicator.heightAnchor.constraint(equalToConstant: 16),
-
-                label.leadingAnchor.constraint(equalTo: colorIndicator.trailingAnchor, constant: 12),
-                label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-                label.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
-            ])
 
             return containerView
         } else {
-            // For all other pickers, use standard text label
-            let label = UILabel()
-            label.textAlignment = .center
-            label.font = UIFont.systemFont(ofSize: 17)
-            label.textColor = .label
+            // Reuse labels for other pickers
+            let label: UILabel
+            if let reusableView = view as? UILabel {
+                label = reusableView
+            } else {
+                label = UILabel()
+                label.textAlignment = .center
+                label.font = UIFont.systemFont(ofSize: 17)
+                label.textColor = .label
+            }
 
             switch pickerView.tag {
             case 0: // Brand picker
@@ -1040,8 +1232,9 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
                         weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
 
                         // Update weight picker selection
-                        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight) {
-                            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
+                        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight),
+                           let weightPicker = cachedPickerViews[3] {
+                            weightPicker.selectRow(weightIndex, inComponent: 0, animated: false)
                         }
                     }
                     if diameterTextField.text?.isEmpty ?? true || diameterTextField.text == "1.75" {
@@ -1049,8 +1242,9 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
                         diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
 
                         // Update diameter picker selection
-                        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter) {
-                            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
+                        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter),
+                           let diameterPicker = cachedPickerViews[4] {
+                            diameterPicker.selectRow(diameterIndex, inComponent: 0, animated: false)
                         }
                     }
                 }
@@ -1072,17 +1266,21 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
             printSpeedTextField.text = "\(printSpeed) mm/s"
 
             // Update picker selections
-            if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp) {
-                printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
+            if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp),
+               let printTempPicker = cachedPickerViews[5] {
+                printTempPicker.selectRow(printTempIndex, inComponent: 0, animated: false)
             }
-            if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp) {
-                bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
+            if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp),
+               let bedTempPicker = cachedPickerViews[6] {
+                bedTempPicker.selectRow(bedTempIndex, inComponent: 0, animated: false)
             }
-            if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed) {
-                fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+            if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed),
+               let fanSpeedPicker = cachedPickerViews[7] {
+                fanSpeedPicker.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
             }
-            if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed) {
-                printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
+            if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed),
+               let printSpeedPicker = cachedPickerViews[8] {
+                printSpeedPicker.selectRow(printSpeedIndex, inComponent: 0, animated: false)
             }
 
         case 2: // Color picker
@@ -1141,7 +1339,9 @@ extension AddEditFilamentViewController {
             if !availableBrands.contains(brandName) && brandName != "Add Custom Brand..." {
                 // Insert before "Add Custom Brand..." option
                 availableBrands.insert(brandName, at: availableBrands.count - 1)
-                brandPickerView.reloadAllComponents()
+                if let brandPicker = cachedPickerViews[0] {
+                    brandPicker.reloadAllComponents()
+                }
             }
         }
     }
@@ -1165,7 +1365,95 @@ extension AddEditFilamentViewController: CustomColorPickerDelegate {
 
         // Update picker selection to the new color
         if let colorIndex = availableColors.firstIndex(where: { $0.name == name }) {
-            colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
+            if let colorPicker = cachedPickerViews[2] {
+                colorPicker.selectRow(colorIndex, inComponent: 0, animated: false)
+            }
+        }
+    }
+}
+
+// MARK: - NFCServiceDelegate
+
+extension AddEditFilamentViewController {
+    func nfcDidReadFilament(_ filament: Filament) {
+        DispatchQueue.main.async { [weak self] in
+            self?.populateFormWithFilament(filament)
+            self?.showAlert(title: "NFC Tag Read", message: "Filament data has been loaded from the NFC tag.")
+        }
+    }
+
+    func nfcDidWriteFilament(_ filament: Filament) {
+        DispatchQueue.main.async { [weak self] in
+            self?.showAlert(title: "NFC Tag Written", message: "Filament data has been successfully written to the NFC tag.")
+        }
+    }
+
+    func nfcDidFailWithError(_ error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            self?.showAlert(title: "NFC Error", message: error.localizedDescription)
+        }
+    }
+
+    private func populateFormWithFilament(_ filament: Filament) {
+        brandTextField.text = filament.brand
+        materialTextField.text = filament.material
+        colorTextField.text = filament.color
+
+        // Format and set other fields
+        let weight = filament.weight
+        weightTextField.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
+
+        diameterTextField.text = String(format: "%.2f mm", filament.diameter)
+        printTemperatureTextField.text = "\(filament.printTemperature)°C"
+        bedTemperatureTextField.text = "\(filament.bedTemperature)°C"
+        fanSpeedTextField.text = "\(filament.fanSpeed)%"
+        printSpeedTextField.text = "\(filament.printSpeed) mm/s"
+        notesTextView.text = filament.notes
+
+        // Update picker selections
+        updatePickerSelections(for: filament)
+    }
+
+    private func updatePickerSelections(for filament: Filament) {
+        // Update brand picker
+        if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
+            cachedPickerViews[0]?.selectRow(brandIndex, inComponent: 0, animated: false)
+        }
+
+        // Update material picker
+        if let materialIndex = Filament.Material.allCases.firstIndex(where: { $0.rawValue == filament.material }) {
+            cachedPickerViews[1]?.selectRow(materialIndex, inComponent: 0, animated: false)
+        }
+
+        // Update color picker and swatch
+        if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
+            cachedPickerViews[2]?.selectRow(colorIndex, inComponent: 0, animated: false)
+            updateColorSwatch(availableColors[colorIndex].color)
+        }
+
+        // Update other pickers
+        if let weightIndex = Filament.weightOptions.firstIndex(of: filament.weight) {
+            cachedPickerViews[3]?.selectRow(weightIndex, inComponent: 0, animated: false)
+        }
+
+        if let diameterIndex = Filament.diameterOptions.firstIndex(of: filament.diameter) {
+            cachedPickerViews[4]?.selectRow(diameterIndex, inComponent: 0, animated: false)
+        }
+
+        if let printTempIndex = Filament.temperatureOptions.firstIndex(of: filament.printTemperature) {
+            cachedPickerViews[5]?.selectRow(printTempIndex, inComponent: 0, animated: false)
+        }
+
+        if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: filament.bedTemperature) {
+            cachedPickerViews[6]?.selectRow(bedTempIndex, inComponent: 0, animated: false)
+        }
+
+        if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: filament.fanSpeed) {
+            cachedPickerViews[7]?.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
+        }
+
+        if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: filament.printSpeed) {
+            cachedPickerViews[8]?.selectRow(printSpeedIndex, inComponent: 0, animated: false)
         }
     }
 }
