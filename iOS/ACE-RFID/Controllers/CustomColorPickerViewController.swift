@@ -104,11 +104,14 @@ class CustomColorPickerViewController: UIViewController {
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
-            // Color wheel
+            // Color wheel - responsive to screen size
             colorWheelView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 30),
             colorWheelView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            colorWheelView.widthAnchor.constraint(equalToConstant: 250),
-            colorWheelView.heightAnchor.constraint(equalToConstant: 250),
+            colorWheelView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 40),
+            colorWheelView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -40),
+            colorWheelView.widthAnchor.constraint(equalTo: colorWheelView.heightAnchor), // Keep square aspect ratio
+            colorWheelView.widthAnchor.constraint(lessThanOrEqualToConstant: 350), // Max size for large screens
+            colorWheelView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.4), // Max 40% of screen height
 
             // Brightness slider
             brightnessSlider.topAnchor.constraint(equalTo: colorWheelView.bottomAnchor, constant: 20),
@@ -136,7 +139,8 @@ class CustomColorPickerViewController: UIViewController {
             cancelButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 10),
             cancelButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             cancelButton.widthAnchor.constraint(equalToConstant: 120),
-            cancelButton.heightAnchor.constraint(equalToConstant: 44)
+            cancelButton.heightAnchor.constraint(equalToConstant: 44),
+            cancelButton.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20) // Ensure it fits
         ])
     }
 

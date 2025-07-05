@@ -869,18 +869,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         customColorPicker.delegate = self
 
         let navController = UINavigationController(rootViewController: customColorPicker)
-        navController.modalPresentationStyle = .pageSheet
-        navController.isModalInPresentation = true  // Prevent swipe-to-dismiss for iOS 14+
-
-        if #available(iOS 15.0, *) {
-            if let sheet = navController.sheetPresentationController {
-                sheet.detents = [.large()]
-                sheet.prefersGrabberVisible = false  // Remove grabber to discourage swipe-to-dismiss
-                sheet.prefersScrollingExpandsWhenScrolledToEdge = false  // Disable scroll-to-expand
-                sheet.prefersEdgeAttachedInCompactHeight = true  // Keep attached to edge
-                sheet.largestUndimmedDetentIdentifier = .large  // Keep background dimmed
-            }
-        }
+        navController.modalPresentationStyle = .fullScreen  // Full screen for maximum space
+        navController.isModalInPresentation = true  // Prevent swipe-to-dismiss
 
         present(navController, animated: true)
     }
