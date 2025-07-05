@@ -247,20 +247,22 @@ class ColorWheelView: UIView {
         let center = centerPoint
         let radius = wheelRadius
 
-        // Create gradient with hue colors
+        // Create color wheel using a more efficient approach
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let _ = stride(from: 0, to: 360, by: 1).map { hue in
-            UIColor(hue: CGFloat(hue) / 360.0, saturation: 1.0, brightness: 1.0, alpha: 1.0).cgColor
-        }
 
-        // Draw radial segments
-        for i in 0..<360 {
-            let startAngle = CGFloat(i) * .pi / 180
-            let endAngle = CGFloat(i + 1) * .pi / 180
+        // Draw color wheel with optimized segments for smooth rendering
+        let segments = 360 // One segment per degree for smooth color transitions
+        let angleStep = 2.0 * Double.pi / Double(segments)
 
-            let color = UIColor(hue: CGFloat(i) / 360.0, saturation: 1.0, brightness: 1.0, alpha: 1.0)
+        for i in 0..<segments {
+            let startAngle = CGFloat(Double(i) * angleStep)
+            let endAngle = CGFloat(Double(i + 1) * angleStep)
+
+            let hue = CGFloat(i) / CGFloat(segments)
+            let color = UIColor(hue: hue, saturation: 1.0, brightness: 1.0, alpha: 1.0)
             context.setFillColor(color.cgColor)
 
+            // Draw thin arc segment
             context.move(to: center)
             context.addArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
             context.closePath()
@@ -291,6 +293,7 @@ class ColorWheelView: UIView {
         var saturation: CGFloat = 0
         selectedColor.getHue(&hue, saturation: &saturation, brightness: nil, alpha: nil)
 
+        // Convert hue to angle - match the coordinate system used in touch handling
         let angle = hue * 2 * .pi
         let distance = saturation * radius
 
@@ -315,6 +318,15 @@ class ColorWheelView: UIView {
         handleTouch(touches)
     }
 
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Final touch handling
+        handleTouch(touches)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Handle touch cancellation gracefully - no additional action needed
+    }
+
     private func handleTouch(_ touches: Set<UITouch>) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
@@ -330,9 +342,15 @@ class ColorWheelView: UIView {
         // Only respond to touches within the wheel
         guard distance <= radius else { return }
 
-        // Calculate hue and saturation
+        // Calculate angle from touch position
         let angle = atan2(dy, dx)
-        let hue = (angle + .pi) / (2 * .pi)
+
+        // Convert angle to hue (0-1 range)
+        // atan2 returns -π to π, normalize to 0 to 2π
+        let normalizedAngle = angle < 0 ? angle + 2 * .pi : angle
+        let hue = normalizedAngle / (2 * .pi)
+
+        // Calculate saturation based on distance from center
         let saturation = min(distance / radius, 1.0)
 
         // Create color and notify delegate
@@ -340,6 +358,7 @@ class ColorWheelView: UIView {
         selectedColor = color
         delegate?.colorWheelView(self, didSelectColor: color)
 
+        // Redraw with new selection
         setNeedsDisplay()
     }
 }
