@@ -167,9 +167,11 @@ extension Filament {
             return 1.75 // Most common diameter
         }
 
-        /// Returns brands sorted alphabetically by display name
+        /// Returns brands sorted alphabetically by display name, with Generic at the end
         static var sortedCases: [Brand] {
-            return allCases.sorted { $0.rawValue.localizedCaseInsensitiveCompare($1.rawValue) == .orderedAscending }
+            let brands = allCases.filter { $0 != .generic }
+            let sortedBrands = brands.sorted { $0.rawValue.localizedCaseInsensitiveCompare($1.rawValue) == .orderedAscending }
+            return sortedBrands + [.generic]
         }
     }
 }

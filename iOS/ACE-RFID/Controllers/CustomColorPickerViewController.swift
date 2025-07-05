@@ -291,7 +291,22 @@ class ColorWheelView: UIView {
         // Get the position for the current color
         var hue: CGFloat = 0
         var saturation: CGFloat = 0
-        selectedColor.getHue(&hue, saturation: &saturation, brightness: nil, alpha: nil)
+        var brightness: CGFloat = 0
+        selectedColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+
+        // Only draw indicator if we have valid color values
+        guard saturation > 0 || hue > 0 else {
+            // For gray colors (saturation = 0), draw at center
+            if brightness > 0.1 && brightness < 0.9 {
+                let indicatorRect = CGRect(x: center.x - 8, y: center.y - 8, width: 16, height: 16)
+                context.setFillColor(UIColor.white.cgColor)
+                context.setStrokeColor(UIColor.black.cgColor)
+                context.setLineWidth(2)
+                context.addEllipse(in: indicatorRect)
+                context.drawPath(using: .fillStroke)
+            }
+            return
+        }
 
         // Convert hue to angle - match the coordinate system used in touch handling
         let angle = hue * 2 * .pi
@@ -299,6 +314,10 @@ class ColorWheelView: UIView {
 
         let indicatorX = center.x + cos(angle) * distance
         let indicatorY = center.y + sin(angle) * distance
+
+        // Only draw if the indicator is within the wheel bounds
+        let distanceFromCenter = sqrt(pow(indicatorX - center.x, 2) + pow(indicatorY - center.y, 2))
+        guard distanceFromCenter <= radius else { return }
 
         // Draw white circle with black border
         context.setFillColor(UIColor.white.cgColor)

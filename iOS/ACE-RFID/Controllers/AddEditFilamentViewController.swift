@@ -89,18 +89,36 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     // MARK: - Setup
 
     private func setupUI() {
+        // Enhanced background with gradient
         view.backgroundColor = .systemBackground
 
-        // Scroll view setup
+        // Add subtle gradient background
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor.systemBackground.cgColor,
+            UIColor.secondarySystemBackground.cgColor
+        ]
+        gradientLayer.locations = [0, 1]
+        view.layer.insertSublayer(gradientLayer, at: 0)
+
+        // Update gradient frame when view layout changes
+        DispatchQueue.main.async {
+            gradientLayer.frame = self.view.bounds
+        }
+
+        // Scroll view setup with enhanced styling
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = true
+        scrollView.alwaysBounceVertical = true
+        scrollView.backgroundColor = .clear
 
         contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.backgroundColor = .clear
 
-        // Stack view setup
+        // Stack view setup with enhanced spacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
-        stackView.spacing = 20
+        stackView.spacing = 24 // Increased spacing for better visual hierarchy
         stackView.distribution = .fill
 
         view.addSubview(scrollView)
@@ -110,7 +128,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         // Setup form fields
         setupFormFields()
 
-        // Constraints
+        // Enhanced constraints with better margins
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -123,27 +141,39 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
 
-            stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
     }
 
     private func setupNavigationBar() {
         title = isEditMode ? "Edit Filament" : "Add Filament"
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .cancel,
+        // Enhance navigation bar appearance
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .automatic
+
+        // Enhanced cancel button
+        let cancelButton = UIBarButtonItem(
+            title: "Cancel",
+            style: .plain,
             target: self,
             action: #selector(cancelTapped)
         )
+        cancelButton.tintColor = .systemRed
+        navigationItem.leftBarButtonItem = cancelButton
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .save,
+        // Enhanced save button
+        let saveButton = UIBarButtonItem(
+            title: "Save",
+            style: .done,
             target: self,
             action: #selector(saveTapped)
         )
+        saveButton.tintColor = .systemBlue
+        navigationItem.rightBarButtonItem = saveButton
     }
 
     private func setupFormFields() {
@@ -157,92 +187,90 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         brandPickerView.tag = 0 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(brandTextField))
 
-        // Material section
-        stackView.addArrangedSubview(createSectionLabel("Material"))
+        // Material and Color side by side
         materialTextField.placeholder = "Select material"
         materialTextField.inputView = materialPickerView
         materialPickerView.delegate = self
         materialPickerView.dataSource = self
         materialPickerView.tag = 1 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(materialTextField))
 
-        // Color section
-        stackView.addArrangedSubview(createSectionLabel("Color"))
         colorTextField.placeholder = "Select color"
         colorTextField.inputView = colorPickerView
         colorPickerView.delegate = self
         colorPickerView.dataSource = self
         colorPickerView.tag = 2 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(colorTextField))
 
-        // Weight section
-        stackView.addArrangedSubview(createSectionLabel("Weight (grams)"))
+        stackView.addArrangedSubview(createSideBySideFormFields(materialTextField, leftLabel: "Material", colorTextField, rightLabel: "Color"))
+
+        // Weight and Diameter side by side
         weightTextField.placeholder = "Select weight"
-        weightTextField.text = "1000" // Default value
+        weightTextField.text = "1.0 kg" // Default value - properly formatted
         weightTextField.inputView = weightPickerView
         weightPickerView.delegate = self
         weightPickerView.dataSource = self
         weightPickerView.tag = 3 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(weightTextField))
 
-        // Diameter section
-        stackView.addArrangedSubview(createSectionLabel("Diameter (mm)"))
         diameterTextField.placeholder = "Select diameter"
-        diameterTextField.text = "1.75" // Default value
+        diameterTextField.text = "1.75 mm" // Default value - properly formatted
         diameterTextField.inputView = diameterPickerView
         diameterPickerView.delegate = self
         diameterPickerView.dataSource = self
         diameterPickerView.tag = 4 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(diameterTextField))
 
-        // Print temperature section
-        stackView.addArrangedSubview(createSectionLabel("Print Temperature (°C)"))
+        stackView.addArrangedSubview(createSideBySideFormFields(weightTextField, leftLabel: "Weight", diameterTextField, rightLabel: "Diameter"))
+
+        // Print and Bed Temperature side by side
         printTemperatureTextField.placeholder = "Select temperature"
-        printTemperatureTextField.text = "200" // Default value
+        printTemperatureTextField.text = "200°C" // Default value - properly formatted
         printTemperatureTextField.inputView = printTemperaturePickerView
         printTemperaturePickerView.delegate = self
         printTemperaturePickerView.dataSource = self
         printTemperaturePickerView.tag = 5 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(printTemperatureTextField))
 
-        // Bed temperature section
-        stackView.addArrangedSubview(createSectionLabel("Bed Temperature (°C)"))
         bedTemperatureTextField.placeholder = "Select temperature"
-        bedTemperatureTextField.text = "60" // Default value
+        bedTemperatureTextField.text = "60°C" // Default value - properly formatted
         bedTemperatureTextField.inputView = bedTemperaturePickerView
         bedTemperaturePickerView.delegate = self
         bedTemperaturePickerView.dataSource = self
         bedTemperaturePickerView.tag = 6 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(bedTemperatureTextField))
 
-        // Fan speed section
-        stackView.addArrangedSubview(createSectionLabel("Fan Speed (%)"))
+        stackView.addArrangedSubview(createSideBySideFormFields(printTemperatureTextField, leftLabel: "Print Temperature", bedTemperatureTextField, rightLabel: "Bed Temperature"))
+
+        // Fan Speed and Print Speed side by side
         fanSpeedTextField.placeholder = "Select fan speed"
-        fanSpeedTextField.text = "100" // Default value
+        fanSpeedTextField.text = "100%" // Default value - properly formatted
         fanSpeedTextField.inputView = fanSpeedPickerView
         fanSpeedPickerView.delegate = self
         fanSpeedPickerView.dataSource = self
         fanSpeedPickerView.tag = 7 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(fanSpeedTextField))
 
-        // Print speed section
-        stackView.addArrangedSubview(createSectionLabel("Print Speed (mm/s)"))
         printSpeedTextField.placeholder = "Select print speed"
-        printSpeedTextField.text = "50" // Default value
+        printSpeedTextField.text = "50 mm/s" // Default value - properly formatted
         printSpeedTextField.inputView = printSpeedPickerView
         printSpeedPickerView.delegate = self
         printSpeedPickerView.dataSource = self
         printSpeedPickerView.tag = 8 // Tag to identify picker
-        stackView.addArrangedSubview(createFormField(printSpeedTextField))
+
+        stackView.addArrangedSubview(createSideBySideFormFields(fanSpeedTextField, leftLabel: "Fan Speed", printSpeedTextField, rightLabel: "Print Speed"))
 
         // Notes section
         stackView.addArrangedSubview(createSectionLabel("Notes"))
-        notesTextView.layer.borderColor = UIColor.systemGray4.cgColor
-        notesTextView.layer.borderWidth = 1
-        notesTextView.layer.cornerRadius = 8
+        notesTextView.backgroundColor = .tertiarySystemBackground
+        notesTextView.layer.borderColor = UIColor.systemGray5.cgColor
+        notesTextView.layer.borderWidth = 0.5
+        notesTextView.layer.cornerRadius = 12
         notesTextView.font = UIFont.systemFont(ofSize: 16)
+        notesTextView.textColor = .label
         notesTextView.translatesAutoresizingMaskIntoConstraints = false
-        notesTextView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        notesTextView.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+
+        // Add subtle shadow for consistency
+        notesTextView.layer.shadowColor = UIColor.black.cgColor
+        notesTextView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        notesTextView.layer.shadowOpacity = 0.05
+        notesTextView.layer.shadowRadius = 2
+
+        notesTextView.heightAnchor.constraint(equalToConstant: 120).isActive = true
         stackView.addArrangedSubview(notesTextView)
 
         // Add toolbar to picker keyboards
@@ -254,31 +282,198 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     private func createSectionLabel(_ text: String) -> UILabel {
         let label = UILabel()
         label.text = text
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .label
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.textColor = .systemBlue
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        // Add subtle margin at bottom
+        label.heightAnchor.constraint(greaterThanOrEqualToConstant: 22).isActive = true
+
         return label
     }
 
     private func createFormField(_ textField: UITextField) -> UIView {
         let containerView = UIView()
-        containerView.backgroundColor = .secondarySystemBackground
-        containerView.layer.cornerRadius = 8
+        containerView.backgroundColor = .tertiarySystemBackground
+        containerView.layer.cornerRadius = 12
+        containerView.layer.borderWidth = 0.5
+        containerView.layer.borderColor = UIColor.systemGray5.cgColor
         containerView.translatesAutoresizingMaskIntoConstraints = false
 
+        // Add subtle shadow for depth
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        containerView.layer.shadowOpacity = 0.05
+        containerView.layer.shadowRadius = 2
+
         textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.font = .systemFont(ofSize: 16)
+        textField.font = .systemFont(ofSize: 16, weight: .medium)
         textField.borderStyle = .none
+        textField.isUserInteractionEnabled = true
+        textField.tintColor = .clear // Hide cursor since these are dropdown-style
+        textField.textColor = .label
+
+        // Add dropdown arrow with better styling
+        let dropdownImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
+        dropdownImageView.tintColor = .systemBlue
+        dropdownImageView.contentMode = .scaleAspectFit
+        dropdownImageView.translatesAutoresizingMaskIntoConstraints = false
 
         containerView.addSubview(textField)
+        containerView.addSubview(dropdownImageView)
 
         NSLayoutConstraint.activate([
-            containerView.heightAnchor.constraint(equalToConstant: 44),
-            textField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            textField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            textField.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+            containerView.heightAnchor.constraint(equalToConstant: 52), // Increased height for better touch targets
+            textField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -12),
+            textField.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+
+            dropdownImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            dropdownImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            dropdownImageView.widthAnchor.constraint(equalToConstant: 18),
+            dropdownImageView.heightAnchor.constraint(equalToConstant: 18)
         ])
 
         return containerView
+    }
+
+    private func createColorFormField(_ textField: UITextField) -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = .tertiarySystemBackground
+        containerView.layer.cornerRadius = 12
+        containerView.layer.borderWidth = 0.5
+        containerView.layer.borderColor = UIColor.systemGray5.cgColor
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Add subtle shadow for depth
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        containerView.layer.shadowOpacity = 0.05
+        containerView.layer.shadowRadius = 2
+
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.font = .systemFont(ofSize: 16, weight: .medium)
+        textField.borderStyle = .none
+        textField.isUserInteractionEnabled = true
+        textField.tintColor = .clear // Hide cursor since these are dropdown-style
+        textField.textColor = .label
+
+        // Create color swatch view
+        let colorSwatchView = UIView()
+        colorSwatchView.layer.cornerRadius = 8
+        colorSwatchView.layer.borderWidth = 1
+        colorSwatchView.layer.borderColor = UIColor.systemGray4.cgColor
+        colorSwatchView.backgroundColor = .systemBlue // Default color
+        colorSwatchView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Add dropdown arrow with better styling
+        let dropdownImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
+        dropdownImageView.tintColor = .systemBlue
+        dropdownImageView.contentMode = .scaleAspectFit
+        dropdownImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        containerView.addSubview(colorSwatchView)
+        containerView.addSubview(textField)
+        containerView.addSubview(dropdownImageView)
+
+        NSLayoutConstraint.activate([
+            containerView.heightAnchor.constraint(equalToConstant: 52), // Increased height for better touch targets
+
+            colorSwatchView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            colorSwatchView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            colorSwatchView.widthAnchor.constraint(equalToConstant: 16),
+            colorSwatchView.heightAnchor.constraint(equalToConstant: 16),
+
+            textField.leadingAnchor.constraint(equalTo: colorSwatchView.trailingAnchor, constant: 12),
+            textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -12),
+            textField.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+
+            dropdownImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            dropdownImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            dropdownImageView.widthAnchor.constraint(equalToConstant: 18),
+            dropdownImageView.heightAnchor.constraint(equalToConstant: 18)
+        ])
+
+        // Store the color swatch view reference for later updates
+        containerView.tag = 999 // Special tag to identify color field container
+        colorSwatchView.tag = 1000 // Special tag to identify color swatch
+
+        return containerView
+    }
+
+    private func createSideBySideFormFields(_ leftField: UITextField, leftLabel: String, _ rightField: UITextField, rightLabel: String) -> UIView {
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Create horizontal stack view
+        let horizontalStack = UIStackView()
+        horizontalStack.axis = .horizontal
+        horizontalStack.spacing = 16
+        horizontalStack.distribution = .fillEqually
+        horizontalStack.translatesAutoresizingMaskIntoConstraints = false
+
+        // Create left side container
+        let leftContainer = UIView()
+        let leftLabelView = createFieldLabel(leftLabel)
+        let leftFieldView = createFormField(leftField)
+
+        leftContainer.addSubview(leftLabelView)
+        leftContainer.addSubview(leftFieldView)
+        leftContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        // Create right side container
+        let rightContainer = UIView()
+        let rightLabelView = createFieldLabel(rightLabel)
+        let rightFieldView = rightField == colorTextField ? createColorFormField(rightField) : createFormField(rightField)
+
+        rightContainer.addSubview(rightLabelView)
+        rightContainer.addSubview(rightFieldView)
+        rightContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        // Add containers to horizontal stack
+        horizontalStack.addArrangedSubview(leftContainer)
+        horizontalStack.addArrangedSubview(rightContainer)
+
+        containerView.addSubview(horizontalStack)
+
+        NSLayoutConstraint.activate([
+            // Horizontal stack constraints
+            horizontalStack.topAnchor.constraint(equalTo: containerView.topAnchor),
+            horizontalStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            horizontalStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            horizontalStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+
+            // Left container constraints
+            leftLabelView.topAnchor.constraint(equalTo: leftContainer.topAnchor),
+            leftLabelView.leadingAnchor.constraint(equalTo: leftContainer.leadingAnchor),
+            leftLabelView.trailingAnchor.constraint(equalTo: leftContainer.trailingAnchor),
+
+            leftFieldView.topAnchor.constraint(equalTo: leftLabelView.bottomAnchor, constant: 8),
+            leftFieldView.leadingAnchor.constraint(equalTo: leftContainer.leadingAnchor),
+            leftFieldView.trailingAnchor.constraint(equalTo: leftContainer.trailingAnchor),
+            leftFieldView.bottomAnchor.constraint(equalTo: leftContainer.bottomAnchor),
+
+            // Right container constraints
+            rightLabelView.topAnchor.constraint(equalTo: rightContainer.topAnchor),
+            rightLabelView.leadingAnchor.constraint(equalTo: rightContainer.leadingAnchor),
+            rightLabelView.trailingAnchor.constraint(equalTo: rightContainer.trailingAnchor),
+
+            rightFieldView.topAnchor.constraint(equalTo: rightLabelView.bottomAnchor, constant: 8),
+            rightFieldView.leadingAnchor.constraint(equalTo: rightContainer.leadingAnchor),
+            rightFieldView.trailingAnchor.constraint(equalTo: rightContainer.trailingAnchor),
+            rightFieldView.bottomAnchor.constraint(equalTo: rightContainer.bottomAnchor)
+        ])
+
+        return containerView
+    }
+
+    private func createFieldLabel(_ text: String) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }
 
     private func addToolbarToPickers() {
@@ -290,9 +485,16 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         toolbar.items = [flexSpace, doneButton]
 
+        // Add toolbar to all picker fields
         brandTextField.inputAccessoryView = toolbar
         materialTextField.inputAccessoryView = toolbar
         colorTextField.inputAccessoryView = toolbar
+        weightTextField.inputAccessoryView = toolbar
+        diameterTextField.inputAccessoryView = toolbar
+        printTemperatureTextField.inputAccessoryView = toolbar
+        bedTemperatureTextField.inputAccessoryView = toolbar
+        fanSpeedTextField.inputAccessoryView = toolbar
+        printSpeedTextField.inputAccessoryView = toolbar
     }
 
     private func addToolbarToKeyboard() {
@@ -349,6 +551,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
             colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
+            // Update color swatch with the selected color
+            updateColorSwatch(availableColors[colorIndex].color)
         }
 
         // Set weight picker selection
@@ -396,6 +600,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let defaultColor = Filament.Color.black
         colorTextField.text = defaultColor.rawValue
         colorPickerView.selectRow(0, inComponent: 0, animated: false)
+        // Set default color swatch
+        updateColorSwatch(defaultColor.displayColor)
 
         // Set default weight and diameter with proper formatting
         let defaultWeight = defaultBrand.defaultWeight
@@ -463,15 +669,18 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let material = materialTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let color = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
-        // Parse weight from formatted text (e.g., "1000 g" or "1.0 kg")
-        let weightText = weightTextField.text ?? "1000"
+        // Parse weight from formatted text (e.g., "1000 g", "1.0 kg", or just numbers)
+        let weightText = weightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "1000"
         let weight: Double
         if weightText.contains("kg") {
-            let weightString = weightText.replacingOccurrences(of: " kg", with: "")
+            let weightString = weightText.replacingOccurrences(of: "kg", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
             weight = (Double(weightString) ?? 1.0) * 1000
-        } else {
-            let weightString = weightText.replacingOccurrences(of: " g", with: "")
+        } else if weightText.contains("g") {
+            let weightString = weightText.replacingOccurrences(of: "g", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
             weight = Double(weightString) ?? 1000
+        } else {
+            // Handle plain numbers (assume grams)
+            weight = Double(weightText) ?? 1000
         }
 
         // Parse diameter from formatted text (e.g., "1.75 mm")
@@ -563,13 +772,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             return false
         }
 
-        guard let weightText = weightTextField.text,
-              let weight = Int(weightText),
-              weight > 0 else {
-            showAlert(title: "Invalid Weight", message: "Please enter a valid weight in grams (whole numbers only).")
-            return false
-        }
-
         return true
     }
 
@@ -577,6 +779,36 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+
+    private func updateColorSwatch(_ color: UIColor) {
+        // Find the color field container and update its swatch
+        for subview in stackView.arrangedSubviews {
+            if let containerView = subview as? UIView {
+                // Check if this is a side-by-side container
+                for childView in containerView.subviews {
+                    if let stackView = childView as? UIStackView {
+                        // Look through the arranged subviews for the color field container
+                        for arrangedSubview in stackView.arrangedSubviews {
+                            if let fieldContainer = arrangedSubview as? UIView {
+                                // Look for the color field container (tag 999)
+                                for fieldSubview in fieldContainer.subviews {
+                                    if let colorContainer = fieldSubview as? UIView, colorContainer.tag == 999 {
+                                        // Found the color field container, now find the swatch (tag 1000)
+                                        for colorSubview in colorContainer.subviews {
+                                            if let colorSwatch = colorSubview as? UIView, colorSwatch.tag == 1000 {
+                                                colorSwatch.backgroundColor = color
+                                                return
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Custom Brand Management
@@ -890,6 +1122,9 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
                 showCustomColorPicker()
             } else {
                 colorTextField.text = selectedColorInfo.name
+                // Update color swatch
+                updateColorSwatch(selectedColorInfo.color)
+                // Note: Do not auto-dismiss color picker - let user close with Done button
             }
 
         case 3: // Weight picker
@@ -953,6 +1188,9 @@ extension AddEditFilamentViewController: CustomColorPickerDelegate {
 
         // Set the new color as selected
         colorTextField.text = name
+
+        // Update color swatch
+        updateColorSwatch(color)
 
         // Update picker selection to the new color
         if let colorIndex = availableColors.firstIndex(where: { $0.name == name }) {
