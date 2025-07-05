@@ -417,11 +417,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         // Create color swatch view
         let colorSwatchView = UIView()
-        colorSwatchView.layer.cornerRadius = 8
-        colorSwatchView.layer.borderWidth = 1
-        colorSwatchView.layer.borderColor = UIColor.systemGray4.cgColor
+        colorSwatchView.layer.cornerRadius = 12
+        colorSwatchView.layer.borderWidth = 2
+        colorSwatchView.layer.borderColor = UIColor.systemGray3.cgColor
         colorSwatchView.backgroundColor = .systemBlue // Default color
         colorSwatchView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Add subtle shadow to make it more visible
+        colorSwatchView.layer.shadowColor = UIColor.black.cgColor
+        colorSwatchView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        colorSwatchView.layer.shadowOpacity = 0.3
+        colorSwatchView.layer.shadowRadius = 2
 
         // Add dropdown arrow with better styling
         let dropdownImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
@@ -438,8 +444,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
             colorSwatchView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             colorSwatchView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            colorSwatchView.widthAnchor.constraint(equalToConstant: 16),
-            colorSwatchView.heightAnchor.constraint(equalToConstant: 16),
+            colorSwatchView.widthAnchor.constraint(equalToConstant: 24),
+            colorSwatchView.heightAnchor.constraint(equalToConstant: 24),
 
             textField.leadingAnchor.constraint(equalTo: colorSwatchView.trailingAnchor, constant: 12),
             textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -12),
@@ -577,8 +583,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
         if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
             cachedPickerViews[2]?.selectRow(colorIndex, inComponent: 0, animated: false)
-            // Update color swatch with the selected color
-            updateColorSwatch(availableColors[colorIndex].color)
+            // Update color swatch with the selected color - delay to ensure UI is ready
+            DispatchQueue.main.async { [weak self] in
+                self?.updateColorSwatch(self?.availableColors[colorIndex].color ?? .systemBlue)
+            }
         }
 
         // Set weight picker selection - find closest match if exact match not found
@@ -646,8 +654,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         let defaultColor = Filament.Color.black
         colorTextField.text = defaultColor.rawValue
         cachedPickerViews[2]?.selectRow(0, inComponent: 0, animated: false)
-        // Set default color swatch
-        updateColorSwatch(defaultColor.displayColor)
+        // Set default color swatch - delay to ensure UI is ready
+        DispatchQueue.main.async { [weak self] in
+            self?.updateColorSwatch(defaultColor.displayColor)
+        }
 
         // Set default weight and diameter with proper formatting
         let defaultWeight = defaultBrand.defaultWeight
@@ -751,6 +761,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         if isEditMode {
             // Update existing filament
             var updatedFilament = filament!
+
+            // Calculate the remaining percentage before updating weight
+            let remainingPercentage = updatedFilament.weight > 0 ? (updatedFilament.remainingWeight / updatedFilament.weight) : 1.0
+
             updatedFilament.brand = brand
             updatedFilament.material = material
             updatedFilament.color = color
@@ -761,6 +775,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             updatedFilament.fanSpeed = fanSpeed
             updatedFilament.printSpeed = printSpeed
             updatedFilament.notes = notes?.isEmpty == true ? nil : notes
+
+            // Update remaining weight to maintain the same percentage
+            updatedFilament.remainingWeight = weight * remainingPercentage
 
             CoreDataManager.shared.updateFilament(updatedFilament)
             delegate?.didSaveFilament(updatedFilament)
