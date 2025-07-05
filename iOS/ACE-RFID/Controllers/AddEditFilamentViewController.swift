@@ -782,28 +782,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func updateColorSwatch(_ color: UIColor) {
-        // Find the color field container and update its swatch
-        for subview in stackView.arrangedSubviews {
-            // Check if this is a side-by-side container
-            for childView in subview.subviews {
-                if let stackView = childView as? UIStackView {
-                    // Look through the arranged subviews for the color field container
-                    for arrangedSubview in stackView.arrangedSubviews {
-                        // Look for the color field container (tag 999)
-                        for fieldSubview in arrangedSubview.subviews {
-                            if fieldSubview.tag == 999 {
-                                // Found the color field container, now find the swatch (tag 1000)
-                                for colorSubview in fieldSubview.subviews {
-                                    if colorSubview.tag == 1000 {
-                                        colorSubview.backgroundColor = color
-                                        return
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        // Direct search for color swatch by tag - much faster
+        if let colorSwatch = view.viewWithTag(1000) {
+            colorSwatch.backgroundColor = color
         }
     }
 
