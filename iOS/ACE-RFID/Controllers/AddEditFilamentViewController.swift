@@ -784,23 +784,19 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     private func updateColorSwatch(_ color: UIColor) {
         // Find the color field container and update its swatch
         for subview in stackView.arrangedSubviews {
-            if let containerView = subview as? UIView {
-                // Check if this is a side-by-side container
-                for childView in containerView.subviews {
-                    if let stackView = childView as? UIStackView {
-                        // Look through the arranged subviews for the color field container
-                        for arrangedSubview in stackView.arrangedSubviews {
-                            if let fieldContainer = arrangedSubview as? UIView {
-                                // Look for the color field container (tag 999)
-                                for fieldSubview in fieldContainer.subviews {
-                                    if let colorContainer = fieldSubview as? UIView, colorContainer.tag == 999 {
-                                        // Found the color field container, now find the swatch (tag 1000)
-                                        for colorSubview in colorContainer.subviews {
-                                            if let colorSwatch = colorSubview as? UIView, colorSwatch.tag == 1000 {
-                                                colorSwatch.backgroundColor = color
-                                                return
-                                            }
-                                        }
+            // Check if this is a side-by-side container
+            for childView in subview.subviews {
+                if let stackView = childView as? UIStackView {
+                    // Look through the arranged subviews for the color field container
+                    for arrangedSubview in stackView.arrangedSubviews {
+                        // Look for the color field container (tag 999)
+                        for fieldSubview in arrangedSubview.subviews {
+                            if fieldSubview.tag == 999 {
+                                // Found the color field container, now find the swatch (tag 1000)
+                                for colorSubview in fieldSubview.subviews {
+                                    if colorSubview.tag == 1000 {
+                                        colorSubview.backgroundColor = color
+                                        return
                                     }
                                 }
                             }
