@@ -17,14 +17,12 @@ class MainViewController: UIViewController {
     // MARK: - Properties
 
     private var filaments: [Filament] = []
-    private let nfcService = NFCService()
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupNFC()
         loadFilaments()
     }
 
@@ -41,8 +39,7 @@ class MainViewController: UIViewController {
 
         // Navigation bar setup
         navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addFilamentTapped)),
-            UIBarButtonItem(image: UIImage(systemName: "wave.3.right"), style: .plain, target: self, action: #selector(scanNFCTapped))
+            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addFilamentTapped))
         ]
 
         // Table view setup
@@ -67,20 +64,6 @@ class MainViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-
-        // Check NFC availability
-        if !NFCService.isNFCAvailable {
-            #if targetEnvironment(simulator)
-            showAlert(title: "NFC Not Available", message: "NFC is not supported in the iOS Simulator. Deploy to a physical iPhone device to test NFC functionality. You can still manage filaments manually.")
-            #else
-            showAlert(title: "NFC Requires Paid Developer Account",
-                     message: "NFC functionality requires a paid Apple Developer Program membership ($99/year). Personal development teams cannot use NFC features. You can still manage filaments manually and the NFC features will work once deployed with a paid developer account.")
-            #endif
-        }
-    }
-
-    private func setupNFC() {
-        nfcService.delegate = self
     }
 
     // MARK: - Data Management
@@ -100,21 +83,6 @@ class MainViewController: UIViewController {
         addViewController.delegate = self
         let navigationController = UINavigationController(rootViewController: addViewController)
         present(navigationController, animated: true)
-    }
-
-    @objc private func scanNFCTapped() {
-        guard NFCService.isNFCAvailable else {
-            #if targetEnvironment(simulator)
-            showAlert(title: "NFC Not Available",
-                     message: "NFC is not supported in the iOS Simulator. Deploy to a physical device to test NFC functionality.")
-            #else
-            showAlert(title: "NFC Requires Paid Developer Account",
-                     message: "NFC functionality requires a paid Apple Developer Program membership ($99/year). Personal development teams cannot use NFC features.\n\nYou can still:\n• Add filaments manually\n• Edit filament details\n• Track usage\n\nNFC scanning and writing will work once deployed with a paid developer account.")
-            #endif
-            return
-        }
-
-        nfcService.startReading()
     }
 
     @objc private func refreshFilaments() {
@@ -139,13 +107,6 @@ class MainViewController: UIViewController {
             let navigationController = UINavigationController(rootViewController: editViewController)
             self.present(navigationController, animated: true)
         })
-
-        // Write to NFC action
-        if NFCService.isNFCAvailable {
-            alert.addAction(UIAlertAction(title: "Write to NFC Tag", style: .default) { _ in
-                self.nfcService.writeFilament(filament)
-            })
-        }
 
         // Mark as used action
         alert.addAction(UIAlertAction(title: "Mark as Used", style: .default) { _ in
@@ -225,31 +186,6 @@ extension MainViewController: UITableViewDelegate {
             let filament = filaments[indexPath.row]
             confirmDelete(filament: filament)
         }
-    }
-}
-
-// MARK: - NFCServiceDelegate
-
-extension MainViewController: NFCServiceDelegate {
-
-    func nfcDidReadFilament(_ filament: Filament) {
-        // Check if filament already exists
-        if let existingFilament = CoreDataManager.shared.fetchFilament(by: filament.id) {
-            showAlert(title: "Filament Found", message: "This filament is already in your database: \(existingFilament.brand) \(existingFilament.material)")
-        } else {
-            // Save new filament
-            CoreDataManager.shared.saveFilament(filament)
-            loadFilaments()
-            showAlert(title: "Filament Added", message: "Successfully added \(filament.brand) \(filament.material) from NFC tag.")
-        }
-    }
-
-    func nfcDidWriteFilament(_ filament: Filament) {
-        showAlert(title: "NFC Write Success", message: "Successfully wrote \(filament.brand) \(filament.material) to NFC tag.")
-    }
-
-    func nfcDidFailWithError(_ error: Error) {
-        showAlert(title: "NFC Error", message: error.localizedDescription)
     }
 }
 

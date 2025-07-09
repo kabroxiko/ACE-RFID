@@ -28,12 +28,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     // Color management
     private lazy var availableColors: [(name: String, color: UIColor)] = {
-        // Combine predefined and custom colors
-        var colors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
-        let customColors = CustomColorManager.shared.getCustomColors()
-        colors.append(contentsOf: customColors)
-        colors.append(("Add Custom Color...", UIColor.systemGray))
-        return colors
+        // Use only predefined colors
+        return Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
     }()
 
     // Picker view caching for performance - lazy initialization
@@ -134,12 +130,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     private func refreshColors() {
         // Only reload if colors actually changed to avoid unnecessary work
-        let newColors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) } +
-                       CustomColorManager.shared.getCustomColors() +
-                       [("Add Custom Color...", UIColor.systemGray)]
+        let newColors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
 
         let hasChanged = newColors.count != availableColors.count ||
-                        !zip(newColors, availableColors).allSatisfy { $0.0.name == $0.1.name }
+                        !zip(newColors, availableColors).allSatisfy { $0.0.0 == $0.1.0 }
 
         if hasChanged {
             availableColors = newColors
@@ -899,19 +893,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         present(alert, animated: true)
     }
 
-    // MARK: - Custom Color Picker
-
-    private func showCustomColorPicker() {
-        let customColorPicker = CustomColorPickerViewController()
-        customColorPicker.delegate = self
-
-        let navController = UINavigationController(rootViewController: customColorPicker)
-        navController.modalPresentationStyle = .fullScreen  // Full screen for maximum space
-        navController.isModalInPresentation = true  // Prevent swipe-to-dismiss
-
-        present(navController, animated: true)
-    }
-
     // MARK: - Keyboard Handling
 
     private func registerKeyboardNotifications() {
@@ -1163,16 +1144,9 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
         case 2: // Color picker
             let selectedColorInfo = availableColors[row]
-
-            if selectedColorInfo.name == "Add Custom Color..." {
-                // Show custom color picker
-                showCustomColorPicker()
-            } else {
-                colorTextField.text = selectedColorInfo.name
-                // Update color swatch
-                updateColorSwatch(selectedColorInfo.color)
-                // Note: Do not auto-dismiss color picker - let user close with Done button
-            }
+            colorTextField.text = selectedColorInfo.name
+            // Update color swatch
+            updateColorSwatch(selectedColorInfo.color)
 
         case 3: // Weight picker
             let selectedWeight = Filament.weightOptions[row]
@@ -1220,31 +1194,6 @@ extension AddEditFilamentViewController {
                 if let brandPicker = cachedPickerViews[0] {
                     brandPicker.reloadAllComponents()
                 }
-            }
-        }
-    }
-}
-
-// MARK: - CustomColorPickerDelegate
-
-extension AddEditFilamentViewController: CustomColorPickerDelegate {
-    func customColorPicker(_ picker: CustomColorPickerViewController, didSelectColor color: UIColor, withName name: String) {
-        // Save the custom color
-        CustomColorManager.shared.addCustomColor(name: name, color: color)
-
-        // Refresh the color list
-        refreshColors()
-
-        // Set the new color as selected
-        colorTextField.text = name
-
-        // Update color swatch
-        updateColorSwatch(color)
-
-        // Update picker selection to the new color
-        if let colorIndex = availableColors.firstIndex(where: { $0.name == name }) {
-            if let colorPicker = cachedPickerViews[2] {
-                colorPicker.selectRow(colorIndex, inComponent: 0, animated: false)
             }
         }
     }

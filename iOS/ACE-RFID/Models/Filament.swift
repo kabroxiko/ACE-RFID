@@ -233,7 +233,7 @@ extension Filament {
             }
         }
 
-        /// Returns all available colors including custom colors from UserDefaults
+        /// Returns all available colors (predefined colors only)
         static var allAvailableColors: [(name: String, color: UIColor)] {
             var colors: [(name: String, color: UIColor)] = []
 
@@ -242,109 +242,8 @@ extension Filament {
                 colors.append((color.rawValue, color.displayColor))
             }
 
-            // Add custom colors from UserDefaults
-            let customColors = CustomColorManager.shared.getCustomColors()
-            colors.append(contentsOf: customColors)
-
             return colors
         }
-    }
-}
-
-// MARK: - Custom Color Management
-class CustomColorManager {
-    static let shared = CustomColorManager()
-    private let userDefaults = UserDefaults.standard
-    private let customColorsKey = "ACE_RFID_CustomColors"
-
-    private init() {}
-
-    /// Get all custom colors stored in UserDefaults
-    func getCustomColors() -> [(name: String, color: UIColor)] {
-        guard let data = userDefaults.data(forKey: customColorsKey),
-              let colorData = try? JSONDecoder().decode([CustomColorData].self, from: data) else {
-            return []
-        }
-
-        return colorData.compactMap { data in
-            guard let color = UIColor(hex: data.hexValue) else { return nil }
-            return (data.name, color)
-        }
-    }
-
-    /// Add a new custom color
-    func addCustomColor(name: String, color: UIColor) {
-        var existingColors = getCustomColorData()
-        let newColor = CustomColorData(name: name, hexValue: color.toHex())
-        existingColors.append(newColor)
-        saveCustomColors(existingColors)
-    }
-
-    /// Remove a custom color by name
-    func removeCustomColor(name: String) {
-        var existingColors = getCustomColorData()
-        existingColors.removeAll { $0.name == name }
-        saveCustomColors(existingColors)
-    }
-
-    /// Check if a custom color name already exists
-    func colorNameExists(_ name: String) -> Bool {
-        return getCustomColors().contains { $0.name.lowercased() == name.lowercased() }
-    }
-
-    private func getCustomColorData() -> [CustomColorData] {
-        guard let data = userDefaults.data(forKey: customColorsKey),
-              let colorData = try? JSONDecoder().decode([CustomColorData].self, from: data) else {
-            return []
-        }
-        return colorData
-    }
-
-    private func saveCustomColors(_ colors: [CustomColorData]) {
-        if let data = try? JSONEncoder().encode(colors) {
-            userDefaults.set(data, forKey: customColorsKey)
-        }
-    }
-}
-
-// MARK: - Custom Color Data Model
-private struct CustomColorData: Codable {
-    let name: String
-    let hexValue: String
-}
-
-// MARK: - UIColor Extensions for Custom Color Support
-extension UIColor {
-    /// Initialize UIColor from hex string
-    convenience init?(hex: String) {
-        let hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        let scanner = Scanner(string: hexString.hasPrefix("#") ? String(hexString.dropFirst()) : hexString)
-
-        var hexNumber: UInt64 = 0
-
-        if scanner.scanHexInt64(&hexNumber) {
-            let red = CGFloat((hexNumber & 0xff0000) >> 16) / 255
-            let green = CGFloat((hexNumber & 0x00ff00) >> 8) / 255
-            let blue = CGFloat(hexNumber & 0x0000ff) / 255
-
-            self.init(red: red, green: green, blue: blue, alpha: 1.0)
-        } else {
-            return nil
-        }
-    }
-
-    /// Convert UIColor to hex string
-    func toHex() -> String {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-
-        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-
-        let rgb: Int = (Int)(red * 255) << 16 | (Int)(green * 255) << 8 | (Int)(blue * 255) << 0
-
-        return String(format: "#%06x", rgb)
     }
 }
 

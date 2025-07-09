@@ -14,10 +14,8 @@
 		3A1B2C3D4E5F6705 /* FilamentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6724 /* FilamentTableViewCell.swift */; };
 		3A1B2C3D4E5F6706 /* Filament.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6725 /* Filament.swift */; };
 		3A1B2C3D4E5F6707 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6726 /* CoreDataManager.swift */; };
-		3A1B2C3D4E5F6708 /* NFCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6727 /* NFCService.swift */; };
 		3A1B2C3D4E5F6709 /* FilamentDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */; };
 		3A1B2C3D4E5F670A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */; };
-		3A1B2C3D4E5F670B /* CustomColorPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,12 +27,10 @@
 		3A1B2C3D4E5F6724 /* FilamentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilamentTableViewCell.swift; sourceTree = "<group>"; };
 		3A1B2C3D4E5F6725 /* Filament.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filament.swift; sourceTree = "<group>"; };
 		3A1B2C3D4E5F6726 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
-		3A1B2C3D4E5F6727 /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
 		3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FilamentDataModel.xcdatamodeld; sourceTree = "<group>"; versionGroupType = wrapper.xcdatamodel; };
 		3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672B /* ACE-RFID.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ACE-RFID.entitlements"; sourceTree = "<group>"; };
-		3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomColorPickerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,7 +97,6 @@
 			children = (
 				3A1B2C3D4E5F6722 /* MainViewController.swift */,
 				3A1B2C3D4E5F6723 /* AddEditFilamentViewController.swift */,
-				3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -109,7 +104,6 @@
 		3A1B2C3D4E5F6804 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				3A1B2C3D4E5F6727 /* NFCService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -203,9 +197,7 @@
 			files = (
 				3A1B2C3D4E5F6706 /* Filament.swift in Sources */,
 				3A1B2C3D4E5F6704 /* AddEditFilamentViewController.swift in Sources */,
-				3A1B2C3D4E5F670B /* CustomColorPickerViewController.swift in Sources */,
 				3A1B2C3D4E5F6707 /* CoreDataManager.swift in Sources */,
-				3A1B2C3D4E5F6708 /* NFCService.swift in Sources */,
 				3A1B2C3D4E5F6701 /* AppDelegate.swift in Sources */,
 				3A1B2C3D4E5F6709 /* FilamentDataModel.xcdatamodeld in Sources */,
 				3A1B2C3D4E5F6702 /* SceneDelegate.swift in Sources */,
