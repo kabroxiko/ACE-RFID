@@ -1,0 +1,442 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA09E2E1F3E6F00EB99CA /* NFCService.swift */; };
+		142CA0A12E1F3EA500EB99CA /* NFCSerialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A02E1F3EA500EB99CA /* NFCSerialManager.swift */; };
+		142CA0A42E1F7A1000EB99CA /* SerialPortPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */; };
+		142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */; };
+		3A1B2C3D4E5F6701 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6720 /* AppDelegate.swift */; };
+		3A1B2C3D4E5F6702 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6721 /* SceneDelegate.swift */; };
+		3A1B2C3D4E5F6703 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6722 /* MainViewController.swift */; };
+		3A1B2C3D4E5F6704 /* AddEditFilamentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6723 /* AddEditFilamentViewController.swift */; };
+		3A1B2C3D4E5F6705 /* FilamentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6724 /* FilamentTableViewCell.swift */; };
+		3A1B2C3D4E5F6706 /* Filament.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6725 /* Filament.swift */; };
+		3A1B2C3D4E5F6707 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6726 /* CoreDataManager.swift */; };
+		3A1B2C3D4E5F6709 /* FilamentDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */; };
+		3A1B2C3D4E5F670A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		142CA09E2E1F3E6F00EB99CA /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
+		142CA0A02E1F3EA500EB99CA /* NFCSerialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCSerialManager.swift; sourceTree = "<group>"; };
+		142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerView.swift; sourceTree = "<group>"; };
+		142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerViewController.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6700 /* ACE-RFID.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ACE-RFID.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3A1B2C3D4E5F6720 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6721 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6722 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6723 /* AddEditFilamentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditFilamentViewController.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6724 /* FilamentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilamentTableViewCell.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6725 /* Filament.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filament.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6726 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		3A1B2C3D4E5F672A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3A1B2C3D4E5F672B /* ACE-RFID.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ACE-RFID.entitlements"; sourceTree = "<group>"; };
+		3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FilamentDataModel.xcdatamodel; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3A1B2C3D4E5F67FD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3A1B2C3D4E5F67FE = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F67FF /* ACE-RFID */,
+				3A1B2C3D4E5F6800 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F67FF /* ACE-RFID */ = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F6720 /* AppDelegate.swift */,
+				3A1B2C3D4E5F6721 /* SceneDelegate.swift */,
+				3A1B2C3D4E5F6801 /* Models */,
+				3A1B2C3D4E5F6802 /* Views */,
+				3A1B2C3D4E5F6803 /* Controllers */,
+				3A1B2C3D4E5F6804 /* Services */,
+				3A1B2C3D4E5F6805 /* Core Data */,
+				3A1B2C3D4E5F6806 /* Resources */,
+				3A1B2C3D4E5F672B /* ACE-RFID.entitlements */,
+			);
+			path = "ACE-RFID";
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6800 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F6700 /* ACE-RFID.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6801 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F6725 /* Filament.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6802 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */,
+				142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */,
+				3A1B2C3D4E5F6724 /* FilamentTableViewCell.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6803 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F6722 /* MainViewController.swift */,
+				3A1B2C3D4E5F6723 /* AddEditFilamentViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6804 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				142CA0A02E1F3EA500EB99CA /* NFCSerialManager.swift */,
+				142CA09E2E1F3E6F00EB99CA /* NFCService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6805 /* Core Data */ = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */,
+				3A1B2C3D4E5F6726 /* CoreDataManager.swift */,
+			);
+			path = "Core Data";
+			sourceTree = "<group>";
+		};
+		3A1B2C3D4E5F6806 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */,
+				3A1B2C3D4E5F672A /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3A1B2C3D4E5F672E /* ACE-RFID */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3A1B2C3D4E5F6813 /* Build configuration list for PBXNativeTarget "ACE-RFID" */;
+			buildPhases = (
+				3A1B2C3D4E5F67FC /* Sources */,
+				3A1B2C3D4E5F67FD /* Frameworks */,
+				3A1B2C3D4E5F67FA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "ACE-RFID";
+			productName = "ACE-RFID";
+			productReference = 3A1B2C3D4E5F6700 /* ACE-RFID.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3A1B2C3D4E5F67FB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					3A1B2C3D4E5F672E = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 3A1B2C3D4E5F6814 /* Build configuration list for PBXProject "ACE-RFID" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3A1B2C3D4E5F67FE;
+			productRefGroup = 3A1B2C3D4E5F6800 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3A1B2C3D4E5F672E /* ACE-RFID */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3A1B2C3D4E5F67FA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3A1B2C3D4E5F670A /* LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3A1B2C3D4E5F67FC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3A1B2C3D4E5F6706 /* Filament.swift in Sources */,
+				3A1B2C3D4E5F6704 /* AddEditFilamentViewController.swift in Sources */,
+				3A1B2C3D4E5F6707 /* CoreDataManager.swift in Sources */,
+				3A1B2C3D4E5F6701 /* AppDelegate.swift in Sources */,
+				3A1B2C3D4E5F6709 /* FilamentDataModel.xcdatamodeld in Sources */,
+				142CA0A42E1F7A1000EB99CA /* SerialPortPickerView.swift in Sources */,
+				142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */,
+				3A1B2C3D4E5F6702 /* SceneDelegate.swift in Sources */,
+				3A1B2C3D4E5F6703 /* MainViewController.swift in Sources */,
+				142CA0A12E1F3EA500EB99CA /* NFCSerialManager.swift in Sources */,
+				142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */,
+				3A1B2C3D4E5F6705 /* FilamentTableViewCell.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3A1B2C3D4E5F6815 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = TBVZU3YMMY;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3A1B2C3D4E5F6816 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = TBVZU3YMMY;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3A1B2C3D4E5F6817 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "ACE-RFID/Resources/Info.plist";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "cl.lonecesito.ace-rfid";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3A1B2C3D4E5F6818 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "ACE-RFID/Resources/Info.plist";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "cl.lonecesito.ace-rfid";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3A1B2C3D4E5F6813 /* Build configuration list for PBXNativeTarget "ACE-RFID" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A1B2C3D4E5F6817 /* Debug */,
+				3A1B2C3D4E5F6818 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3A1B2C3D4E5F6814 /* Build configuration list for PBXProject "ACE-RFID" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A1B2C3D4E5F6815 /* Debug */,
+				3A1B2C3D4E5F6816 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */,
+			);
+			currentVersion = 3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */;
+			path = FilamentDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 3A1B2C3D4E5F67FB /* Project object */;
+}
