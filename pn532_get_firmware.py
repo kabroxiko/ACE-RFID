@@ -6,7 +6,7 @@ ports = serial.tools.list_ports.comports()
 for port in ports:
     print(f"{port.device}: {port.description}")
 
-PORT = "/dev/cu.usbserial-14340"  # Change to your serial port
+PORT = "/dev/tty.usbmodem143401"  # Change to your serial port
 BAUD = 115200  # Match Arduino's Serial.begin(115200)
 
 # PN532 protocol constants
