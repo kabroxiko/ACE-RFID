@@ -11,7 +11,34 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
     func didSaveFilament(_ filament: Filament)
 }
 
-class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
+class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, CustomColorPickerDelegate {
+    // MARK: - UIPickerViewDataSource
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        switch pickerView.tag {
+        case 0:
+            return availableBrands.count
+        case 1:
+            return Filament.Material.allCases.count
+        case 3:
+            return Filament.weightOptions.count
+        case 4:
+            return Filament.diameterOptions.count
+        case 5:
+            return Filament.temperatureOptions.count
+        case 6:
+            return Filament.bedTemperatureOptions.count
+        case 7:
+            return Filament.fanSpeedOptions.count
+        case 8:
+            return Filament.printSpeedOptions.count
+        default:
+            return 0
+        }
+    }
 
     // MARK: - Properties
 
@@ -37,7 +64,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     private let materialTextField = UITextField()
     private let materialPickerView = UIPickerView()
     private let colorTextField = UITextField()
-    private let colorPickerView = UIPickerView()
+    // Modern color picker UI elements
+    private var colorGridStack: UIStackView?
+    private var selectedColorSwatch: UIView?
+    private var addCustomColorButton: UIButton?
     private let weightTextField = UITextField()
     private let weightPickerView = UIPickerView()
     private let diameterTextField = UITextField()
@@ -187,20 +217,178 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         brandPickerView.tag = 0 // Tag to identify picker
         stackView.addArrangedSubview(createFormField(brandTextField))
 
-        // Material and Color side by side
+        // Material field (unchanged)
         materialTextField.placeholder = "Select material"
         materialTextField.inputView = materialPickerView
         materialPickerView.delegate = self
         materialPickerView.dataSource = self
         materialPickerView.tag = 1 // Tag to identify picker
 
-        colorTextField.placeholder = "Select color"
-        colorTextField.inputView = colorPickerView
-        colorPickerView.delegate = self
-        colorPickerView.dataSource = self
-        colorPickerView.tag = 2 // Tag to identify picker
 
-        stackView.addArrangedSubview(createSideBySideFormFields(materialTextField, leftLabel: "Material", colorTextField, rightLabel: "Color"))
+        // Modern Color Picker Section
+        let colorSectionView = UIView()
+        colorSectionView.translatesAutoresizingMaskIntoConstraints = false
+
+        let colorLabel = createFieldLabel("Color")
+        colorSectionView.addSubview(colorLabel)
+        colorLabel.topAnchor.constraint(equalTo: colorSectionView.topAnchor).isActive = true
+        colorLabel.leadingAnchor.constraint(equalTo: colorSectionView.leadingAnchor).isActive = true
+        colorLabel.trailingAnchor.constraint(equalTo: colorSectionView.trailingAnchor).isActive = true
+
+        // Horizontal scrollable color grid
+        let scrollView = UIScrollView()
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        colorSectionView.addSubview(scrollView)
+        scrollView.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 8).isActive = true
+        scrollView.leadingAnchor.constraint(equalTo: colorSectionView.leadingAnchor).isActive = true
+        scrollView.trailingAnchor.constraint(equalTo: colorSectionView.trailingAnchor).isActive = true
+        scrollView.heightAnchor.constraint(equalToConstant: 56).isActive = true
+
+        let gridStack = UIStackView()
+        gridStack.axis = .horizontal
+        gridStack.spacing = 12
+        gridStack.alignment = .center
+        gridStack.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(gridStack)
+        gridStack.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
+        gridStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
+        gridStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 12).isActive = true
+        gridStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -12).isActive = true
+        self.colorGridStack = gridStack
+
+        // Add color swatches to grid
+        for (index, colorInfo) in availableColors.enumerated() {
+            let swatchButton = UIButton(type: .custom)
+            swatchButton.backgroundColor = colorInfo.color
+            swatchButton.layer.cornerRadius = 16
+            swatchButton.layer.borderWidth = 2
+            swatchButton.layer.borderColor = UIColor.systemGray4.cgColor
+            swatchButton.translatesAutoresizingMaskIntoConstraints = false
+            swatchButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
+            swatchButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
+            swatchButton.tag = index
+            swatchButton.accessibilityLabel = colorInfo.name
+            swatchButton.addTarget(self, action: #selector(colorSwatchTapped(_:)), for: .touchUpInside)
+            // Show a plus icon for custom color
+            if colorInfo.name == "Add Custom Color..." {
+                let plusIcon = UIImageView(image: UIImage(systemName: "plus"))
+                plusIcon.tintColor = .systemBlue
+                plusIcon.translatesAutoresizingMaskIntoConstraints = false
+                swatchButton.addSubview(plusIcon)
+                NSLayoutConstraint.activate([
+                    plusIcon.centerXAnchor.constraint(equalTo: swatchButton.centerXAnchor),
+                    plusIcon.centerYAnchor.constraint(equalTo: swatchButton.centerYAnchor),
+                    plusIcon.widthAnchor.constraint(equalToConstant: 18),
+                    plusIcon.heightAnchor.constraint(equalToConstant: 18)
+                ])
+            }
+            gridStack.addArrangedSubview(swatchButton)
+        }
+
+        // Selected color preview and name field
+        let colorPreviewStack = UIStackView()
+        colorPreviewStack.axis = .horizontal
+        colorPreviewStack.spacing = 12
+        colorPreviewStack.alignment = .center
+        colorPreviewStack.translatesAutoresizingMaskIntoConstraints = false
+        colorSectionView.addSubview(colorPreviewStack)
+        colorPreviewStack.topAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: 12).isActive = true
+        colorPreviewStack.leadingAnchor.constraint(equalTo: colorSectionView.leadingAnchor).isActive = true
+        colorPreviewStack.trailingAnchor.constraint(equalTo: colorSectionView.trailingAnchor).isActive = true
+        colorPreviewStack.heightAnchor.constraint(equalToConstant: 44).isActive = true
+
+        let previewSwatch = UIView()
+        previewSwatch.layer.cornerRadius = 12
+        previewSwatch.layer.borderWidth = 1.5
+        previewSwatch.layer.borderColor = UIColor.systemGray4.cgColor
+        previewSwatch.backgroundColor = .systemBlue
+        previewSwatch.translatesAutoresizingMaskIntoConstraints = false
+        previewSwatch.widthAnchor.constraint(equalToConstant: 32).isActive = true
+        previewSwatch.heightAnchor.constraint(equalToConstant: 32).isActive = true
+        colorPreviewStack.addArrangedSubview(previewSwatch)
+        self.selectedColorSwatch = previewSwatch
+
+        colorTextField.placeholder = "Color name"
+        colorTextField.borderStyle = .roundedRect
+        colorTextField.font = .systemFont(ofSize: 16)
+        colorTextField.textColor = .label
+        colorTextField.translatesAutoresizingMaskIntoConstraints = false
+        colorPreviewStack.addArrangedSubview(colorTextField)
+
+        // Add Custom Color button
+        let customColorButton = UIButton(type: .system)
+        customColorButton.setTitle("Add Custom Color", for: .normal)
+        customColorButton.setTitleColor(.systemBlue, for: .normal)
+        customColorButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        customColorButton.layer.cornerRadius = 8
+        customColorButton.layer.borderWidth = 1
+        customColorButton.layer.borderColor = UIColor.systemBlue.cgColor
+        customColorButton.backgroundColor = .secondarySystemBackground
+        customColorButton.translatesAutoresizingMaskIntoConstraints = false
+        customColorButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        customColorButton.addTarget(self, action: #selector(addCustomColorTapped), for: .touchUpInside)
+        colorSectionView.addSubview(customColorButton)
+        customColorButton.topAnchor.constraint(equalTo: colorPreviewStack.bottomAnchor, constant: 8).isActive = true
+        customColorButton.leadingAnchor.constraint(equalTo: colorSectionView.leadingAnchor).isActive = true
+        customColorButton.widthAnchor.constraint(equalToConstant: 160).isActive = true
+        customColorButton.bottomAnchor.constraint(equalTo: colorSectionView.bottomAnchor).isActive = true
+        self.addCustomColorButton = customColorButton
+
+        // Add to stackView
+        // Add material and color sections side by side
+        let materialColorContainer = UIView()
+        materialColorContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        let horizontalStack = UIStackView()
+        horizontalStack.axis = .horizontal
+        horizontalStack.spacing = 16
+        horizontalStack.distribution = .fillEqually
+        horizontalStack.translatesAutoresizingMaskIntoConstraints = false
+        materialColorContainer.addSubview(horizontalStack)
+        NSLayoutConstraint.activate([
+            horizontalStack.topAnchor.constraint(equalTo: materialColorContainer.topAnchor),
+            horizontalStack.leadingAnchor.constraint(equalTo: materialColorContainer.leadingAnchor),
+            horizontalStack.trailingAnchor.constraint(equalTo: materialColorContainer.trailingAnchor),
+            horizontalStack.bottomAnchor.constraint(equalTo: materialColorContainer.bottomAnchor)
+        ])
+
+        // Left: Material
+        let leftContainer = UIView()
+        let leftLabelView = createFieldLabel("Material")
+        let leftFieldView = createFormField(materialTextField)
+        leftContainer.addSubview(leftLabelView)
+        leftContainer.addSubview(leftFieldView)
+        leftContainer.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            leftLabelView.topAnchor.constraint(equalTo: leftContainer.topAnchor),
+            leftLabelView.leadingAnchor.constraint(equalTo: leftContainer.leadingAnchor),
+            leftLabelView.trailingAnchor.constraint(equalTo: leftContainer.trailingAnchor),
+            leftFieldView.topAnchor.constraint(equalTo: leftLabelView.bottomAnchor, constant: 8),
+            leftFieldView.leadingAnchor.constraint(equalTo: leftContainer.leadingAnchor),
+            leftFieldView.trailingAnchor.constraint(equalTo: leftContainer.trailingAnchor),
+            leftFieldView.bottomAnchor.constraint(equalTo: leftContainer.bottomAnchor)
+        ])
+
+        // Right: Color (use colorSectionView directly)
+        let rightContainer = UIView()
+        let rightLabelView = createFieldLabel("Color")
+        rightContainer.addSubview(rightLabelView)
+        rightContainer.addSubview(colorSectionView)
+        rightContainer.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            rightLabelView.topAnchor.constraint(equalTo: rightContainer.topAnchor),
+            rightLabelView.leadingAnchor.constraint(equalTo: rightContainer.leadingAnchor),
+            rightLabelView.trailingAnchor.constraint(equalTo: rightContainer.trailingAnchor),
+            colorSectionView.topAnchor.constraint(equalTo: rightLabelView.bottomAnchor, constant: 8),
+            colorSectionView.leadingAnchor.constraint(equalTo: rightContainer.leadingAnchor),
+            colorSectionView.trailingAnchor.constraint(equalTo: rightContainer.trailingAnchor),
+            colorSectionView.bottomAnchor.constraint(equalTo: rightContainer.bottomAnchor)
+        ])
+
+        horizontalStack.addArrangedSubview(leftContainer)
+        horizontalStack.addArrangedSubview(rightContainer)
+        stackView.addArrangedSubview(materialColorContainer)
 
         // Weight and Diameter side by side
         weightTextField.placeholder = "Select weight"
@@ -372,26 +560,21 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         dropdownImageView.contentMode = .scaleAspectFit
         dropdownImageView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add in z-order: swatch, text, arrow (arrow last, always on top)
         containerView.addSubview(colorSwatchView)
         containerView.addSubview(textField)
         containerView.addSubview(dropdownImageView)
 
-        // Make sure swatch is fully opaque
-        colorSwatchView.backgroundColor = colorSwatchView.backgroundColor?.withAlphaComponent(1.0)
-
         NSLayoutConstraint.activate([
-            containerView.heightAnchor.constraint(equalToConstant: 52),
+            containerView.heightAnchor.constraint(equalToConstant: 52), // Increased height for better touch targets
 
-            colorSwatchView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            colorSwatchView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             colorSwatchView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            colorSwatchView.widthAnchor.constraint(equalToConstant: 24),
-            colorSwatchView.heightAnchor.constraint(equalToConstant: 24),
+            colorSwatchView.widthAnchor.constraint(equalToConstant: 16),
+            colorSwatchView.heightAnchor.constraint(equalToConstant: 16),
 
             textField.leadingAnchor.constraint(equalTo: colorSwatchView.trailingAnchor, constant: 12),
-            textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -20), // Increased spacing to 20
+            textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -12),
             textField.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            textField.heightAnchor.constraint(equalToConstant: 32),
 
             dropdownImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             dropdownImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
@@ -555,8 +738,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         }
 
         if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
-            colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
-            // Update color swatch with the selected color
             updateColorSwatch(availableColors[colorIndex].color)
         }
 
@@ -602,11 +783,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         materialPickerView.selectRow(0, inComponent: 0, animated: false)
 
         // Set default color (Black)
-        let defaultColor = Filament.Color.black
-        colorTextField.text = defaultColor.rawValue
-        colorPickerView.selectRow(0, inComponent: 0, animated: false)
-        // Set default color swatch
-        updateColorSwatch(defaultColor.displayColor)
+        let defaultColorName = availableColors.first?.name ?? "Black"
+        let defaultColor = availableColors.first?.color ?? UIColor.black
+        colorTextField.text = defaultColorName
+        updateColorSwatch(defaultColor)
 
         // Set default weight and diameter with proper formatting
         let defaultWeight = defaultBrand.defaultWeight
@@ -659,6 +839,36 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         availableColors = Filament.Color.allAvailableColors
         // Add "Add Custom Color..." option at the end
         availableColors.append(("Add Custom Color...", UIColor.systemBlue))
+        // Repopulate color grid if UI exists
+        if let gridStack = colorGridStack {
+            gridStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+            for (index, colorInfo) in availableColors.enumerated() {
+                let swatchButton = UIButton(type: .custom)
+                swatchButton.backgroundColor = colorInfo.color
+                swatchButton.layer.cornerRadius = 16
+                swatchButton.layer.borderWidth = 2
+                swatchButton.layer.borderColor = UIColor.systemGray4.cgColor
+                swatchButton.translatesAutoresizingMaskIntoConstraints = false
+                swatchButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
+                swatchButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
+                swatchButton.tag = index
+                swatchButton.accessibilityLabel = colorInfo.name
+                swatchButton.addTarget(self, action: #selector(colorSwatchTapped(_:)), for: .touchUpInside)
+                if colorInfo.name == "Add Custom Color..." {
+                    let plusIcon = UIImageView(image: UIImage(systemName: "plus"))
+                    plusIcon.tintColor = .systemBlue
+                    plusIcon.translatesAutoresizingMaskIntoConstraints = false
+                    swatchButton.addSubview(plusIcon)
+                    NSLayoutConstraint.activate([
+                        plusIcon.centerXAnchor.constraint(equalTo: swatchButton.centerXAnchor),
+                        plusIcon.centerYAnchor.constraint(equalTo: swatchButton.centerYAnchor),
+                        plusIcon.widthAnchor.constraint(equalToConstant: 18),
+                        plusIcon.heightAnchor.constraint(equalToConstant: 18)
+                    ])
+                }
+                gridStack.addArrangedSubview(swatchButton)
+            }
+        }
     }
 
     // MARK: - Actions
@@ -787,26 +997,25 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func updateColorSwatch(_ color: UIColor) {
-        // Find the color field container and update its swatch
-        for subview in stackView.arrangedSubviews {
-            // No need to cast UIView to UIView
-            for childView in subview.subviews {
-                if let stackView = childView as? UIStackView {
-                    for arrangedSubview in stackView.arrangedSubviews {
-                        for fieldSubview in arrangedSubview.subviews {
-                            if fieldSubview.tag == 999 {
-                                for colorSubview in fieldSubview.subviews {
-                                    if colorSubview.tag == 1000 {
-                                        colorSubview.backgroundColor = color
-                                        return
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        // Update the redesigned color swatch preview
+        selectedColorSwatch?.backgroundColor = color
+    }
+
+    // MARK: - Redesigned Color Picker Actions
+    @objc private func colorSwatchTapped(_ sender: UIButton) {
+        let index = sender.tag
+        guard index < availableColors.count else { return }
+        let colorInfo = availableColors[index]
+        if colorInfo.name == "Add Custom Color..." {
+            addCustomColorTapped()
+        } else {
+            colorTextField.text = colorInfo.name
+            updateColorSwatch(colorInfo.color)
         }
+    }
+
+    @objc private func addCustomColorTapped() {
+        showCustomColorPicker()
     }
 
     // MARK: - Custom Brand Management
@@ -884,9 +1093,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func refreshColors() {
-        // Refresh the colors list and reload the picker
+        // Refresh the colors list and reload the color grid
         initializeColors()
-        colorPickerView.reloadAllComponents()
     }
 
     // MARK: - Keyboard Handling
@@ -931,238 +1139,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
             scrollView.scrollIndicatorInsets.bottom = 0
         }
     }
-}
-
-// MARK: - UIPickerViewDataSource
-
-extension AddEditFilamentViewController: UIPickerViewDataSource {
-
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        switch pickerView.tag {
-        case 0: // Brand picker
-            return availableBrands.count
-        case 1: // Material picker
-            return Filament.Material.allCases.count
-        case 2: // Color picker
-            return availableColors.count
-        case 3: // Weight picker
-            return Filament.weightOptions.count
-        case 4: // Diameter picker
-            return Filament.diameterOptions.count
-        case 5: // Print temperature picker
-            return Filament.temperatureOptions.count
-        case 6: // Bed temperature picker
-            return Filament.bedTemperatureOptions.count
-        case 7: // Fan speed picker
-            return Filament.fanSpeedOptions.count
-        case 8: // Print speed picker
-            return Filament.printSpeedOptions.count
-        default:
-            return 0
-        }
-    }
-}
-
-// MARK: - UIPickerViewDelegate
-
-extension AddEditFilamentViewController: UIPickerViewDelegate {
-
-    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
-        if pickerView.tag == 2 { // Color picker
-            let colorInfo = availableColors[row]
-
-            let containerView = UIView()
-            containerView.frame = CGRect(x: 0, y: 0, width: 200, height: 30)
-
-            let colorIndicator = UIView()
-            colorIndicator.backgroundColor = colorInfo.color
-            colorIndicator.layer.cornerRadius = 8
-            colorIndicator.layer.borderWidth = 1
-            colorIndicator.layer.borderColor = UIColor.systemGray4.cgColor
-            colorIndicator.translatesAutoresizingMaskIntoConstraints = false
-
-            let label = UILabel()
-            label.text = colorInfo.name
-            label.font = UIFont.systemFont(ofSize: 17)
-            label.textColor = .label
-            label.translatesAutoresizingMaskIntoConstraints = false
-
-            containerView.addSubview(colorIndicator)
-            containerView.addSubview(label)
-
-            NSLayoutConstraint.activate([
-                colorIndicator.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-                colorIndicator.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-                colorIndicator.widthAnchor.constraint(equalToConstant: 16),
-                colorIndicator.heightAnchor.constraint(equalToConstant: 16),
-
-                label.leadingAnchor.constraint(equalTo: colorIndicator.trailingAnchor, constant: 12),
-                label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-                label.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
-            ])
-
-            return containerView
-        } else {
-            // For all other pickers, use standard text label
-            let label = UILabel()
-            label.textAlignment = .center
-            label.font = UIFont.systemFont(ofSize: 17)
-            label.textColor = .label
-
-            switch pickerView.tag {
-            case 0: // Brand picker
-                label.text = availableBrands[row]
-            case 1: // Material picker
-                label.text = Filament.Material.allCases[row].rawValue
-            case 3: // Weight picker
-                let weight = Filament.weightOptions[row]
-                label.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
-            case 4: // Diameter picker
-                label.text = String(format: "%.2f mm", Filament.diameterOptions[row])
-            case 5: // Print temperature picker
-                label.text = "\(Filament.temperatureOptions[row])°C"
-            case 6: // Bed temperature picker
-                label.text = "\(Filament.bedTemperatureOptions[row])°C"
-            case 7: // Fan speed picker
-                label.text = "\(Filament.fanSpeedOptions[row])%"
-            case 8: // Print speed picker
-                label.text = "\(Filament.printSpeedOptions[row]) mm/s"
-            default:
-                label.text = ""
-            }
-
-            return label
-        }
-    }
-
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        // This method is now only used as fallback for older iOS versions
-        switch pickerView.tag {
-        case 0: // Brand picker
-            return availableBrands[row]
-        case 1: // Material picker
-            return Filament.Material.allCases[row].rawValue
-        case 2: // Color picker
-            return availableColors[row].name
-        default:
-            return nil
-        }
-    }
-
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        switch pickerView.tag {
-        case 0: // Brand picker
-            let selectedBrandName = availableBrands[row]
-
-            if selectedBrandName == "Add Custom Brand..." {
-                // Show alert to add custom brand
-                showAddCustomBrandAlert()
-            } else {
-                brandTextField.text = selectedBrandName
-
-                // Update weight and diameter defaults when brand changes (only for predefined brands)
-                if let predefinedBrand = Filament.Brand.allCases.first(where: { $0.rawValue == selectedBrandName }) {
-                    if weightTextField.text?.isEmpty ?? true || weightTextField.text == "1000" {
-                        let defaultWeight = predefinedBrand.defaultWeight
-                        weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
-
-                        // Update weight picker selection
-                        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight) {
-                            weightPickerView.selectRow(weightIndex, inComponent: 0, animated: false)
-                        }
-                    }
-                    if diameterTextField.text?.isEmpty ?? true || diameterTextField.text == "1.75" {
-                        let defaultDiameter = predefinedBrand.defaultDiameter
-                        diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
-
-                        // Update diameter picker selection
-                        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter) {
-                            diameterPickerView.selectRow(diameterIndex, inComponent: 0, animated: false)
-                        }
-                    }
-                }
-            }
-
-        case 1: // Material picker
-            let selectedMaterial = Filament.Material.allCases[row]
-            materialTextField.text = selectedMaterial.rawValue
-
-            // Auto-fill temperature and speed defaults based on material
-            let printTemp = selectedMaterial.defaultPrintTemperature
-            let bedTemp = selectedMaterial.defaultBedTemperature
-            let fanSpeed = selectedMaterial.defaultFanSpeed
-            let printSpeed = selectedMaterial.defaultPrintSpeed
-
-            printTemperatureTextField.text = "\(printTemp)°C"
-            bedTemperatureTextField.text = "\(bedTemp)°C"
-            fanSpeedTextField.text = "\(fanSpeed)%"
-            printSpeedTextField.text = "\(printSpeed) mm/s"
-
-            // Update picker selections
-            if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp) {
-                printTemperaturePickerView.selectRow(printTempIndex, inComponent: 0, animated: false)
-            }
-            if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp) {
-                bedTemperaturePickerView.selectRow(bedTempIndex, inComponent: 0, animated: false)
-            }
-            if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed) {
-                fanSpeedPickerView.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
-            }
-            if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed) {
-                printSpeedPickerView.selectRow(printSpeedIndex, inComponent: 0, animated: false)
-            }
-
-        case 2: // Color picker
-            let selectedColorInfo = availableColors[row]
-
-            if selectedColorInfo.name == "Add Custom Color..." {
-                // Show custom color picker
-                showCustomColorPicker()
-            } else {
-                colorTextField.text = selectedColorInfo.name
-                // Update color swatch
-                updateColorSwatch(selectedColorInfo.color)
-                // Note: Do not auto-dismiss color picker - let user close with Done button
-            }
-
-        case 3: // Weight picker
-            let selectedWeight = Filament.weightOptions[row]
-            weightTextField.text = selectedWeight < 1000 ? String(format: "%.0f g", selectedWeight) : String(format: "%.1f kg", selectedWeight / 1000)
-
-        case 4: // Diameter picker
-            let selectedDiameter = Filament.diameterOptions[row]
-            diameterTextField.text = String(format: "%.2f mm", selectedDiameter)
-
-        case 5: // Print temperature picker
-            let selectedTemp = Filament.temperatureOptions[row]
-            printTemperatureTextField.text = "\(selectedTemp)°C"
-
-        case 6: // Bed temperature picker
-            let selectedTemp = Filament.bedTemperatureOptions[row]
-            bedTemperatureTextField.text = "\(selectedTemp)°C"
-
-        case 7: // Fan speed picker
-            let selectedSpeed = Filament.fanSpeedOptions[row]
-            fanSpeedTextField.text = "\(selectedSpeed)%"
-
-        case 8: // Print speed picker
-            let selectedSpeed = Filament.printSpeedOptions[row]
-            printSpeedTextField.text = "\(selectedSpeed) mm/s"
-
-        default:
-            break
-        }
-    }
-}
-
-// MARK: - UITextFieldDelegate
-
-extension AddEditFilamentViewController {
-
+    // MARK: - UITextFieldDelegate
     func textFieldDidEndEditing(_ textField: UITextField) {
         if textField == brandTextField {
             guard let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -1176,27 +1153,16 @@ extension AddEditFilamentViewController {
             }
         }
     }
-}
 
-// MARK: - CustomColorPickerDelegate
-
-extension AddEditFilamentViewController: CustomColorPickerDelegate {
+    // MARK: - CustomColorPickerDelegate
     func customColorPicker(_ picker: CustomColorPickerViewController, didSelectColor color: UIColor, withName name: String) {
         // Save the custom color
         CustomColorManager.shared.addCustomColor(name: name, color: color)
-
         // Refresh the color list
         refreshColors()
-
         // Set the new color as selected
         colorTextField.text = name
-
         // Update color swatch
         updateColorSwatch(color)
-
-        // Update picker selection to the new color
-        if let colorIndex = availableColors.firstIndex(where: { $0.name == name }) {
-            colorPickerView.selectRow(colorIndex, inComponent: 0, animated: false)
-        }
     }
 }
