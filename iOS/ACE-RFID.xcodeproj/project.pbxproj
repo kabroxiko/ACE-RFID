@@ -30,11 +30,11 @@
 		3A1B2C3D4E5F6725 /* Filament.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filament.swift; sourceTree = "<group>"; };
 		3A1B2C3D4E5F6726 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 		3A1B2C3D4E5F6727 /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
-		3A1B2C3D4E5F6728 /* FilamentDataModel.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FilamentDataModel.xcdatamodeld; sourceTree = "<group>"; versionGroupType = wrapper.xcdatamodel; };
 		3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672B /* ACE-RFID.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ACE-RFID.entitlements"; sourceTree = "<group>"; };
 		3A1B2C3D4E5F672D /* CustomColorPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomColorPickerViewController.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FilamentDataModel.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,7 +160,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					3A1B2C3D4E5F672E = {
 						CreatedOnToolsVersion = 15.0;
@@ -252,6 +252,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = TBVZU3YMMY;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -315,6 +316,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = TBVZU3YMMY;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -343,7 +345,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TBVZU3YMMY;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "ACE-RFID/Resources/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -371,7 +372,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TBVZU3YMMY;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "ACE-RFID/Resources/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -425,12 +425,6 @@
 			path = FilamentDataModel.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
-		};
-		3A1B2C3D4E5F672F /* FilamentDataModel.xcdatamodel */ = {
-			isa = PBXFileReference;
-			lastKnownFileType = wrapper.xcdatamodel;
-			path = FilamentDataModel.xcdatamodel;
-			sourceTree = "<group>";
 		};
 /* End XCVersionGroup section */
 	};

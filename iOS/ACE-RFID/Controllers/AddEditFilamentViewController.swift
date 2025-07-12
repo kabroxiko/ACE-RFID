@@ -372,21 +372,26 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         dropdownImageView.contentMode = .scaleAspectFit
         dropdownImageView.translatesAutoresizingMaskIntoConstraints = false
 
+        // Add in z-order: swatch, text, arrow (arrow last, always on top)
         containerView.addSubview(colorSwatchView)
         containerView.addSubview(textField)
         containerView.addSubview(dropdownImageView)
 
-        NSLayoutConstraint.activate([
-            containerView.heightAnchor.constraint(equalToConstant: 52), // Increased height for better touch targets
+        // Make sure swatch is fully opaque
+        colorSwatchView.backgroundColor = colorSwatchView.backgroundColor?.withAlphaComponent(1.0)
 
-            colorSwatchView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+        NSLayoutConstraint.activate([
+            containerView.heightAnchor.constraint(equalToConstant: 52),
+
+            colorSwatchView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             colorSwatchView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            colorSwatchView.widthAnchor.constraint(equalToConstant: 16),
-            colorSwatchView.heightAnchor.constraint(equalToConstant: 16),
+            colorSwatchView.widthAnchor.constraint(equalToConstant: 24),
+            colorSwatchView.heightAnchor.constraint(equalToConstant: 24),
 
             textField.leadingAnchor.constraint(equalTo: colorSwatchView.trailingAnchor, constant: 12),
-            textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -12),
+            textField.trailingAnchor.constraint(equalTo: dropdownImageView.leadingAnchor, constant: -20), // Increased spacing to 20
             textField.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            textField.heightAnchor.constraint(equalToConstant: 32),
 
             dropdownImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             dropdownImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
