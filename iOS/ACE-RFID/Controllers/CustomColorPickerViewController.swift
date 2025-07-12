@@ -16,146 +16,160 @@ class CustomColorPickerViewController: UIViewController {
     weak var delegate: CustomColorPickerDelegate?
 
     // MARK: - UI Elements
+    private let topBar = UIStackView()
     private let titleLabel = UILabel()
-    private let colorWheelView = ColorWheelView()
-    private let brightnessSlider = UISlider()
     private let colorPreviewView = UIView()
     private let colorNameTextField = UITextField()
+    private let colorGridScrollView = UIScrollView()
+    private let colorGridStack = UIStackView()
     private let saveButton = UIButton(type: .system)
     private let cancelButton = UIButton(type: .system)
 
-    private var selectedColor: UIColor = .red {
+    private var selectedColor: UIColor = .systemBlue {
         didSet {
-            updateColorPreview()
+            updateColorPreview(animated: true)
+            provideHapticFeedback()
         }
     }
+
+    private var availableColors: [(name: String, color: UIColor)] = []
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        availableColors = Filament.Color.allAvailableColors.filter { $0.name != "Add Custom Color..." }
         setupUI()
         setupConstraints()
         setupActions()
-
-        // Set initial color
-        selectedColor = .red
-        colorWheelView.selectedColor = selectedColor
+        selectedColor = availableColors.first?.color ?? .systemBlue
     }
 
     // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = .systemBackground
 
-        // Title
-        titleLabel.text = "Create Custom Color"
-        titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        // Color wheel
-        colorWheelView.delegate = self
-        colorWheelView.translatesAutoresizingMaskIntoConstraints = false
-
-        // Brightness slider
-        brightnessSlider.minimumValue = 0.0
-        brightnessSlider.maximumValue = 1.0
-        brightnessSlider.value = 1.0
-        brightnessSlider.translatesAutoresizingMaskIntoConstraints = false
-
-        // Color preview
-        colorPreviewView.layer.cornerRadius = 12
-        colorPreviewView.layer.borderWidth = 2
-        colorPreviewView.layer.borderColor = UIColor.systemGray4.cgColor
-        colorPreviewView.translatesAutoresizingMaskIntoConstraints = false
-
-        // Color name text field
-        colorNameTextField.placeholder = "Enter color name"
-        colorNameTextField.borderStyle = .roundedRect
-        colorNameTextField.font = UIFont.systemFont(ofSize: 16)
-        colorNameTextField.translatesAutoresizingMaskIntoConstraints = false
-
-        // Buttons
-        saveButton.setTitle("Save Color", for: .normal)
-        saveButton.backgroundColor = .systemBlue
-        saveButton.setTitleColor(.white, for: .normal)
-        saveButton.layer.cornerRadius = 8
-        saveButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        // Top bar with Cancel and Save
+        topBar.axis = .horizontal
+        topBar.distribution = .equalSpacing
+        topBar.alignment = .center
+        topBar.translatesAutoresizingMaskIntoConstraints = false
 
         cancelButton.setTitle("Cancel", for: .normal)
         cancelButton.setTitleColor(.systemRed, for: .normal)
-        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add subviews
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.backgroundColor = .systemBlue
+        saveButton.setTitleColor(.white, for: .normal)
+        saveButton.layer.cornerRadius = 8
+        saveButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+
+        topBar.addArrangedSubview(cancelButton)
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        topBar.addArrangedSubview(spacer)
+        topBar.addArrangedSubview(saveButton)
+        view.addSubview(topBar)
+
+        // Title
+        titleLabel.text = "Create Custom Color"
+        titleLabel.font = UIFont.systemFont(ofSize: 22, weight: .bold)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(titleLabel)
-        view.addSubview(colorWheelView)
-        view.addSubview(brightnessSlider)
+
+        // Color preview
+        colorPreviewView.layer.cornerRadius = 32
+        colorPreviewView.layer.borderWidth = 3
+        colorPreviewView.layer.borderColor = UIColor.systemGray4.cgColor
+        colorPreviewView.translatesAutoresizingMaskIntoConstraints = false
+        colorPreviewView.backgroundColor = selectedColor
         view.addSubview(colorPreviewView)
+
+        // Horizontal color grid
+        colorGridScrollView.showsHorizontalScrollIndicator = false
+        colorGridScrollView.translatesAutoresizingMaskIntoConstraints = false
+        colorGridStack.axis = .horizontal
+        colorGridStack.spacing = 16
+        colorGridStack.alignment = .center
+        colorGridStack.translatesAutoresizingMaskIntoConstraints = false
+        colorGridScrollView.addSubview(colorGridStack)
+        view.addSubview(colorGridScrollView)
+
+        // Add color swatches to grid
+        for (index, colorInfo) in availableColors.enumerated() {
+            let swatchButton = UIButton(type: .custom)
+            swatchButton.backgroundColor = colorInfo.color
+            swatchButton.layer.cornerRadius = 20
+            swatchButton.layer.borderWidth = 2
+            swatchButton.layer.borderColor = UIColor.systemGray4.cgColor
+            swatchButton.translatesAutoresizingMaskIntoConstraints = false
+            swatchButton.widthAnchor.constraint(equalToConstant: 40).isActive = true
+            swatchButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
+            swatchButton.tag = index
+            swatchButton.accessibilityLabel = colorInfo.name
+            swatchButton.addTarget(self, action: #selector(colorSwatchTapped(_:)), for: .touchUpInside)
+            colorGridStack.addArrangedSubview(swatchButton)
+        }
+
+        // Color name text field
+        colorNameTextField.placeholder = "Color name"
+        colorNameTextField.borderStyle = .roundedRect
+        colorNameTextField.font = UIFont.systemFont(ofSize: 18)
+        colorNameTextField.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(colorNameTextField)
-        view.addSubview(saveButton)
-        view.addSubview(cancelButton)
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
+            // Top bar
+            cancelButton.widthAnchor.constraint(equalToConstant: 80),
+            saveButton.widthAnchor.constraint(equalToConstant: 80),
+            topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            topBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            topBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            topBar.heightAnchor.constraint(equalToConstant: 44),
+
             // Title
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-
-            // Color wheel
-            colorWheelView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 30),
-            colorWheelView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            colorWheelView.widthAnchor.constraint(equalToConstant: 250),
-            colorWheelView.heightAnchor.constraint(equalToConstant: 250),
-
-            // Brightness slider
-            brightnessSlider.topAnchor.constraint(equalTo: colorWheelView.bottomAnchor, constant: 20),
-            brightnessSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            brightnessSlider.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            titleLabel.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 8),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            titleLabel.heightAnchor.constraint(equalToConstant: 32),
 
             // Color preview
-            colorPreviewView.topAnchor.constraint(equalTo: brightnessSlider.bottomAnchor, constant: 20),
+            colorPreviewView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
             colorPreviewView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            colorPreviewView.widthAnchor.constraint(equalToConstant: 80),
-            colorPreviewView.heightAnchor.constraint(equalToConstant: 80),
+            colorPreviewView.widthAnchor.constraint(equalToConstant: 64),
+            colorPreviewView.heightAnchor.constraint(equalToConstant: 64),
+
+            // Horizontal color grid
+            colorGridScrollView.topAnchor.constraint(equalTo: colorPreviewView.bottomAnchor, constant: 24),
+            colorGridScrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            colorGridScrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            colorGridScrollView.heightAnchor.constraint(equalToConstant: 56),
+            colorGridStack.topAnchor.constraint(equalTo: colorGridScrollView.topAnchor),
+            colorGridStack.bottomAnchor.constraint(equalTo: colorGridScrollView.bottomAnchor),
+            colorGridStack.leadingAnchor.constraint(equalTo: colorGridScrollView.leadingAnchor, constant: 8),
+            colorGridStack.trailingAnchor.constraint(equalTo: colorGridScrollView.trailingAnchor, constant: -8),
 
             // Color name text field
-            colorNameTextField.topAnchor.constraint(equalTo: colorPreviewView.bottomAnchor, constant: 20),
-            colorNameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            colorNameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            colorNameTextField.heightAnchor.constraint(equalToConstant: 40),
-
-            // Buttons
-            saveButton.topAnchor.constraint(equalTo: colorNameTextField.bottomAnchor, constant: 30),
-            saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            saveButton.widthAnchor.constraint(equalToConstant: 120),
-            saveButton.heightAnchor.constraint(equalToConstant: 44),
-
-            cancelButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 10),
-            cancelButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cancelButton.widthAnchor.constraint(equalToConstant: 120),
-            cancelButton.heightAnchor.constraint(equalToConstant: 44)
+            colorNameTextField.topAnchor.constraint(equalTo: colorGridScrollView.bottomAnchor, constant: 24),
+            colorNameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 36),
+            colorNameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -36),
+            colorNameTextField.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
 
     private func setupActions() {
-        brightnessSlider.addTarget(self, action: #selector(brightnessChanged), for: .valueChanged)
         saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
     }
 
     // MARK: - Actions
     @objc private func brightnessChanged() {
-        // Adjust the selected color's brightness
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-
-        selectedColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-        selectedColor = UIColor(hue: hue, saturation: saturation, brightness: CGFloat(brightnessSlider.value), alpha: alpha)
+        // Removed: brightness slider logic (not implemented)
     }
 
     @objc private func saveButtonTapped() {
@@ -185,8 +199,28 @@ class CustomColorPickerViewController: UIViewController {
         dismiss(animated: true)
     }
 
-    private func updateColorPreview() {
-        colorPreviewView.backgroundColor = selectedColor
+    private func updateColorPreview(animated: Bool = false) {
+        if animated {
+            UIView.animate(withDuration: 0.18, delay: 0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
+                self.colorPreviewView.backgroundColor = self.selectedColor
+            }, completion: nil)
+        } else {
+            colorPreviewView.backgroundColor = selectedColor
+        }
+    }
+
+    private func provideHapticFeedback() {
+        let generator = UISelectionFeedbackGenerator()
+        generator.prepare()
+        generator.selectionChanged()
+    }
+
+    @objc private func colorSwatchTapped(_ sender: UIButton) {
+        let index = sender.tag
+        guard index < availableColors.count else { return }
+        let colorInfo = availableColors[index]
+        selectedColor = colorInfo.color
+        colorNameTextField.text = colorInfo.name
     }
 
     private func showAlert(title: String, message: String) {
@@ -204,7 +238,7 @@ extension CustomColorPickerViewController: ColorWheelViewDelegate {
         // Update brightness slider to match the selected color's brightness
         var brightness: CGFloat = 0
         color.getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
-        brightnessSlider.value = Float(brightness)
+        // Removed: brightness slider logic (not implemented)
     }
 }
 

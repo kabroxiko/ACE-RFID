@@ -272,6 +272,16 @@ class CustomColorManager {
         }
     }
 
+    /// Get the most recent custom colors (limit N)
+    func recentColors(limit: Int) -> [UIColor] {
+        guard let data = userDefaults.data(forKey: customColorsKey),
+              let colorData = try? JSONDecoder().decode([CustomColorData].self, from: data) else {
+            return []
+        }
+        let recent = colorData.suffix(limit)
+        return recent.compactMap { UIColor(hex: $0.hexValue) }
+    }
+
     /// Add a new custom color
     func addCustomColor(name: String, color: UIColor) {
         var existingColors = getCustomColorData()
