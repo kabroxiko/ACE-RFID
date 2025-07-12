@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Build Mac Catalyst Swift App",
+			"command": "xcodebuild -scheme ACE_RFID -destination 'platform=macOS,arch=x86_64'",
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			]
+		}
+	]
+}
