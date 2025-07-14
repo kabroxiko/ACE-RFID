@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ACE RFID Node UI</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    .container { max-width: 600px; margin: auto; }
+    label, select, button { margin: 0.5em 0; display: block; }
+    .uid { font-weight: bold; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ACE RFID Node UI</h1>
+    <label for="material">Material:</label>
+    <select id="material"></select>
+    <label for="temps">Temperatures:</label>
+    <div id="temps"></div>
+    <button id="read">Read Tag</button>
+    <button id="write">Write Tag</button>
+    <div class="uid" id="uid"></div>
+    <div id="msg"></div>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>

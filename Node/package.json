@@ -1,0 +1,14 @@
+{
+  "name": "ace-rfid-node",
+  "version": "1.0.0",
+  "description": "ACE RFID Node.js implementation equivalent to Windows solution.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "serialport": "^10.0.0",
+    "xml2js": "^0.4.23",
+    "electron": "^29.0.0"
+  }
+}
