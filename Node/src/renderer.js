@@ -7,11 +7,23 @@ window.addEventListener('DOMContentLoaded', async () => {
   const msgDiv = document.getElementById('msg');
 
   const { ipcRenderer } = require('electron');
-  const portInput = document.createElement('input');
-  portInput.type = 'text';
-  portInput.placeholder = 'Serial Port (e.g. COM3)';
-  portInput.id = 'port';
-  materialSelect.parentNode.insertBefore(portInput, materialSelect);
+  const portSelect = document.createElement('select');
+  portSelect.id = 'port';
+  portSelect.style.marginBottom = '0.5em';
+  materialSelect.parentNode.insertBefore(portSelect, materialSelect);
+
+  async function populatePorts() {
+    const ports = await ipcRenderer.invoke('list-ports');
+    portSelect.innerHTML = '';
+    ports.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.path;
+      opt.textContent = p.path + (p.manufacturer ? ` (${p.manufacturer})` : '');
+      portSelect.appendChild(opt);
+    });
+    if (ports.length) portSelect.value = ports[0].path;
+  }
+  await populatePorts();
 
   const materials = await getAllMaterials();
   materials.forEach(m => {
@@ -33,7 +45,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('read').addEventListener('click', async () => {
-    const port = portInput.value || 'COM3';
+    const port = portSelect.value;
     uidDiv.textContent = 'Reading firmware...';
     msgDiv.textContent = '';
     try {

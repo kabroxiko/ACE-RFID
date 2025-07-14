@@ -2,6 +2,10 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const { ipcMain } = require('electron');
 const Reader = require('./reader');
+const { listPorts } = require('./list_ports');
+ipcMain.handle('list-ports', async () => {
+  return await listPorts();
+});
 
 function createWindow() {
   const win = new BrowserWindow({
