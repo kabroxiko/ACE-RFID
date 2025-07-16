@@ -62,7 +62,18 @@ class SerialPortPickerViewController: UIViewController, UIPickerViewDataSource, 
 
     @objc private func setTapped() {
         dismiss(animated: true) { [weak self] in
-            self?.onSelect?(self?.selectedPort)
+            guard let port = self?.selectedPort else {
+                self?.onSelect?(nil)
+                return
+            }
+            self?.onSelect?(port)
+            // Example: propagate port to NFCService/NFCManager
+            if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+                #if targetEnvironment(macCatalyst)
+                appDelegate.nfcService.setPort(port)
+                // Do NOT call setConnectionString directly here
+                #endif
+            }
         }
     }
     @objc private func cancelTapped() {

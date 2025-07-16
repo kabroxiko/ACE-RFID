@@ -23,21 +23,23 @@ class NFCService: NSObject {
     func setPort(_ port: String) {
 #if targetEnvironment(macCatalyst)
         self.port = port
-        // If NFCManager needs port info, pass it here
-        // (Currently not used, but can be extended)
+        let connectionString = "pn532_uart:\(port):115200"
+        nfcManager.setConnectionString(connectionString)
 #endif
     }
 
 
-#if targetEnvironment(macCatalyst)
-    private let nfcManager = NFCManager()
-#else
+    #if targetEnvironment(macCatalyst)
+    let nfcManager = NFCManager()
+    #else
     private var session: NFCNDEFReaderSession?
 #endif
 
 
     func readTag() {
 #if targetEnvironment(macCatalyst)
+        print("[DEBUG] NFCService.readTag called. port: \(port ?? "nil")")
+        print("[DEBUG] NFCService.readTag connectionString: \(nfcManager.debugConnectionString)")
         // Use NFCManager to read UID and card content
         guard nfcManager.isNFCAvailable() else {
             delegate?.nfcService(didFail: NSError(domain: "NFC", code: 0, userInfo: [NSLocalizedDescriptionKey: "NFC not available"]))
