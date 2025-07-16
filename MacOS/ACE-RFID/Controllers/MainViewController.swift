@@ -15,9 +15,19 @@ class MainViewController: UIViewController, NFCServiceDelegate {
 
     // MARK: - Properties
     private var filaments: [Filament] = []
-    private let nfcService = NFCService()
+    private let nfcService: NFCService
     private var availableSerialPorts: [String] = []
     private var selectedSerialPort: String?
+
+    // MARK: - Initializer
+    init(nfcService: NFCService) {
+        self.nfcService = nfcService
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // MARK: - Lifecycle
     override func viewDidLoad() {

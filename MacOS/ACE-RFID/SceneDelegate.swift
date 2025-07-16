@@ -20,8 +20,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: windowScene)
 
-        // Create the main view controller
-        let mainViewController = MainViewController()
+        // Create the main view controller, passing the shared NFCService instance
+        let appDelegate = UIApplication.shared.delegate as? AppDelegate
+        let mainViewController = MainViewController(nfcService: appDelegate?.nfcService ?? NFCService())
         let navigationController = UINavigationController(rootViewController: mainViewController)
 
         // Set the root view controller

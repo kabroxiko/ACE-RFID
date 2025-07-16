@@ -20,21 +20,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Initialize the window
         window = UIWindow(frame: UIScreen.main.bounds)
 
-        // Create the main view controller
-        let mainViewController = MainViewController()
+        // Create the main view controller, passing the configured nfcService
+        let mainViewController = MainViewController(nfcService: nfcService)
         let navigationController = UINavigationController(rootViewController: mainViewController)
 
         // Set the root view controller
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
 
-        let nfcManager = NFCManager()
-        let available = nfcManager.isNFCAvailable()
+        // Find the first available USB serial port and set as connection string
+        let devPath = "/dev"
+        let fileManager = FileManager.default
+        var connectionString: String? = nil
+        do {
+            let devContents = try fileManager.contentsOfDirectory(atPath: devPath)
+            let ports = devContents.filter { $0.hasPrefix("cu.usb") }.map { "/dev/" + $0 }
+            if let firstPort = ports.first {
+                connectionString = firstPort
+                print("Using first USB serial port as connection string: \(firstPort)")
+            } else {
+                print("No USB serial ports found. NFC will not be available.")
+            }
+        } catch {
+            print("Error reading /dev directory: \(error)")
+        }
+
+        #if targetEnvironment(macCatalyst)
+        if let conn = connectionString {
+            UserDefaults.standard.set(conn, forKey: "ACE_RFID_SelectedSerialPort")
+            nfcService.setPort(conn)
+        }
+        let available = nfcService.nfcManager.isNFCAvailable()
         if available {
             print("NFC is available via libnfc!")
         } else {
             print("NFC not available.")
         }
+        #endif
 
         return true
     }
