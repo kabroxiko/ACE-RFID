@@ -86,17 +86,33 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     // MARK: - NFCServiceDelegate
     func nfcService(didRead data: Data) {
         print("[DEBUG] nfcService didRead called, data: \(data as NSData)")
-        // Try to decode as Filament, otherwise show as hex
-        if let filament = NFCService.decodeFilament(data) {
-            let message = "Brand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color)\nWeight: \(filament.weight)g"
-            DispatchQueue.main.async {
-                self.showAlert(title: "NFC Tag Content", message: message)
-            }
-        } else {
+        // Parse NFC card content as in Android
+        if data.count < 144 {
             let hex = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+            let msg = "Tag data too short (\(data.count) bytes)\nHex:\n\(hex)\nTry increasing read length or check tag type."
             DispatchQueue.main.async {
-                self.showAlert(title: "NFC Tag Raw Data", message: hex)
+                self.showAlert(title: "NFC Data", message: msg)
             }
+            return
+        }
+        let buffer = [UInt8](data)
+        // Material Name: bytes 44..59 (16 bytes)
+        let materialName = String(bytes: buffer[44..<60], encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        // Color: bytes 65..67 (3 bytes, hex)
+        let colorHex = buffer[65..<68].map { String(format: "%02X", $0) }.joined()
+        // Ext Min/Max: bytes 80..81, 82..83
+        let extMin = Int(buffer[80]) << 8 | Int(buffer[81])
+        let extMax = Int(buffer[82]) << 8 | Int(buffer[83])
+        // Bed Min/Max: bytes 100..101, 102..103
+        let bedMin = Int(buffer[100]) << 8 | Int(buffer[101])
+        let bedMax = Int(buffer[102]) << 8 | Int(buffer[103])
+        // Weight: bytes 106..107
+        let weight = Int(buffer[106]) << 8 | Int(buffer[107])
+
+        // Show parsed info as alert for now
+        let info = "Material: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)°C\nBed: \(bedMin)-\(bedMax)°C\nWeight: \(weight)g"
+        DispatchQueue.main.async {
+            self.showAlert(title: "NFC Tag Info", message: info)
         }
     }
 

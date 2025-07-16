@@ -55,8 +55,8 @@ class NFCService: NSObject {
         } else {
             delegate?.nfcService(didFail: NSError(domain: "NFC", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to read UID"]))
         }
-        // Read card content (example: 64 bytes)
-        if let content = nfcManager.readCardContent(length: 64) {
+        // Read card content (increase length to 256 bytes)
+        if let content = nfcManager.readCardContent(length: 256) {
             delegate?.nfcService(didRead: content)
         } else {
             delegate?.nfcService(didFail: NSError(domain: "NFC", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to read card content"]))
