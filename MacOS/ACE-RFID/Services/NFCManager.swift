@@ -39,10 +39,13 @@ class NFCManager {
     func readUID() -> String? {
         #if targetEnvironment(macCatalyst)
         print("[DEBUG] NFCManager readUID, connectionString: \(connectionString)")
-        var buffer = [CChar](repeating: 0, count: 64)
+        var buffer = [UInt8](repeating: 0, count: 64)
         let result = nfc_read_uid(connectionString, &buffer, 64)
-        if result == 1 {
-            return String(cString: buffer)
+        print("[DEBUG] nfc_read_uid result: \(result)")
+        if result > 0 {
+            let hexString = buffer.prefix(Int(result)).map { String(format: "%02X", $0) }.joined(separator: " ")
+            print("[DEBUG] UID hex string: \(hexString)")
+            return hexString
         }
         return nil
         #else
@@ -53,10 +56,13 @@ class NFCManager {
     func readCardContent(length: Int = 256) -> Data? {
         #if targetEnvironment(macCatalyst)
         print("[DEBUG] NFCManager readCardContent, connectionString: \(connectionString)")
-        var buffer = [UInt8](repeating: 0, count: length)
+        var buffer = [CChar](repeating: 0, count: length)
         let result = nfc_read_card_content(connectionString, &buffer, length)
+        print("[DEBUG] nfc_read_card_content result: \(result)")
         if result > 0 {
-            return Data(buffer[0..<Int(result)])
+            let data = Data(buffer.prefix(Int(result)).map { UInt8(bitPattern: $0) })
+            print("[DEBUG] Card content hex: \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+            return data
         }
         return nil
         #else
