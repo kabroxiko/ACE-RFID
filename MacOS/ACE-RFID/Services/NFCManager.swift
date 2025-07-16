@@ -61,6 +61,18 @@ class NFCManager {
         print("[DEBUG] nfc_read_card_content result: \(result)")
         if result > 0 {
             let data = Data(buffer.prefix(Int(result)).map { UInt8(bitPattern: $0) })
+            // Save hex dump in blocks of 4 bytes
+            let hexLines = stride(from: 0, to: data.count, by: 4).map { i -> String in
+                let block = data[i..<min(i+4, data.count)]
+                return block.map { String(format: "%02X", $0) }.joined(separator: " ")
+            }
+            let hexDump = hexLines.joined(separator: "\n")
+            let fileURL = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("rfid_card_dump.txt")
+            do {
+                try hexDump.write(to: fileURL, atomically: true, encoding: .utf8)
+            } catch {
+                print("Failed to write hex dump: \(error)")
+            }
             print("[DEBUG] Card content hex: \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
             return data
         }

@@ -168,15 +168,16 @@ int nfc_read_card_content(const char *conn_str, char *buf, size_t buf_len) {
         uint8_t atqa0 = nt.nti.nai.abtAtqa[0];
         uint8_t atqa1 = nt.nti.nai.abtAtqa[1];
         uint8_t sak = nt.nti.nai.btSak;
+        fprintf(stderr, "[DEBUG] ATQA: %02X %02X, SAK: %02X\n", atqa0, atqa1, sak);
         // Mifare Classic: ATQA 0x00 0x04, SAK 0x08 or 0x28
         // Mifare Ultralight: ATQA 0x00 0x44, SAK 0x00
         if (atqa1 == 0x04 && (sak == 0x08 || sak == 0x28)) {
-            // Mifare Classic 1K: 64 blocks, 16 bytes each
             out_len += snprintf(buf + out_len, buf_len - out_len, "Card type: Mifare Classic 1K\n");
             for (int block = 0; block < 64; block++) {
                 uint8_t data[16];
                 memset(data, 0, sizeof(data));
                 int res = nfc_initiator_transceive_bytes(pnd, (const uint8_t[]){0x30, block}, 2, data, sizeof(data), 0);
+                fprintf(stderr, "[DEBUG] Block %d read result: %d\n", block, res);
                 if (res < 0) {
                     fprintf(stderr, "[ERROR] Block %d read error: libnfc error code %d, command=[0x30, 0x%02X]\n", block, res, block);
                     fprintf(stderr, "[ERROR] libnfc: %s\n", nfc_strerror(pnd));
@@ -202,22 +203,25 @@ int nfc_read_card_content(const char *conn_str, char *buf, size_t buf_len) {
             for (int page = 4; page < 36; page++) {
                 uint8_t data[16] = {0};
                 int res = nfc_initiator_transceive_bytes(pnd, (const uint8_t[]){0x30, page}, 2, data, sizeof(data), 0);
+                fprintf(stderr, "[DEBUG] Page %d read result: %d\n", page, res);
                 if (res < 0) {
                     fprintf(stderr, "[ERROR] Page %d read error: libnfc error code %d, command=[0x30, 0x%02X]\n", page, res, page);
                     fprintf(stderr, "[ERROR] libnfc: %s\n", nfc_strerror(pnd));
-                    // Fill with 0x00 on error
                     for (int i = 0; i < 4 && rawpos < sizeof(rawbuf); i++) rawbuf[rawpos++] = 0x00;
                     out_len += snprintf(buf + out_len, buf_len - out_len, "(page %d read error: code %d)\n", page, res);
                 } else {
                     for (int i = 0; i < 4 && i < res && rawpos < sizeof(rawbuf); i++) rawbuf[rawpos++] = data[i];
                 }
             }
-            // Output rawbuf as hex string
-            out_len += snprintf(buf + out_len, buf_len - out_len, "Raw Data: ");
-            for (int i = 0; i < sizeof(rawbuf) && out_len + 3 < buf_len; i++) {
-                out_len += snprintf(buf + out_len, buf_len - out_len, "%02X ", rawbuf[i]);
+            fprintf(stderr, "[DEBUG] Ultralight rawbuf length: %d\n", rawpos);
+            // Copy exactly 128 bytes to buf for Ultralight
+            if (buf_len >= 128) {
+                memcpy(buf, rawbuf, 128);
+                out_len = 128;
+            } else {
+                memcpy(buf, rawbuf, buf_len);
+                out_len = buf_len;
             }
-            out_len += snprintf(buf + out_len, buf_len - out_len, "\n");
         } else {
             out_len += snprintf(buf + out_len, buf_len - out_len, "Unknown card type (ATQA %02X %02X, SAK %02X)\n", atqa0, atqa1, sak);
         }
