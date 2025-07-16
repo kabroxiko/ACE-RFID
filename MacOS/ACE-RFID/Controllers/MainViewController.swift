@@ -131,7 +131,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         let ports: [String]
         do {
             let devContents = try fileManager.contentsOfDirectory(atPath: devPath)
-            ports = devContents.filter { $0.hasPrefix("tty.") }.map { "/dev/" + $0 }
+            ports = devContents.filter { $0.hasPrefix("cu.usb") }.map { "/dev/" + $0 }
         } catch {
             ports = []
         }
