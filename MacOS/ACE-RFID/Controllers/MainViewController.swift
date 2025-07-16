@@ -100,17 +100,26 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         let materialName = String(bytes: buffer[44..<60], encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         // Color: bytes 65..67 (3 bytes, hex)
         let colorHex = buffer[65..<68].map { String(format: "%02X", $0) }.joined()
-        // Ext Min/Max: bytes 80..81, 82..83
-        let extMin = Int(buffer[80]) << 8 | Int(buffer[81])
-        let extMax = Int(buffer[82]) << 8 | Int(buffer[83])
-        // Bed Min/Max: bytes 100..101, 102..103
-        let bedMin = Int(buffer[100]) << 8 | Int(buffer[101])
-        let bedMax = Int(buffer[102]) << 8 | Int(buffer[103])
-        // Weight: bytes 106..107
-        let weight = Int(buffer[106]) << 8 | Int(buffer[107])
+        // Ext Min/Max: bytes 80..81, 82..83 (little-endian, scale 1)
+        let extMin = Int(buffer[81]) << 8 | Int(buffer[80])
+        let extMax = Int(buffer[83]) << 8 | Int(buffer[82])
+        // Bed Min/Max: bytes 100..101, 102..103 (little-endian, scale 1)
+        let bedMin = Int(buffer[101]) << 8 | Int(buffer[100])
+        let bedMax = Int(buffer[103]) << 8 | Int(buffer[102])
+        // Weight: bytes 106..107 (little-endian, scale 0.001)
+        let weightRaw = Int(buffer[107]) << 8 | Int(buffer[106])
+        // Filament weight lookup table (raw value to kg)
+        let weightTable: [Int: String] = [
+            330: "1 kg",
+            250: "0.75 kg",
+            200: "0.5 kg",
+            100: "0.25 kg",
+            50: "0.1 kg"
+        ]
+        let weightDisplay = weightTable[weightRaw] ?? String(format: "%.2f kg", Double(weightRaw) / 1000.0)
 
         // Show parsed info as alert for now
-        let info = "Material: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)°C\nBed: \(bedMin)-\(bedMax)°C\nWeight: \(weight)g"
+        let info = "Material: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)ºC\nBed: \(bedMin)-\(bedMax)ºC\nWeight: \(weightDisplay)"
         DispatchQueue.main.async {
             self.showAlert(title: "NFC Tag Info", message: info)
         }
