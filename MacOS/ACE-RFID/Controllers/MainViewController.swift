@@ -157,7 +157,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
 #if targetEnvironment(macCatalyst)
             self.nfcService.setPort(port)
 #endif
-            self.showAlert(title: "Serial Port Set", message: port)
+            // Removed alert for 'Serial Port Set'
         }
         pickerVC.modalPresentationStyle = .formSheet
         present(pickerVC, animated: true)
