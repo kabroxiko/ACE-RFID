@@ -214,14 +214,10 @@ int nfc_read_card_content(const char *conn_str, char *buf, size_t buf_len) {
                 }
             }
             fprintf(stderr, "[DEBUG] Ultralight rawbuf length: %d\n", rawpos);
-            // Copy exactly 128 bytes to buf for Ultralight
-            if (buf_len >= 128) {
-                memcpy(buf, rawbuf, 128);
-                out_len = 128;
-            } else {
-                memcpy(buf, rawbuf, buf_len);
-                out_len = buf_len;
-            }
+            // Copy only the first 128 bytes of rawbuf to buf (for Swift)
+            int copylen = (sizeof(rawbuf) < buf_len) ? sizeof(rawbuf) : (buf_len < 128 ? buf_len : 128);
+            memcpy(buf, rawbuf, copylen);
+            out_len = copylen;
         } else {
             out_len += snprintf(buf + out_len, buf_len - out_len, "Unknown card type (ATQA %02X %02X, SAK %02X)\n", atqa0, atqa1, sak);
         }
