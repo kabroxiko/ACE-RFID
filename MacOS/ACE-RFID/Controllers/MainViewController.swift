@@ -87,7 +87,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     func nfcService(didRead data: Data) {
         print("[DEBUG] nfcService didRead called, data: \(data as NSData)")
         // Parse NFC card content as in Android
-        if data.count < 144 {
+        if data.count < 128 {
             let hex = data.map { String(format: "%02X", $0) }.joined(separator: " ")
             let msg = "Tag data too short (\(data.count) bytes)\nHex:\n\(hex)\nTry increasing read length or check tag type."
             DispatchQueue.main.async {

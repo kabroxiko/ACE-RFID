@@ -45,18 +45,8 @@ class NFCService: NSObject {
             delegate?.nfcService(didFail: NSError(domain: "NFC", code: 0, userInfo: [NSLocalizedDescriptionKey: "NFC not available"]))
             return
         }
-        // Read UID
-        if let uid = nfcManager.readUID() {
-            if let uidData = uid.data(using: .utf8) {
-                delegate?.nfcService(didRead: uidData)
-            } else {
-                delegate?.nfcService(didFail: NSError(domain: "NFC", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to convert UID to Data"]))
-            }
-        } else {
-            delegate?.nfcService(didFail: NSError(domain: "NFC", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to read UID"]))
-        }
-        // Read card content (increase length to 256 bytes)
-        if let content = nfcManager.readCardContent(length: 256) {
+        // Read card content (expect 128 bytes for Ultralight)
+        if let content = nfcManager.readCardContent(length: 128) {
             delegate?.nfcService(didRead: content)
         } else {
             delegate?.nfcService(didFail: NSError(domain: "NFC", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to read card content"]))
