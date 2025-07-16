@@ -27,7 +27,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
 
-        if NFCManager.isNFCAvailable() {
+        let nfcManager = NFCManager()
+        let available = nfcManager.isNFCAvailable()
+        if available {
             print("NFC is available via libnfc!")
         } else {
             print("NFC not available.")

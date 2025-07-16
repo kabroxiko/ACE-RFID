@@ -7,11 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		142610382E28275400E854B3 /* NFCManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610352E28275400E854B3 /* NFCManager.swift */; };
-		142610392E28275400E854B3 /* NFCWrapper.c in Sources */ = {isa = PBXBuildFile; fileRef = 142610372E28275400E854B3 /* NFCWrapper.c */; };
 		1426103D2E28285100E854B3 /* libnfc.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1426103C2E28285100E854B3 /* libnfc.6.dylib */; };
+		1426104C2E283A6900E854B3 /* NFCWrapper.c in Sources */ = {isa = PBXBuildFile; fileRef = 1426104B2E283A6900E854B3 /* NFCWrapper.c */; };
+		1426104D2E283A6900E854B3 /* NFCManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610492E283A6900E854B3 /* NFCManager.swift */; };
 		142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA09E2E1F3E6F00EB99CA /* NFCService.swift */; };
-		142CA0A12E1F3EA500EB99CA /* NFCSerialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A02E1F3EA500EB99CA /* NFCSerialManager.swift */; };
 		142CA0A42E1F7A1000EB99CA /* SerialPortPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */; };
 		142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */; };
 		3A1B2C3D4E5F6701 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F6720 /* AppDelegate.swift */; };
@@ -38,13 +37,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		142610352E28275400E854B3 /* NFCManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCManager.swift; sourceTree = "<group>"; };
-		142610362E28275400E854B3 /* NFCWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NFCWrapper.h; sourceTree = "<group>"; };
-		142610372E28275400E854B3 /* NFCWrapper.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NFCWrapper.c; sourceTree = "<group>"; };
-		1426103A2E28275700E854B3 /* ACE-RFID-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ACE-RFID-Bridging-Header.h"; sourceTree = "<group>"; };
 		1426103C2E28285100E854B3 /* libnfc.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnfc.6.dylib; path = ../../../../usr/local/lib/libnfc.6.dylib; sourceTree = "<group>"; };
+		142610482E283A6900E854B3 /* ACE-RFID-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ACE-RFID-Bridging-Header.h"; sourceTree = "<group>"; };
+		142610492E283A6900E854B3 /* NFCManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCManager.swift; sourceTree = "<group>"; };
+		1426104A2E283A6900E854B3 /* NFCWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NFCWrapper.h; sourceTree = "<group>"; };
+		1426104B2E283A6900E854B3 /* NFCWrapper.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NFCWrapper.c; sourceTree = "<group>"; };
 		142CA09E2E1F3E6F00EB99CA /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
-		142CA0A02E1F3EA500EB99CA /* NFCSerialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCSerialManager.swift; sourceTree = "<group>"; };
 		142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerView.swift; sourceTree = "<group>"; };
 		142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerViewController.swift; sourceTree = "<group>"; };
 		3A1B2C3D4E5F6700 /* ACE-RFID.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ACE-RFID.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,9 +91,6 @@
 		3A1B2C3D4E5F67FF /* ACE-RFID */ = {
 			isa = PBXGroup;
 			children = (
-				142610352E28275400E854B3 /* NFCManager.swift */,
-				142610362E28275400E854B3 /* NFCWrapper.h */,
-				142610372E28275400E854B3 /* NFCWrapper.c */,
 				3A1B2C3D4E5F6720 /* AppDelegate.swift */,
 				3A1B2C3D4E5F6721 /* SceneDelegate.swift */,
 				3A1B2C3D4E5F6801 /* Models */,
@@ -105,7 +100,9 @@
 				3A1B2C3D4E5F6805 /* Core Data */,
 				3A1B2C3D4E5F6806 /* Resources */,
 				3A1B2C3D4E5F672B /* ACE-RFID.entitlements */,
-				1426103A2E28275700E854B3 /* ACE-RFID-Bridging-Header.h */,
+				1426104B2E283A6900E854B3 /* NFCWrapper.c */,
+				1426104A2E283A6900E854B3 /* NFCWrapper.h */,
+				142610482E283A6900E854B3 /* ACE-RFID-Bridging-Header.h */,
 			);
 			path = "ACE-RFID";
 			sourceTree = "<group>";
@@ -148,7 +145,7 @@
 		3A1B2C3D4E5F6804 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				142CA0A02E1F3EA500EB99CA /* NFCSerialManager.swift */,
+				142610492E283A6900E854B3 /* NFCManager.swift */,
 				142CA09E2E1F3E6F00EB99CA /* NFCService.swift */,
 			);
 			path = Services;
@@ -252,10 +249,9 @@
 				142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */,
 				3A1B2C3D4E5F6702 /* SceneDelegate.swift in Sources */,
 				3A1B2C3D4E5F6703 /* MainViewController.swift in Sources */,
-				142610382E28275400E854B3 /* NFCManager.swift in Sources */,
-				142610392E28275400E854B3 /* NFCWrapper.c in Sources */,
-				142CA0A12E1F3EA500EB99CA /* NFCSerialManager.swift in Sources */,
 				142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */,
+				1426104C2E283A6900E854B3 /* NFCWrapper.c in Sources */,
+				1426104D2E283A6900E854B3 /* NFCManager.swift in Sources */,
 				3A1B2C3D4E5F6705 /* FilamentTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

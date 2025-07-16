@@ -15,16 +15,37 @@ protocol NFCServiceDelegate: AnyObject {
 class NFCService: NSObject {
     weak var delegate: NFCServiceDelegate?
 
+
 #if targetEnvironment(macCatalyst)
-    private let serialManager = NFCSerialManager()
+    private let nfcManager = NFCManager()
 #else
     private var session: NFCNDEFReaderSession?
 #endif
 
+
     func readTag() {
 #if targetEnvironment(macCatalyst)
-        serialManager.delegate = self
-        serialManager.openSerialPort()
+        // Use NFCManager to read UID and card content
+        guard nfcManager.isNFCAvailable() else {
+            delegate?.nfcService(didFail: NSError(domain: "NFC", code: 0, userInfo: [NSLocalizedDescriptionKey: "NFC not available"]))
+            return
+        }
+        // Read UID
+        if let uid = nfcManager.readUID() {
+            if let uidData = uid.data(using: .utf8) {
+                delegate?.nfcService(didRead: uidData)
+            } else {
+                delegate?.nfcService(didFail: NSError(domain: "NFC", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to convert UID to Data"]))
+            }
+        } else {
+            delegate?.nfcService(didFail: NSError(domain: "NFC", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to read UID"]))
+        }
+        // Read card content (example: 64 bytes)
+        if let content = nfcManager.readCardContent(length: 64) {
+            delegate?.nfcService(didRead: content)
+        } else {
+            delegate?.nfcService(didFail: NSError(domain: "NFC", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to read card content"]))
+        }
 #else
         guard NFCNDEFReaderSession.readingAvailable else {
             delegate?.nfcService(didFail: NSError(domain: "NFC", code: 0, userInfo: [NSLocalizedDescriptionKey: "NFC not available"]))
@@ -35,9 +56,15 @@ class NFCService: NSObject {
 #endif
     }
 
+
     func writeTag(data: Data) {
 #if targetEnvironment(macCatalyst)
-        serialManager.write(data: data)
+        guard nfcManager.isNFCAvailable() else {
+            delegate?.nfcService(didFail: NSError(domain: "NFC", code: 0, userInfo: [NSLocalizedDescriptionKey: "NFC not available"]))
+            return
+        }
+        let success = nfcManager.writeCardContent(data: data)
+        delegate?.nfcService(didWrite: success)
 #else
         // Core NFC: writing is limited, but for NTAG21x you can use NFCMiFareTag
         // This is a placeholder for actual implementation
@@ -71,11 +98,8 @@ class NFCService: NSObject {
         return Filament(brand: brand, material: material, color: color, weight: weight, printTemperature: 0, bedTemperature: 0)
     }
 
-#if targetEnvironment(macCatalyst)
-    func setSerialPortPath(_ path: String) {
-        serialManager.setSerialPath(path)
-    }
-#endif
+
+// No longer needed: setSerialPortPath, NFCSerialManager
 }
 
 private extension Array where Element == UInt8 {
@@ -85,19 +109,7 @@ private extension Array where Element == UInt8 {
     }
 }
 
-#if targetEnvironment(macCatalyst)
-extension NFCService: NFCSerialManagerDelegate {
-    func serialManager(didRead data: Data) {
-        delegate?.nfcService(didRead: data)
-    }
-    func serialManager(didWrite success: Bool) {
-        delegate?.nfcService(didWrite: success)
-    }
-    func serialManager(didFail error: Error) {
-        delegate?.nfcService(didFail: error)
-    }
-}
-#else
+// No longer needed: NFCSerialManagerDelegate
 @available(iOS 13.0, *)
 extension NFCService: NFCNDEFReaderSessionDelegate {
     func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
@@ -111,4 +123,3 @@ extension NFCService: NFCNDEFReaderSessionDelegate {
         }
     }
 }
-#endif
