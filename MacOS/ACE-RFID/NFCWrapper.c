@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-int nfc_is_available(void) {
+int nfc_is_available(const char *conn_str) {
     nfc_context *context;
     nfc_init(&context);
     if (context == NULL) return 0;
-    nfc_device *pnd = nfc_open(context, NULL);
+    nfc_device *pnd = nfc_open(context, conn_str);
     if (pnd == NULL) {
         nfc_exit(context);
         return 0;

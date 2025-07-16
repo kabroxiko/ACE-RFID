@@ -16,7 +16,7 @@ class NFCManager {
         #if targetEnvironment(macCatalyst)
         print("[DEBUG] NFCManager isNFCAvailable, connectionString: \(connectionString)")
         // Optionally, check with connection string if needed
-        return nfc_is_available() == 1
+        return nfc_is_available(connectionString) == 1
         #else
         return false
         #endif
