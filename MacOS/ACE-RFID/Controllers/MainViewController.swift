@@ -96,8 +96,17 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             return
         }
         let buffer = [UInt8](data)
+        // Helper to clean field
+        func cleanField(_ str: String?) -> String {
+            guard let s = str else { return "" }
+            return s.replacingOccurrences(of: "\0", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        // SKU: bytes 4..19 (16 bytes)
+        let sku = cleanField(String(bytes: buffer[4..<20], encoding: .utf8))
+        // Brand: bytes 20..43 (24 bytes)
+        let brand = cleanField(String(bytes: buffer[20..<44], encoding: .utf8))
         // Material Name: bytes 44..59 (16 bytes)
-        let materialName = String(bytes: buffer[44..<60], encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let materialName = cleanField(String(bytes: buffer[44..<60], encoding: .utf8))
         // Color: bytes 65..67 (3 bytes, hex)
         let colorHex = buffer[65..<68].map { String(format: "%02X", $0) }.joined()
         // Ext Min/Max: bytes 80..81, 82..83 (little-endian, scale 1)
@@ -119,7 +128,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         let weightDisplay = weightTable[weightRaw] ?? String(format: "%.2f kg", Double(weightRaw) / 1000.0)
 
         // Show parsed info as alert for now
-        let info = "Material: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)ºC\nBed: \(bedMin)-\(bedMax)ºC\nWeight: \(weightDisplay)"
+        let info = "Brand: \(brand)\nSKU: \(sku)\nMaterial: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)ºC\nBed: \(bedMin)-\(bedMax)ºC\nWeight: \(weightDisplay)"
         DispatchQueue.main.async {
             self.showAlert(title: "NFC Tag Info", message: info)
         }
