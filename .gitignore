@@ -2,3 +2,5 @@
 build/
 bin/
 obj/
+node_modules/
+dist/
