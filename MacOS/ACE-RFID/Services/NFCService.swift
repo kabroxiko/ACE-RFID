@@ -15,6 +15,19 @@ protocol NFCServiceDelegate: AnyObject {
 class NFCService: NSObject {
     weak var delegate: NFCServiceDelegate?
 
+#if targetEnvironment(macCatalyst)
+    // Optionally store port info for future use
+    private var port: String?
+#endif
+    // Set port for macCatalyst (no-op for now, but can be used for device selection)
+    func setPort(_ port: String) {
+#if targetEnvironment(macCatalyst)
+        self.port = port
+        // If NFCManager needs port info, pass it here
+        // (Currently not used, but can be extended)
+#endif
+    }
+
 
 #if targetEnvironment(macCatalyst)
     private let nfcManager = NFCManager()
@@ -97,9 +110,6 @@ class NFCService: NSObject {
         // Add more fields as needed
         return Filament(brand: brand, material: material, color: color, weight: weight, printTemperature: 0, bedTemperature: 0)
     }
-
-
-// No longer needed: setSerialPortPath, NFCSerialManager
 }
 
 private extension Array where Element == UInt8 {

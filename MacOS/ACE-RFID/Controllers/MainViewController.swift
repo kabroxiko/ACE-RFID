@@ -155,7 +155,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             guard let self = self, let port = selectedPort else { return }
             self.selectedSerialPort = port
 #if targetEnvironment(macCatalyst)
-            self.nfcService.setSerialPortPath(port)
+            self.nfcService.setPort(port)
 #endif
             self.showAlert(title: "Serial Port Set", message: port)
         }

@@ -3,16 +3,6 @@ import Foundation
 
 
 class NFCManager {
-    private var serialPortPath: String?
-    func setSerialPortPath(_ path: String) {
-        #if os(macOS)
-        // Store the path for future use, or pass to libnfc if needed
-        serialPortPath = path
-        // If you have a C function to set device path, call it here
-        // Example: nfc_set_device_path(path)
-        #endif
-    }
-
     func isNFCAvailable() -> Bool {
         #if os(macOS)
         return nfc_is_available() == 1
