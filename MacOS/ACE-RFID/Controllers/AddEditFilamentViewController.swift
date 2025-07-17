@@ -13,13 +13,90 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
 }
 
 class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCServiceDelegate {
+    // MARK: - Form Fields
+    private let brandTextField = UITextField()
+    private let materialTextField = UITextField()
+    private let colorTextField = UITextField()
+    private let weightTextField = UITextField()
+    private let diameterTextField = UITextField()
+    private let printTemperatureTextField = UITextField()
+    private let bedTemperatureTextField = UITextField()
+    private let fanSpeedTextField = UITextField()
+    private let printSpeedTextField = UITextField()
+    private let notesTextView = UITextView()
+    private var colorSwatchView: UIView? // For color swatch updates
+
+    // MARK: - UI Containers
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+    private let stackView = UIStackView()
+
+    // MARK: - Custom Dropdown Logic
+    @objc private func showDropdown(_ sender: UITextField) {
+        view.endEditing(true)
+        let tag = dropdownTag(for: sender)
+        let options: [String]
+        switch tag {
+        case 0:
+            options = availableBrands
+        case 1:
+            options = Filament.Material.allCases.map { $0.rawValue }
+        case 2:
+            options = availableColors.map { $0.name }
+        case 3:
+            options = Filament.weightOptions.map { $0 < 1000 ? String(format: "%.0f g", $0) : String(format: "%.1f kg", $0 / 1000) }
+        case 4:
+            options = Filament.diameterOptions.map { String(format: "%.2f mm", $0) }
+        case 5:
+            options = Filament.temperatureOptions.map { "\($0)°C" }
+        case 6:
+            options = Filament.bedTemperatureOptions.map { "\($0)°C" }
+        case 7:
+            options = Filament.fanSpeedOptions.map { "\($0)%" }
+        case 8:
+            options = Filament.printSpeedOptions.map { "\($0) mm/s" }
+        default:
+            options = []
+        }
+        let dropdownVC = DropdownMenuController(options: options) { [weak self] selected in
+            self?.handleDropdownSelection(selected, for: sender, tag: tag)
+        }
+        present(dropdownVC, animated: true)
+    }
+
+    private func dropdownTag(for textField: UITextField) -> Int {
+        switch textField {
+        case brandTextField: return 0
+        case materialTextField: return 1
+        case colorTextField: return 2
+        case weightTextField: return 3
+        case diameterTextField: return 4
+        case printTemperatureTextField: return 5
+        case bedTemperatureTextField: return 6
+        case fanSpeedTextField: return 7
+        case printSpeedTextField: return 8
+        default: return -1
+        }
+    }
+
+    private func handleDropdownSelection(_ selected: String, for textField: UITextField, tag: Int) {
+        textField.text = selected
+        // Optionally update other fields based on selection (e.g., color swatch)
+        if tag == 2 {
+            if let color = availableColors.first(where: { $0.name == selected })?.color {
+                updateColorSwatch(color)
+            }
+        }
+        // Dismiss dropdown
+        dismissKeyboard()
+    }
     // NFC
     private let nfcService = NFCService()
 
     // MARK: - Properties
 
     weak var delegate: AddEditFilamentViewControllerDelegate?
-    private var filament: Filament?
+    var filament: Filament?
     private var isEditMode: Bool { return filament != nil }
 
     // Brand management
@@ -35,66 +112,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         return Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
     }()
 
-    // Picker view caching for performance - lazy initialization
-    private lazy var cachedPickerViews: [Int: UIPickerView] = [:]
-
-    // MARK: - UI Elements
-
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
-    private let stackView = UIStackView()
-
-    // Form fields
-    private let brandTextField = UITextField()
-    private let materialTextField = UITextField()
-    private let colorTextField = UITextField()
-    private let weightTextField = UITextField()
-    private let diameterTextField = UITextField()
-    private let printTemperatureTextField = UITextField()
-    private let bedTemperatureTextField = UITextField()
-    private let fanSpeedTextField = UITextField()
-    private let printSpeedTextField = UITextField()
-    private let notesTextView = UITextView()
-
-    // Cache for color swatch - much faster than view hierarchy search
-    private weak var colorSwatchView: UIView?
-
-    // MARK: - Initialization
-
-    init(filament: Filament? = nil) {
-        self.filament = filament
-        super.init(nibName: nil, bundle: nil)
-        nfcService.delegate = self
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    // MARK: - NFC Button Setup
-    private func addNFCButtons() {
-        let nfcButtonStack = UIStackView()
-        nfcButtonStack.axis = .horizontal
-        nfcButtonStack.spacing = 16
-        nfcButtonStack.distribution = .fillEqually
-
-        let readNFCButton = UIButton(type: .system)
-        readNFCButton.setTitle("Read from NFC", for: .normal)
-        readNFCButton.backgroundColor = .systemGray6
-        readNFCButton.layer.cornerRadius = 10
-        readNFCButton.addTarget(self, action: #selector(readFromNFC), for: .touchUpInside)
-
-        let writeNFCButton = UIButton(type: .system)
-        writeNFCButton.setTitle("Write to NFC", for: .normal)
-        writeNFCButton.backgroundColor = .systemBlue
-        writeNFCButton.setTitleColor(.white, for: .normal)
-        writeNFCButton.layer.cornerRadius = 10
-        writeNFCButton.addTarget(self, action: #selector(writeToNFC), for: .touchUpInside)
-
-        nfcButtonStack.addArrangedSubview(readNFCButton)
-        nfcButtonStack.addArrangedSubview(writeNFCButton)
-        stackView.addArrangedSubview(nfcButtonStack)
-    }
+    // Picker view logic removed for modal dropdown refactor
     // MARK: - NFC Actions
     @objc private func readFromNFC() {
         nfcService.readTag()
@@ -183,12 +201,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         setupUI()
         setupNavigationBar()
         fillFormWithFilament()
-        addNFCButtons()
-
-        // Pre-warm pickers in background for faster first access
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.preWarmPickers()
-        }
+        // Removed addNFCButtons() and preWarmPickers() calls (not needed for modal dropdowns)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -205,38 +218,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
 
     // MARK: - Picker Performance Optimization
 
-    private func preWarmPickers() {
-        // Pre-create all picker views in background to avoid first-time delays
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
-            // Create all pickers but don't assign them yet to avoid blocking UI
-            for tag in 0...8 {
-                _ = self.getCachedPickerView(tag: tag)
-            }
-        }
-    }
-
-    private func getCachedPickerView(tag: Int) -> UIPickerView {
-        if let cachedPicker = cachedPickerViews[tag] {
-            return cachedPicker
-        }
-
-        let picker = UIPickerView()
-        picker.delegate = self
-        picker.dataSource = self
-        picker.tag = tag
-
-        // Pre-warm the picker by calling reloadAllComponents in background
-        DispatchQueue.global(qos: .userInitiated).async { [weak picker] in
-            DispatchQueue.main.async {
-                picker?.reloadAllComponents()
-            }
-        }
-
-        cachedPickerViews[tag] = picker
-        return picker
-    }
+    // Picker pre-warm and getCachedPickerView removed for modal dropdown refactor
 
     private func refreshColors() {
         // Only reload if colors actually changed to avoid unnecessary work
@@ -247,9 +229,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
 
         if hasChanged {
             availableColors = newColors
-            if let colorPicker = cachedPickerViews[2] {
-                colorPicker.reloadAllComponents()
-            }
+            // Picker logic removed for modal dropdowns
         }
     }
 
@@ -348,44 +328,35 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         // Brand section
         stackView.addArrangedSubview(createSectionLabel("Brand"))
         brandTextField.placeholder = "Enter brand name or select from list"
-        brandTextField.inputView = getCachedPickerView(tag: 0)
-        brandTextField.delegate = self // Add text field delegate
+        brandTextField.delegate = self
         stackView.addArrangedSubview(createFormField(brandTextField))
 
         // Material and Color side by side
         materialTextField.placeholder = "Select material"
-        materialTextField.inputView = getCachedPickerView(tag: 1)
-
+        materialTextField.delegate = self
         colorTextField.placeholder = "Select color"
-        colorTextField.inputView = getCachedPickerView(tag: 2)
-
+        colorTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(materialTextField, leftLabel: "Material", colorTextField, rightLabel: "Color"))
 
         // Weight and Diameter side by side
         weightTextField.placeholder = "Select weight"
-        weightTextField.inputView = getCachedPickerView(tag: 3)
-
+        weightTextField.delegate = self
         diameterTextField.placeholder = "Select diameter"
-        diameterTextField.inputView = getCachedPickerView(tag: 4)
-
+        diameterTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(weightTextField, leftLabel: "Weight", diameterTextField, rightLabel: "Diameter"))
 
         // Print and Bed Temperature side by side
         printTemperatureTextField.placeholder = "Select temperature"
-        printTemperatureTextField.inputView = getCachedPickerView(tag: 5)
-
+        printTemperatureTextField.delegate = self
         bedTemperatureTextField.placeholder = "Select temperature"
-        bedTemperatureTextField.inputView = getCachedPickerView(tag: 6)
-
+        bedTemperatureTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(printTemperatureTextField, leftLabel: "Print Temperature", bedTemperatureTextField, rightLabel: "Bed Temperature"))
 
         // Fan Speed and Print Speed side by side
         fanSpeedTextField.placeholder = "Select fan speed"
-        fanSpeedTextField.inputView = getCachedPickerView(tag: 7)
-
+        fanSpeedTextField.delegate = self
         printSpeedTextField.placeholder = "Select print speed"
-        printSpeedTextField.inputView = getCachedPickerView(tag: 8)
-
+        printSpeedTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(fanSpeedTextField, leftLabel: "Fan Speed", printSpeedTextField, rightLabel: "Print Speed"))
 
         // Notes section
@@ -672,95 +643,24 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
 
-        // Set picker views to correct selections using cached pickers
-        if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
-            cachedPickerViews[0]?.selectRow(brandIndex, inComponent: 0, animated: false)
-        } else {
-            // Add custom brand if not in list
-            availableBrands.insert(filament.brand, at: availableBrands.count - 1)
-            cachedPickerViews[0]?.reloadAllComponents()
-            if let brandIndex = availableBrands.firstIndex(of: filament.brand) {
-                cachedPickerViews[0]?.selectRow(brandIndex, inComponent: 0, animated: false)
-            }
-        }
-
-        if let materialIndex = Filament.Material.allCases.firstIndex(where: { $0.rawValue == filament.material }) {
-            cachedPickerViews[1]?.selectRow(materialIndex, inComponent: 0, animated: false)
-        }
-
-        if let colorIndex = availableColors.firstIndex(where: { $0.name == filament.color }) {
-            cachedPickerViews[2]?.selectRow(colorIndex, inComponent: 0, animated: false)
-            // Update color swatch with the selected color - delay to ensure UI is ready
-            DispatchQueue.main.async { [weak self] in
-                self?.updateColorSwatch(self?.availableColors[colorIndex].color ?? .systemBlue)
-            }
-        }
-
-        // Set weight picker selection - find closest match if exact match not found
-        if let weightIndex = Filament.weightOptions.firstIndex(of: weight) {
-            cachedPickerViews[3]?.selectRow(weightIndex, inComponent: 0, animated: false)
-        } else {
-            // Find closest weight option
-            let closestWeightIndex = Filament.weightOptions.enumerated().min { abs($0.element - weight) < abs($1.element - weight) }?.offset ?? 0
-            cachedPickerViews[3]?.selectRow(closestWeightIndex, inComponent: 0, animated: false)
-        }
-
-        // Set diameter picker selection - find closest match if exact match not found
-        if let diameterIndex = Filament.diameterOptions.firstIndex(of: filament.diameter) {
-            cachedPickerViews[4]?.selectRow(diameterIndex, inComponent: 0, animated: false)
-        } else {
-            // Find closest diameter option
-            let closestDiameterIndex = Filament.diameterOptions.enumerated().min { abs($0.element - filament.diameter) < abs($1.element - filament.diameter) }?.offset ?? 0
-            cachedPickerViews[4]?.selectRow(closestDiameterIndex, inComponent: 0, animated: false)
-        }
-
-        // Set temperature and speed picker selections - find closest matches
-        if let printTempIndex = Filament.temperatureOptions.firstIndex(of: filament.printTemperature) {
-            cachedPickerViews[5]?.selectRow(printTempIndex, inComponent: 0, animated: false)
-        } else {
-            let closestPrintTempIndex = Filament.temperatureOptions.enumerated().min { abs($0.element - filament.printTemperature) < abs($1.element - filament.printTemperature) }?.offset ?? 0
-            cachedPickerViews[5]?.selectRow(closestPrintTempIndex, inComponent: 0, animated: false)
-        }
-
-        if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: filament.bedTemperature) {
-            cachedPickerViews[6]?.selectRow(bedTempIndex, inComponent: 0, animated: false)
-        } else {
-            let closestBedTempIndex = Filament.bedTemperatureOptions.enumerated().min { abs($0.element - filament.bedTemperature) < abs($1.element - filament.bedTemperature) }?.offset ?? 0
-            cachedPickerViews[6]?.selectRow(closestBedTempIndex, inComponent: 0, animated: false)
-        }
-
-        if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: filament.fanSpeed) {
-            cachedPickerViews[7]?.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
-        } else {
-            let closestFanSpeedIndex = Filament.fanSpeedOptions.enumerated().min { abs($0.element - filament.fanSpeed) < abs($1.element - filament.fanSpeed) }?.offset ?? 0
-            cachedPickerViews[7]?.selectRow(closestFanSpeedIndex, inComponent: 0, animated: false)
-        }
-
-        if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: filament.printSpeed) {
-            cachedPickerViews[8]?.selectRow(printSpeedIndex, inComponent: 0, animated: false)
-        } else {
-            let closestPrintSpeedIndex = Filament.printSpeedOptions.enumerated().min { abs($0.element - filament.printSpeed) < abs($1.element - filament.printSpeed) }?.offset ?? 0
-            cachedPickerViews[8]?.selectRow(closestPrintSpeedIndex, inComponent: 0, animated: false)
-        }
+        // Picker selection logic removed for modal dropdowns
     }
 
     private func setDefaultValues() {
         // Set default brand (first one - Anycubic)
         let defaultBrand = Filament.Brand.anycubic
         brandTextField.text = defaultBrand.rawValue
-        if let index = availableBrands.firstIndex(of: defaultBrand.rawValue) {
-            cachedPickerViews[0]?.selectRow(index, inComponent: 0, animated: false)
-        }
+        // Picker selection logic removed for modal dropdowns
 
         // Set default material (PLA)
         let defaultMaterial = Filament.Material.pla
         materialTextField.text = defaultMaterial.rawValue
-        cachedPickerViews[1]?.selectRow(0, inComponent: 0, animated: false)
+        // Picker selection logic removed for modal dropdowns
 
         // Set default color (Black)
         let defaultColor = Filament.Color.black
         colorTextField.text = defaultColor.rawValue
-        cachedPickerViews[2]?.selectRow(0, inComponent: 0, animated: false)
+        // Picker selection logic removed for modal dropdowns
         // Set default color swatch - delay to ensure UI is ready
         DispatchQueue.main.async { [weak self] in
             self?.updateColorSwatch(defaultColor.displayColor)
@@ -769,15 +669,11 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         // Set default weight and diameter with proper formatting
         let defaultWeight = defaultBrand.defaultWeight
         weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
-        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight) {
-            cachedPickerViews[3]?.selectRow(weightIndex, inComponent: 0, animated: false)
-        }
+        // Picker selection logic removed for modal dropdowns
 
         let defaultDiameter = defaultBrand.defaultDiameter
         diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
-        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter) {
-            cachedPickerViews[4]?.selectRow(diameterIndex, inComponent: 0, animated: false)
-        }
+        // Picker selection logic removed for modal dropdowns
 
         // Apply material-based defaults for temperatures and speeds with proper formatting
         let printTemp = defaultMaterial.defaultPrintTemperature
@@ -791,18 +687,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         printSpeedTextField.text = "\(printSpeed) mm/s"
 
         // Set picker selections for temperatures and speeds
-        if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp) {
-            cachedPickerViews[5]?.selectRow(printTempIndex, inComponent: 0, animated: false)
-        }
-        if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp) {
-            cachedPickerViews[6]?.selectRow(bedTempIndex, inComponent: 0, animated: false)
-        }
-        if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed) {
-            cachedPickerViews[7]?.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
-        }
-        if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed) {
-            cachedPickerViews[8]?.selectRow(printSpeedIndex, inComponent: 0, animated: false)
-        }
+        // Picker selection logic removed for modal dropdowns
     }
 
     private func initializeBrands() {
@@ -969,32 +854,16 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
             if !self.availableBrands.contains(brandName) {
                 // Insert before "Add Custom Brand..." option
                 self.availableBrands.insert(brandName, at: self.availableBrands.count - 1)
-                if let brandPicker = self.cachedPickerViews[0] {
-                    brandPicker.reloadAllComponents()
-                }
             }
-
             // Set the custom brand as selected
             self.brandTextField.text = brandName
-
-            // Select the new brand in the picker
-            if let index = self.availableBrands.firstIndex(of: brandName) {
-                self.cachedPickerViews[0]?.selectRow(index, inComponent: 0, animated: true)
-            }
-
             self.dismissKeyboard()
         }
 
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
             // Reset picker to first item (or current selection)
             guard let self = self else { return }
-            if let currentBrand = self.brandTextField.text,
-               let index = self.availableBrands.firstIndex(of: currentBrand),
-               let brandPicker = self.cachedPickerViews[0] {
-                brandPicker.selectRow(index, inComponent: 0, animated: true)
-            } else if let brandPicker = self.cachedPickerViews[0] {
-                brandPicker.selectRow(0, inComponent: 0, animated: true)
-            }
+            // Picker selection logic removed for modal dropdowns
         }
 
         alert.addAction(addAction)
@@ -1184,107 +1053,8 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
     }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        switch pickerView.tag {
-        case 0: // Brand picker
-            let selectedBrandName = availableBrands[row]
-
-            if selectedBrandName == "Add Custom Brand..." {
-                // Show alert to add custom brand
-                showAddCustomBrandAlert()
-            } else {
-                brandTextField.text = selectedBrandName
-
-                // Update weight and diameter defaults when brand changes (only for predefined brands)
-                if let predefinedBrand = Filament.Brand.allCases.first(where: { $0.rawValue == selectedBrandName }) {
-                    if weightTextField.text?.isEmpty ?? true || weightTextField.text == "1000" {
-                        let defaultWeight = predefinedBrand.defaultWeight
-                        weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
-
-                        // Update weight picker selection
-                        if let weightIndex = Filament.weightOptions.firstIndex(of: defaultWeight),
-                           let weightPicker = cachedPickerViews[3] {
-                            weightPicker.selectRow(weightIndex, inComponent: 0, animated: false)
-                        }
-                    }
-                    if diameterTextField.text?.isEmpty ?? true || diameterTextField.text == "1.75" {
-                        let defaultDiameter = predefinedBrand.defaultDiameter
-                        diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
-
-                        // Update diameter picker selection
-                        if let diameterIndex = Filament.diameterOptions.firstIndex(of: defaultDiameter),
-                           let diameterPicker = cachedPickerViews[4] {
-                            diameterPicker.selectRow(diameterIndex, inComponent: 0, animated: false)
-                        }
-                    }
-                }
-            }
-
-        case 1: // Material picker
-            let selectedMaterial = Filament.Material.allCases[row]
-            materialTextField.text = selectedMaterial.rawValue
-
-            // Auto-fill temperature and speed defaults based on material
-            let printTemp = selectedMaterial.defaultPrintTemperature
-            let bedTemp = selectedMaterial.defaultBedTemperature
-            let fanSpeed = selectedMaterial.defaultFanSpeed
-            let printSpeed = selectedMaterial.defaultPrintSpeed
-
-            printTemperatureTextField.text = "\(printTemp)°C"
-            bedTemperatureTextField.text = "\(bedTemp)°C"
-            fanSpeedTextField.text = "\(fanSpeed)%"
-            printSpeedTextField.text = "\(printSpeed) mm/s"
-
-            // Update picker selections
-            if let printTempIndex = Filament.temperatureOptions.firstIndex(of: printTemp),
-               let printTempPicker = cachedPickerViews[5] {
-                printTempPicker.selectRow(printTempIndex, inComponent: 0, animated: false)
-            }
-            if let bedTempIndex = Filament.bedTemperatureOptions.firstIndex(of: bedTemp),
-               let bedTempPicker = cachedPickerViews[6] {
-                bedTempPicker.selectRow(bedTempIndex, inComponent: 0, animated: false)
-            }
-            if let fanSpeedIndex = Filament.fanSpeedOptions.firstIndex(of: fanSpeed),
-               let fanSpeedPicker = cachedPickerViews[7] {
-                fanSpeedPicker.selectRow(fanSpeedIndex, inComponent: 0, animated: false)
-            }
-            if let printSpeedIndex = Filament.printSpeedOptions.firstIndex(of: printSpeed),
-               let printSpeedPicker = cachedPickerViews[8] {
-                printSpeedPicker.selectRow(printSpeedIndex, inComponent: 0, animated: false)
-            }
-
-        case 2: // Color picker
-            let selectedColorInfo = availableColors[row]
-            colorTextField.text = selectedColorInfo.name
-            // Update color swatch
-            updateColorSwatch(selectedColorInfo.color)
-
-        case 3: // Weight picker
-            let selectedWeight = Filament.weightOptions[row]
-            weightTextField.text = selectedWeight < 1000 ? String(format: "%.0f g", selectedWeight) : String(format: "%.1f kg", selectedWeight / 1000)
-
-        case 4: // Diameter picker
-            let selectedDiameter = Filament.diameterOptions[row]
-            diameterTextField.text = String(format: "%.2f mm", selectedDiameter)
-
-        case 5: // Print temperature picker
-            let selectedTemp = Filament.temperatureOptions[row]
-            printTemperatureTextField.text = "\(selectedTemp)°C"
-
-        case 6: // Bed temperature picker
-            let selectedTemp = Filament.bedTemperatureOptions[row]
-            bedTemperatureTextField.text = "\(selectedTemp)°C"
-
-        case 7: // Fan speed picker
-            let selectedSpeed = Filament.fanSpeedOptions[row]
-            fanSpeedTextField.text = "\(selectedSpeed)%"
-
-        case 8: // Print speed picker
-            let selectedSpeed = Filament.printSpeedOptions[row]
-            printSpeedTextField.text = "\(selectedSpeed) mm/s"
-
-        default:
-            break
-        }
+        // Picker selection logic removed for modal dropdowns
+        // ...existing code...
     }
 }
 
@@ -1292,6 +1062,19 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
 extension AddEditFilamentViewController {
 
+    // Show dropdown for dropdown fields and prevent keyboard
+    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+        let dropdownFields: [UITextField] = [
+            brandTextField, materialTextField, colorTextField, weightTextField,
+            diameterTextField, printTemperatureTextField, bedTemperatureTextField,
+            fanSpeedTextField, printSpeedTextField
+        ]
+        if dropdownFields.contains(textField) {
+            showDropdown(textField)
+            return false // Prevent keyboard
+        }
+        return true
+    }
     func textFieldDidEndEditing(_ textField: UITextField) {
         if textField == brandTextField {
             guard let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -1301,9 +1084,7 @@ extension AddEditFilamentViewController {
             if !availableBrands.contains(brandName) && brandName != "Add Custom Brand..." {
                 // Insert before "Add Custom Brand..." option
                 availableBrands.insert(brandName, at: availableBrands.count - 1)
-                if let brandPicker = cachedPickerViews[0] {
-                    brandPicker.reloadAllComponents()
-                }
+                // Picker logic removed for modal dropdowns
             }
         }
     }

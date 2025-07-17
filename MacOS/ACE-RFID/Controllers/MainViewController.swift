@@ -219,7 +219,8 @@ class MainViewController: UIViewController, NFCServiceDelegate {
 
         // Edit action
         alert.addAction(UIAlertAction(title: "Edit", style: .default) { _ in
-            let editViewController = AddEditFilamentViewController(filament: filament)
+            let editViewController = AddEditFilamentViewController()
+            editViewController.filament = filament
             editViewController.delegate = self
             let navigationController = UINavigationController(rootViewController: editViewController)
             self.present(navigationController, animated: true)
