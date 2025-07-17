@@ -86,7 +86,7 @@ class NFCService: NSObject {
         buffer[18] = 0x65
         buffer[19] = 0x00
         // SKU (page 5-8, offset 20, 16 bytes)
-        let skuBytes = Array((filament.brand + filament.material + filament.color).prefix(16).utf8)
+        let skuBytes = Array((filament.sku).prefix(16).utf8)
         for i in 0..<skuBytes.count { buffer[20+i] = skuBytes[i] }
         // Brand (page 10-13, offset 40, 16 bytes)
         let brandBytes = Array(filament.brand.prefix(16).utf8)
@@ -94,12 +94,15 @@ class NFCService: NSObject {
         // Type (page 15-18, offset 60, 16 bytes)
         let typeBytes = Array(filament.material.prefix(16).utf8)
         for i in 0..<typeBytes.count { buffer[60+i] = typeBytes[i] }
-        // Color (BGR, page 20, offset 80, 3 bytes)
+        // Color (BGR,  page 20, offset 80, 3 bytes)
         let bgr = colorStringToBGR(filament.color)
-        buffer[80] = bgr.0
-        buffer[81] = bgr.1
-        buffer[82] = bgr.2
-        buffer[83] = 0x00 // reserved
+        print("[DEBUG] encodeFilament color string: \(filament.color)")
+        print("[DEBUG] encodeFilament BGR: \(bgr.0), \(bgr.1), \(bgr.2)")
+        buffer[80] = 0xFF // reserved
+        buffer[81] = bgr.0
+        buffer[82] = bgr.1
+        buffer[83] = bgr.2
+        print(String(format: "[DEBUG] encodeFilament buffer[80-82]: %02X %02X %02X", buffer[80], buffer[81], buffer[82]))
         // Extruder temp (page 24, offset 96, min/max, 2 bytes each, little-endian)
         let printMinTemp = Int(filament.printMinTemperature)
         buffer[96] = UInt8(printMinTemp & 0xFF)
@@ -157,42 +160,59 @@ class NFCService: NSObject {
         }
     }
 
-    // Decode Filament from Data (match encoded NFC structure to Filament model)
-    static func decodeFilament(_ data: Data) -> Filament? {
-        guard data.count >= 128 else { return nil }
-        // Debug: print raw bytes for temperature fields
-        print("[DEBUG] NFC decode raw bytes:")
-        print(String(format: "PrintMinTemp bytes: %02X %02X", data[96], data[97]))
-        print(String(format: "PrintMaxTemp bytes: %02X %02X", data[98], data[99]))
-        print(String(format: "BedMinTemp bytes: %02X %02X", data[116], data[117]))
-        print(String(format: "BedMaxTemp bytes: %02X %02X", data[118], data[119]))
+    static func decodeFilament(_ data: Data) -> Filament {
+        let buffer = [UInt8](data)
+        // Debug: print raw bytes for key fields
+        print("[DEBUG] Raw bytes for SKU: ", buffer[4..<20].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Raw bytes for Brand: ", buffer[20..<44].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Raw bytes for Material: ", buffer[44..<60].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Raw bytes for Color: ", buffer[65..<68].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Extruder Min bytes: %02X %02X", buffer[80], buffer[81])
+        print("[DEBUG] Extruder Max bytes: %02X %02X", buffer[82], buffer[83])
+        print("[DEBUG] Bed Min bytes: %02X %02X", buffer[100], buffer[101])
+        print("[DEBUG] Bed Max bytes: %02X %02X", buffer[102], buffer[103])
+        print("[DEBUG] Weight bytes: %02X %02X", buffer[106], buffer[107])
 
-        // SKU (offset 20, 16 bytes)
-        let sku = String(bytes: data[20..<36], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
-        // Brand (offset 40, 16 bytes)
-        let brand = String(bytes: data[40..<56], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
-        // Type (offset 60, 16 bytes)
-        let material = String(bytes: data[60..<76], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
-        // Color (offset 80, 3 bytes, BGR)
-        let b = data[80], g = data[81], r = data[82]
-        let color = String(format: "#%02X%02X%02X", r, g, b)
-        // Print temp (offset 96, 2 bytes LE)
-        let printMinTemp = Int(data[96]) | (Int(data[97]) << 8)
-        let printMaxTemp = Int(data[98]) | (Int(data[99]) << 8)
-        print("[DEBUG] Decoded PrintMinTemp: \(printMinTemp)")
-        print("[DEBUG] Decoded PrintMaxTemp: \(printMaxTemp)")
-        // Bed temp (offset 116, 2 bytes LE)
-        let bedMinTemp = Int(data[116]) | (Int(data[117]) << 8)
-        let bedMaxTemp = Int(data[118]) | (Int(data[119]) << 8)
-        print("[DEBUG] Decoded BedMinTemp: \(bedMinTemp)")
-        print("[DEBUG] Decoded BedMaxTemp: \(bedMaxTemp)")
-        // Diameter (offset 120, 2 bytes LE)
-        let diameterRaw = Int(data[120]) | (Int(data[121]) << 8)
+        func cleanField(_ str: String?) -> String {
+            guard let s = str else { return "" }
+            return s.replacingOccurrences(of: "\0", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        // SKU: bytes 4..19 (16 bytes)
+        let sku = cleanField(String(bytes: buffer[4..<20], encoding: .utf8))
+        // Brand: bytes 20..43 (24 bytes)
+        let brand = cleanField(String(bytes: buffer[20..<44], encoding: .utf8))
+        // Material Name: bytes 44..59 (16 bytes)
+        let materialName = cleanField(String(bytes: buffer[44..<60], encoding: .utf8))
+        // Color: bytes 65..67 (3 bytes, hex)
+        let colorHex = buffer[65..<68].map { String(format: "%02X", $0) }.joined()
+        // Extruder Min/Max: bytes 80..81, 82..83 (little-endian, scale 1)
+        let extMin = Int(buffer[80]) | (Int(buffer[81]) << 8)
+        let extMax = Int(buffer[82]) | (Int(buffer[83]) << 8)
+        // Bed Min/Max: bytes 100..101, 102..103 (little-endian, scale 1)
+        let bedMin = Int(buffer[100]) | (Int(buffer[101]) << 8)
+        let bedMax = Int(buffer[102]) | (Int(buffer[103]) << 8)
+        // Weight: bytes 106..107 (little-endian, scale 0.001)
+        let weightRaw = Int(buffer[107]) << 8 | Int(buffer[106])
+        // Diameter: bytes 120..121 (little-endian, scale 0.01)
+        let diameterRaw = Int(buffer[121]) << 8 | Int(buffer[120])
         let diameter = Double(diameterRaw) / 100.0
-        // Weight (offset 122, 2 bytes LE)
-        let weight = Double(Int(data[122]) | (Int(data[123]) << 8))
-        // Return Filament (adjust as needed for your model)
-        return Filament(brand: brand, material: material, color: color, weight: weight, diameter: diameter, printMinTemperature: printMinTemp, printMaxTemperature: printMaxTemp, bedMinTemperature: bedMinTemp, bedMaxTemperature: bedMaxTemp)
+
+        // Construct Filament object
+        let filament = Filament(
+            id: UUID().uuidString,
+            sku: sku,
+            brand: brand,
+            material: materialName,
+            color: "#" + colorHex,
+            weight: Double(weightRaw),
+            diameter: diameter,
+            printMinTemperature: extMin,
+            printMaxTemperature: extMax,
+            bedMinTemperature: bedMin,
+            bedMaxTemperature: bedMax,
+            lastUsed: nil
+        )
+        return filament
     }
 }
 

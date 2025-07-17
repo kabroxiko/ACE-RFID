@@ -95,62 +95,20 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             }
             return
         }
-        let buffer = [UInt8](data)
-        // Debug: print raw bytes for key fields
-        print("[DEBUG] Raw bytes for SKU: ", buffer[4..<20].map { String(format: "%02X", $0) }.joined(separator: " "))
-        print("[DEBUG] Raw bytes for Brand: ", buffer[20..<44].map { String(format: "%02X", $0) }.joined(separator: " "))
-        print("[DEBUG] Raw bytes for Material: ", buffer[44..<60].map { String(format: "%02X", $0) }.joined(separator: " "))
-        print("[DEBUG] Raw bytes for Color: ", buffer[65..<68].map { String(format: "%02X", $0) }.joined(separator: " "))
-        print("[DEBUG] Extruder Min bytes: %02X %02X", buffer[80], buffer[81])
-        print("[DEBUG] Extruder Max bytes: %02X %02X", buffer[82], buffer[83])
-        print("[DEBUG] Bed Min bytes: %02X %02X", buffer[100], buffer[101])
-        print("[DEBUG] Bed Max bytes: %02X %02X", buffer[102], buffer[103])
-        print("[DEBUG] Weight bytes: %02X %02X", buffer[106], buffer[107])
-
-        // Helper to clean field
-        func cleanField(_ str: String?) -> String {
-            guard let s = str else { return "" }
-            return s.replacingOccurrences(of: "\0", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        // SKU: bytes 4..19 (16 bytes)
-        let sku = cleanField(String(bytes: buffer[4..<20], encoding: .utf8))
-        // Brand: bytes 20..43 (24 bytes)
-        let brand = cleanField(String(bytes: buffer[20..<44], encoding: .utf8))
-        // Material Name: bytes 44..59 (16 bytes)
-        let materialName = cleanField(String(bytes: buffer[44..<60], encoding: .utf8))
-        // Color: bytes 65..67 (3 bytes, hex)
-        let colorHex = buffer[65..<68].map { String(format: "%02X", $0) }.joined()
-        // Extruder Min/Max: bytes 80..81, 82..83 (little-endian, scale 1)
-        let extMin = Int(buffer[80]) | (Int(buffer[81]) << 8)
-        let extMax = Int(buffer[82]) | (Int(buffer[83]) << 8)
-        // Bed Min/Max: bytes 100..101, 102..103 (little-endian, scale 1)
-        let bedMin = Int(buffer[100]) | (Int(buffer[101]) << 8)
-        let bedMax = Int(buffer[102]) | (Int(buffer[103]) << 8)
-        // Weight: bytes 106..107 (little-endian, scale 0.001)
-        let weightRaw = Int(buffer[107]) << 8 | Int(buffer[106])
-        // Filament weight lookup table (raw value to kg)
-        let weightTable: [Int: String] = [
-            330: "1 kg",
-            250: "0.75 kg",
-            200: "0.5 kg",
-            100: "0.25 kg",
-            50: "0.1 kg"
-        ]
-        let weightDisplay = weightTable[weightRaw] ?? String(format: "%.2f kg", Double(weightRaw) / 1000.0)
-
+        let filament = NFCService.decodeFilament(data)
         // Debug: print parsed values
-        print("[DEBUG] Parsed SKU: \(sku)")
-        print("[DEBUG] Parsed Brand: \(brand)")
-        print("[DEBUG] Parsed Material: \(materialName)")
-        print("[DEBUG] Parsed Color: #\(colorHex)")
-        print("[DEBUG] Parsed Ext Min: \(extMin)")
-        print("[DEBUG] Parsed Ext Max: \(extMax)")
-        print("[DEBUG] Parsed Bed Min: \(bedMin)")
-        print("[DEBUG] Parsed Bed Max: \(bedMax)")
-        print("[DEBUG] Parsed Weight: \(weightDisplay)")
+        print("[DEBUG] Parsed SKU: \(filament.sku)")
+        print("[DEBUG] Parsed Brand: \(filament.brand)")
+        print("[DEBUG] Parsed Material: \(filament.material)")
+        print("[DEBUG] Parsed Color: \(filament.color)")
+        print("[DEBUG] Parsed Ext Min: \(filament.printMinTemperature)")
+        print("[DEBUG] Parsed Ext Max: \(filament.printMaxTemperature)")
+        print("[DEBUG] Parsed Bed Min: \(filament.bedMinTemperature)")
+        print("[DEBUG] Parsed Bed Max: \(filament.bedMaxTemperature)")
+        print("[DEBUG] Parsed Weight: \(filament.weight)g")
 
         // Show parsed info as alert for now
-        let info = "Brand: \(brand)\nSKU: \(sku)\nMaterial: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)ºC\nBed: \(bedMin)-\(bedMax)ºC\nWeight: \(weightDisplay)"
+        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color)\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nWeight: \(String(format: "%.2f kg", filament.weight / 1000.0))"
         DispatchQueue.main.async {
             self.showAlert(title: "NFC Tag Info", message: info)
         }

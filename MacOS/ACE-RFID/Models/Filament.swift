@@ -11,6 +11,7 @@ import UIKit
 /// Represents a 3D printing filament with all its properties
 struct Filament {
     let id: String
+    var sku: String
     var brand: String
     var material: String
     var color: String
@@ -29,6 +30,7 @@ struct Filament {
     var notes: String?
 
     init(id: String = UUID().uuidString,
+         sku: String,
          brand: String,
          material: String,
          color: String,
@@ -47,6 +49,7 @@ struct Filament {
          notes: String? = nil) {
 
         self.id = id
+        self.sku = sku
         self.brand = brand
         self.material = material
         self.color = color

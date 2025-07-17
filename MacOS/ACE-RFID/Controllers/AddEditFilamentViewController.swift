@@ -147,7 +147,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     // Helper to build filament from form
     private func buildFilamentFromForm() -> Filament? {
-        guard let brand = brandTextField.text, !brand.isEmpty,
+        guard let sku = filament?.sku, !sku.isEmpty,
+              let brand = brandTextField.text, !brand.isEmpty,
               let material = materialTextField.text, !material.isEmpty,
               let color = colorTextField.text, !color.isEmpty,
               let weightStr = weightTextField.text, let weight = Double(weightStr),
@@ -161,6 +162,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         else { return nil }
 
         return Filament(
+            sku: sku,
             brand: brand,
             material: material,
             color: color,
@@ -699,6 +701,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     @objc private func saveTapped() {
         guard validateForm() else { return }
 
+        let sku = filament?.sku ?? ""
         let brand = brandTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let material = materialTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let color = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -780,6 +783,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         } else {
             // Create new filament
             let newFilament = Filament(
+                sku: sku,
                 brand: brand,
                 material: material,
                 color: color,

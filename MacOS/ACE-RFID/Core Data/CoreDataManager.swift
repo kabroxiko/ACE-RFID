@@ -49,6 +49,7 @@ class CoreDataManager {
         let filamentEntity = NSManagedObject(entity: entity, insertInto: context)
 
         filamentEntity.setValue(filament.id, forKey: "id")
+        filamentEntity.setValue(filament.sku, forKey: "sku")
         filamentEntity.setValue(filament.brand, forKey: "brand")
         filamentEntity.setValue(filament.material, forKey: "material")
         filamentEntity.setValue(filament.color, forKey: "color")
@@ -105,6 +106,7 @@ class CoreDataManager {
             let entities = try context.fetch(request)
             guard let entity = entities.first else { return }
 
+            entity.setValue(filament.sku, forKey: "sku")
             entity.setValue(filament.brand, forKey: "brand")
             entity.setValue(filament.material, forKey: "material")
             entity.setValue(filament.color, forKey: "color")
@@ -146,6 +148,7 @@ class CoreDataManager {
 
     private func convertEntityToFilament(_ entity: NSManagedObject) -> Filament? {
         guard let id = entity.value(forKey: "id") as? String,
+              let sku = entity.value(forKey: "sku") as? String,
               let brand = entity.value(forKey: "brand") as? String,
               let material = entity.value(forKey: "material") as? String,
               let color = entity.value(forKey: "color") as? String,
@@ -168,6 +171,7 @@ class CoreDataManager {
 
         return Filament(
             id: id,
+            sku: sku,
             brand: brand,
             material: material,
             color: color,
