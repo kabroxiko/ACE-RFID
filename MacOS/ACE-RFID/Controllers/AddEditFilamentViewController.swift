@@ -145,7 +145,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         }
 
         // Add color preview view
-        let previewSize: CGFloat = 32
+        let previewSize: CGFloat = 24
         let previewView = UIView(frame: CGRect(x: 0, y: 0, width: previewSize, height: previewSize))
         previewView.layer.cornerRadius = previewSize / 2
         previewView.layer.borderWidth = 1
@@ -158,8 +158,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         NSLayoutConstraint.activate([
             previewView.heightAnchor.constraint(equalToConstant: previewSize),
             previewView.widthAnchor.constraint(equalToConstant: previewSize),
-            previewView.centerXAnchor.constraint(equalTo: alert.view.centerXAnchor),
-            previewView.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 70)
+            previewView.centerXAnchor.constraint(equalTo: alert.view.centerXAnchor, constant: 50),
+            previewView.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 120)
         ])
 
         // Add a color picker view controller
@@ -170,6 +170,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
         let pickColorAction = UIAlertAction(title: "Pick Color", style: .default) { [weak self] _ in
             guard let self = self else { return }
+            colorPickerVC.modalPresentationStyle = .pageSheet
             self.present(colorPickerVC, animated: true)
         }
 
@@ -197,19 +198,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         alert.addAction(addAction)
         alert.addAction(cancelAction)
 
-        // Store previewView for delegate update
-        self.customColorPreviewView = previewView
-
         present(alert, animated: true)
-    }
-
-    // Store reference for preview update
-    private var customColorPreviewView: UIView?
-
-    // MARK: - UIColorPickerViewControllerDelegate
-    func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
-        customColorSelected = viewController.selectedColor
-        customColorPreviewView?.backgroundColor = customColorSelected
     }
 
     // Color management

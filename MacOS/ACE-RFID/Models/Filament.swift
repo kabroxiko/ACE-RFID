@@ -210,8 +210,7 @@ extension Filament {
         case marble = "Marble"
         case wood = "Wood"
         case carbon = "Carbon"
-        case other = "Other"
-        case custom = "Custom"
+        case custom = "Add Custom Color..."
 
         var displayColor: UIColor {
             switch self {
@@ -237,7 +236,6 @@ extension Filament {
             case .marble: return UIColor.systemGray
             case .wood: return UIColor.brown
             case .carbon: return UIColor.darkGray
-            case .other: return UIColor.systemGray
             case .custom: return UIColor.systemBlue // Default for custom, will be overridden
             }
         }
