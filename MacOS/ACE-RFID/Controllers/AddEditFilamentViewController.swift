@@ -12,7 +12,7 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
     func didSaveFilament(_ filament: Filament)
 }
 
-class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
+class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UIColorPickerViewControllerDelegate {
     // MARK: - Form Fields
     private let brandTextField = UITextField()
     private let materialTextField = UITextField()
@@ -98,8 +98,12 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
 
     private func handleDropdownSelection(_ selected: String, for textField: UITextField, tag: Int) {
         textField.text = selected
-        // Optionally update other fields based on selection (e.g., color swatch)
+        // Update color swatch if color was selected
         if tag == 2 {
+            if selected == "Add Custom Color..." {
+                showAddCustomColorAlert()
+                return
+            }
             if let color = availableColors.first(where: { $0.name == selected })?.color {
                 updateColorSwatch(color)
             }
@@ -123,10 +127,97 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         return brands
     }()
 
+    // MARK: - Custom Color Management
+    private var customColorSelected: UIColor = .systemBlue
+
+    private func showAddCustomColorAlert() {
+        let alert = UIAlertController(title: "Add Custom Color", message: "Enter a color name and select a color.", preferredStyle: .alert)
+
+        alert.addTextField { textField in
+            textField.placeholder = "Color name"
+            textField.autocapitalizationType = .words
+        }
+
+        // Add hex input field
+        alert.addTextField { textField in
+            textField.placeholder = "Hex RGB (e.g. #FFAA00)"
+            textField.keyboardType = .asciiCapable
+        }
+
+        // Add color preview view
+        let previewSize: CGFloat = 32
+        let previewView = UIView(frame: CGRect(x: 0, y: 0, width: previewSize, height: previewSize))
+        previewView.layer.cornerRadius = previewSize / 2
+        previewView.layer.borderWidth = 1
+        previewView.layer.borderColor = UIColor.systemGray4.cgColor
+        previewView.backgroundColor = customColorSelected
+
+        // Add preview to alert
+        alert.view.addSubview(previewView)
+        previewView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            previewView.heightAnchor.constraint(equalToConstant: previewSize),
+            previewView.widthAnchor.constraint(equalToConstant: previewSize),
+            previewView.centerXAnchor.constraint(equalTo: alert.view.centerXAnchor),
+            previewView.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 70)
+        ])
+
+        // Add a color picker view controller
+        let colorPickerVC = UIColorPickerViewController()
+        colorPickerVC.selectedColor = customColorSelected
+        colorPickerVC.supportsAlpha = false
+        colorPickerVC.delegate = self
+
+        let pickColorAction = UIAlertAction(title: "Pick Color", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.present(colorPickerVC, animated: true)
+        }
+
+        let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
+            guard let self = self,
+                  let nameField = alert.textFields?[0],
+                  let colorName = nameField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !colorName.isEmpty else { return }
+
+            var color: UIColor = self.customColorSelected
+            if let hexField = alert.textFields?[1], let hexText = hexField.text, !hexText.isEmpty {
+                color = UIColor(hex: hexText) ?? self.customColorSelected
+            }
+
+            // Add to availableColors
+            self.availableColors.append((name: colorName, color: color))
+            self.colorTextField.text = colorName
+            self.updateColorSwatch(color)
+            self.dismissKeyboard()
+        }
+
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+
+        alert.addAction(pickColorAction)
+        alert.addAction(addAction)
+        alert.addAction(cancelAction)
+
+        // Store previewView for delegate update
+        self.customColorPreviewView = previewView
+
+        present(alert, animated: true)
+    }
+
+    // Store reference for preview update
+    private var customColorPreviewView: UIView?
+
+    // MARK: - UIColorPickerViewControllerDelegate
+    func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
+        customColorSelected = viewController.selectedColor
+        customColorPreviewView?.backgroundColor = customColorSelected
+    }
+
     // Color management
     private lazy var availableColors: [(name: String, color: UIColor)] = {
-        // Use only predefined colors
-        return Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
+        // Use only predefined colors, plus custom color option
+        var colors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
+        colors.append((name: "Add Custom Color...", color: .clear))
+        return colors
     }()
 
     // Helper to fill form with filament
@@ -1106,5 +1197,26 @@ extension AddEditFilamentViewController {
                 // Picker logic removed for modal dropdowns
             }
         }
+    }
+}
+
+// MARK: - UIColor Hex Extension
+extension UIColor {
+    convenience init?(hex: String) {
+        var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if hexString.hasPrefix("#") {
+            hexString.remove(at: hexString.startIndex)
+        }
+        if hexString.count == 6 {
+            hexString += "FF" // Add alpha if missing
+        }
+        guard hexString.count == 8 else { return nil }
+        var rgbValue: UInt64 = 0
+        Scanner(string: hexString).scanHexInt64(&rgbValue)
+        let r = CGFloat((rgbValue & 0xFF000000) >> 24) / 255.0
+        let g = CGFloat((rgbValue & 0x00FF0000) >> 16) / 255.0
+        let b = CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0
+        let a = CGFloat(rgbValue & 0x000000FF) / 255.0
+        self.init(red: r, green: g, blue: b, alpha: a)
     }
 }

@@ -11,7 +11,9 @@ import Foundation
 class MainViewController: UIViewController, NFCServiceDelegate {
     // MARK: - UI Elements
     private let tableView = UITableView()
+    #if !targetEnvironment(macCatalyst)
     private let refreshControl = UIRefreshControl()
+    #endif
 
     // MARK: - Properties
     private var filaments: [Filament] = []
@@ -62,9 +64,15 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 120
 
-        // Refresh control
+        #if targetEnvironment(macCatalyst)
+        // Add a Refresh button for Mac Catalyst
+        let refreshButton = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refreshFilaments))
+        navigationItem.leftBarButtonItem = refreshButton
+        #else
+        // Use pull-to-refresh for iOS/iPad
         refreshControl.addTarget(self, action: #selector(refreshFilaments), for: .valueChanged)
         tableView.refreshControl = refreshControl
+        #endif
 
         view.addSubview(tableView)
 
@@ -137,7 +145,9 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         filaments = CoreDataManager.shared.fetchAllFilaments()
         DispatchQueue.main.async {
             self.tableView.reloadData()
+            #if !targetEnvironment(macCatalyst)
             self.refreshControl.endRefreshing()
+            #endif
         }
     }
 
