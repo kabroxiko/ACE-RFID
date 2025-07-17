@@ -79,28 +79,105 @@ class NFCService: NSObject {
 
     // Helper to encode Filament to Data (match Android logic)
     static func encodeFilament(_ filament: Filament) -> Data {
-        var bytes = [UInt8]()
-        // Example: encode brand, material, color, etc. as fixed-length fields
-        let brandBytes = Array(filament.brand.utf8.prefix(20)).padding(toLength: 20)
-        let materialBytes = Array(filament.material.utf8.prefix(20)).padding(toLength: 20)
-        let colorBytes = Array(filament.color.utf8.prefix(8)).padding(toLength: 8)
-        let weightBytes = withUnsafeBytes(of: filament.weight.bitPattern.bigEndian, Array.init)
-        bytes += brandBytes + materialBytes + colorBytes + weightBytes
-        // Add more fields as needed, matching Android's structure
-        return Data(bytes)
+        var buffer = [UInt8](repeating: 0, count: 256)
+        // Magic/data len (page 4, offset 16)
+        buffer[16] = 0x7B
+        buffer[17] = 0x00
+        buffer[18] = 0x65
+        buffer[19] = 0x00
+        // SKU (page 5-8, offset 20, 16 bytes)
+        let skuBytes = Array((filament.brand + filament.material + filament.color).prefix(16).utf8)
+        for i in 0..<skuBytes.count { buffer[20+i] = skuBytes[i] }
+        // Brand (page 10-13, offset 40, 16 bytes)
+        let brandBytes = Array(filament.brand.prefix(16).utf8)
+        for i in 0..<brandBytes.count { buffer[40+i] = brandBytes[i] }
+        // Type (page 15-18, offset 60, 16 bytes)
+        let typeBytes = Array(filament.material.prefix(16).utf8)
+        for i in 0..<typeBytes.count { buffer[60+i] = typeBytes[i] }
+        // Color (BGR, page 20, offset 80, 3 bytes)
+        let bgr = colorStringToBGR(filament.color)
+        buffer[80] = bgr.0
+        buffer[81] = bgr.1
+        buffer[82] = bgr.2
+        buffer[83] = 0x00 // reserved
+        // Extruder temp (page 24, offset 96, min/max, 2 bytes each, little-endian)
+        let printTemp = Int(filament.printTemperature)
+        buffer[96] = UInt8(printTemp & 0xFF)
+        buffer[97] = UInt8((printTemp >> 8) & 0xFF)
+        buffer[98] = UInt8(printTemp & 0xFF)
+        buffer[99] = UInt8((printTemp >> 8) & 0xFF)
+        // Hotbed temp (page 29, offset 116, min/max, 2 bytes each, little-endian)
+        let bedTemp = Int(filament.bedTemperature)
+        buffer[116] = UInt8(bedTemp & 0xFF)
+        buffer[117] = UInt8((bedTemp >> 8) & 0xFF)
+        buffer[118] = UInt8(bedTemp & 0xFF)
+        buffer[119] = UInt8((bedTemp >> 8) & 0xFF)
+        // Filament param (page 30, offset 120, diameter/weight, 2 bytes each, little-endian)
+        let diameter = Int(filament.diameter * 100) // e.g. 1.75 -> 175
+        buffer[120] = UInt8(diameter & 0xFF)
+        buffer[121] = UInt8((diameter >> 8) & 0xFF)
+        let weight = Int(filament.weight)
+        buffer[122] = UInt8(weight & 0xFF)
+        buffer[123] = UInt8((weight >> 8) & 0xFF)
+        // Unknown (page 31, offset 124, 4 bytes)
+        buffer[124] = 0xE8
+        buffer[125] = 0x03
+        buffer[126] = 0x00
+        buffer[127] = 0x00
+        // Debug: print only blocks 16-127 (pages 4-35)
+        print("[DEBUG] encodeFilament buffer (blocks of 4 bytes, pages 4-35):")
+        for i in stride(from: 16, to: 128, by: 4) {
+            let block = buffer[i..<i+4]
+            let hexBlock = block.map { String(format: "%02X", $0) }.joined(separator: " ")
+            print(String(format: "[%02d-%02d]: %@", i, i+3, hexBlock))
+        }
+        // Return only pages 4-35 (offsets 16-127, 128 bytes)
+        return Data(buffer[16..<128])
     }
 
-    // Helper to decode Data to Filament (match Android logic)
+    // Helper: Convert color string (e.g. "#00FF00" or "Black") to BGR tuple
+    private static func colorStringToBGR(_ color: String) -> (UInt8, UInt8, UInt8) {
+        // Hex format: #RRGGBB
+        if color.hasPrefix("#") && color.count == 7 {
+            let r = UInt8(color[color.index(color.startIndex, offsetBy: 1)...color.index(color.startIndex, offsetBy: 2)], radix: 16) ?? 0
+            let g = UInt8(color[color.index(color.startIndex, offsetBy: 3)...color.index(color.startIndex, offsetBy: 4)], radix: 16) ?? 0
+            let b = UInt8(color[color.index(color.startIndex, offsetBy: 5)...color.index(color.startIndex, offsetBy: 6)], radix: 16) ?? 0
+            return (b, g, r)
+        }
+        // Named colors (add more as needed)
+        switch color.lowercased() {
+        case "black": return (0, 0, 0)
+        case "white": return (255, 255, 255)
+        case "red": return (0, 0, 255)
+        case "green": return (0, 255, 0)
+        case "blue": return (255, 0, 0)
+        default: return (0, 0, 0)
+        }
+    }
+
+    // Decode Filament from Data (match encoded NFC structure to Filament model)
     static func decodeFilament(_ data: Data) -> Filament? {
-        // Example: decode fixed-length fields
-        guard data.count >= 48 else { return nil }
-        let brand = String(bytes: data[0..<20], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
-        let material = String(bytes: data[20..<40], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
-        let color = String(bytes: data[40..<48], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
-        let weightBits = data[48..<56].withUnsafeBytes { $0.load(as: UInt64.self).bigEndian }
-        let weight = Double(bitPattern: weightBits)
-        // Add more fields as needed
-        return Filament(brand: brand, material: material, color: color, weight: weight, printTemperature: 0, bedTemperature: 0)
+        guard data.count >= 128 else { return nil }
+        // SKU (offset 20, 16 bytes)
+        let sku = String(bytes: data[20..<36], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
+        // Brand (offset 40, 16 bytes)
+        let brand = String(bytes: data[40..<56], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
+        // Type (offset 60, 16 bytes)
+        let material = String(bytes: data[60..<76], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
+        // Color (offset 80, 3 bytes, BGR)
+        let b = data[80], g = data[81], r = data[82]
+        let color = String(format: "#%02X%02X%02X", r, g, b)
+        // Print temp (offset 96, 2 bytes LE)
+        let printTemp = Int(data[96]) | (Int(data[97]) << 8)
+        // Bed temp (offset 116, 2 bytes LE)
+        let bedTemp = Int(data[116]) | (Int(data[117]) << 8)
+        // Diameter (offset 120, 2 bytes LE)
+        let diameterRaw = Int(data[120]) | (Int(data[121]) << 8)
+        let diameter = Double(diameterRaw) / 100.0
+        // Weight (offset 122, 2 bytes LE)
+        let weight = Double(Int(data[122]) | (Int(data[123]) << 8))
+        // Return Filament (adjust as needed for your model)
+        return Filament(brand: brand, material: material, color: color, weight: weight, diameter: diameter, printTemperature: printTemp, bedTemperature: bedTemp)
     }
 }
 

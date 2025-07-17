@@ -85,10 +85,18 @@ class NFCManager {
     func writeCardContent(data: Data) -> Bool {
         #if targetEnvironment(macCatalyst)
         print("[DEBUG] NFCManager writeCardContent, connectionString: \(connectionString)")
-        var buffer = [UInt8](repeating: 0, count: 256)
-        let count = min(data.count, 256)
-        data.copyBytes(to: &buffer, count: count)
-        let result = nfc_write_card_content(connectionString, buffer)
+        print("[DEBUG] Data to write, length: \(data.count)")
+        print("[DEBUG] Data hex: \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        // Pad data to 256 bytes
+        var paddedData = data
+        if paddedData.count < 256 {
+            paddedData.append(contentsOf: Array(repeating: 0, count: 256 - paddedData.count))
+        }
+        // Convert buffer to hex string
+        let hexString = paddedData.map { String(format: "%02X", $0) }.joined(separator: " ")
+        print("[DEBUG] Final hex string (256 bytes): \(hexString)")
+        let result = nfc_write_card_content(connectionString, hexString)
+        print("[DEBUG] nfc_write_card_content result: \(result)")
         return result == 1
         #else
         return false

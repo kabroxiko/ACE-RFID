@@ -58,11 +58,19 @@ int nfc_write_card_content(const char *conn_str, const char *hexstr) {
     if (nfc_initiator_select_passive_target(pnd, nm, NULL, 0, &nt) > 0) {
         uint8_t buf[128] = {0};
         int buflen = hexstr_to_bytes(hexstr, buf, sizeof(buf));
+        fprintf(stderr, "[DEBUG] nfc_write_card_content: buflen=%d\n", buflen);
+        fprintf(stderr, "[DEBUG] nfc_write_card_content: buf(hex) = ");
+        for (int i = 0; i < buflen; i++) fprintf(stderr, "%02X ", buf[i]);
+        fprintf(stderr, "\n");
         int pagecount = (buflen < 128) ? buflen / 4 : 32;
         int status = 0;
         for (int page = 4; page < 4 + pagecount; page++) {
             uint8_t cmd[6] = {0xA2, page, buf[(page-4)*4], buf[(page-4)*4+1], buf[(page-4)*4+2], buf[(page-4)*4+3]};
+            fprintf(stderr, "[DEBUG] Write page %d: cmd = ", page);
+            for (int j = 0; j < 6; j++) fprintf(stderr, "%02X ", cmd[j]);
+            fprintf(stderr, "\n");
             int res = nfc_initiator_transceive_bytes(pnd, cmd, 6, NULL, 0, 0);
+            fprintf(stderr, "[DEBUG] Write page %d result: %d\n", page, res);
             if (res < 0) {
                 fprintf(stderr, "[ERROR] Write page %d failed: %s\n", page, nfc_strerror(pnd));
                 status = -10;

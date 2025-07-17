@@ -136,7 +136,13 @@ class MainViewController: UIViewController, NFCServiceDelegate {
 
     func nfcService(didWrite success: Bool) {
         print("[DEBUG] nfcService didWrite called, success: \(success)")
-        // Not used in main view
+        if let nfcManager = (nfcService as? NFCManager) {
+            print("[DEBUG] NFCManager connectionString: \(nfcManager.debugConnectionString)")
+        }
+        DispatchQueue.main.async {
+            let msg = success ? "Filament data written to NFC tag." : "Failed to write filament to NFC tag."
+            self.showAlert(title: "NFC Write Result", message: msg)
+        }
     }
 
     func nfcService(didFail error: Error) {
@@ -226,6 +232,11 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             self.present(navigationController, animated: true)
         })
 
+        // Write to Tag action (Android-like NFC write)
+        alert.addAction(UIAlertAction(title: "Write to Tag", style: .default) { _ in
+            self.writeFilamentToTag(filament)
+        })
+
         // Mark as used action
         alert.addAction(UIAlertAction(title: "Mark as Used", style: .default) { _ in
             var updatedFilament = filament
@@ -249,6 +260,19 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         }
 
         present(alert, animated: true)
+    }
+
+    // Helper to encode and write filament to NFC tag
+    private func writeFilamentToTag(_ filament: Filament) {
+        print("[DEBUG] writeFilamentToTag called")
+        print("[DEBUG] Filament: \(filament)")
+        let data = NFCService.encodeFilament(filament)
+        print("[DEBUG] Encoded filament data: \(data as NSData)")
+        if let nfcManager = (nfcService as? NFCManager) {
+            print("[DEBUG] NFCManager connectionString: \(nfcManager.debugConnectionString)")
+        }
+        nfcService.writeTag(data: data)
+        showAlert(title: "NFC Write", message: "Attempting to write filament to NFC tag. Please hold tag near reader.")
     }
 
     private func confirmDelete(filament: Filament) {
