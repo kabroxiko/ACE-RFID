@@ -636,7 +636,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
 
-        // Picker selection logic removed for modal dropdowns
+        // Update color swatch to match selected color
+        if let selectedColor = availableColors.first(where: { $0.name == filament.color })?.color {
+            updateColorSwatch(selectedColor)
+        }
     }
 
     private func setDefaultValues() {
@@ -653,11 +656,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
         // Set default color (Black)
         let defaultColor = Filament.Color.black
         colorTextField.text = defaultColor.rawValue
-        // Picker selection logic removed for modal dropdowns
-        // Set default color swatch - delay to ensure UI is ready
-        DispatchQueue.main.async { [weak self] in
-            self?.updateColorSwatch(defaultColor.displayColor)
-        }
+        // Set default color swatch to match default color
+        updateColorSwatch(defaultColor.displayColor)
 
         // Set default weight and diameter with proper formatting
         let defaultWeight = defaultBrand.defaultWeight
