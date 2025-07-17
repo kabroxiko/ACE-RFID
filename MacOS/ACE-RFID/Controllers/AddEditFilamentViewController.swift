@@ -6,6 +6,15 @@
 //
 
 import UIKit
+// Custom UITextField subclass for dropdowns
+class DropdownTextField: UITextField {
+    override func caretRect(for position: UITextPosition) -> CGRect {
+        return .zero // Hide caret
+    }
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        return false // Disable copy/paste/select actions
+    }
+}
 import Foundation
 
 protocol AddEditFilamentViewControllerDelegate: AnyObject {
@@ -14,17 +23,17 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
 
 class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UIColorPickerViewControllerDelegate {
     // MARK: - Form Fields
-    private let brandTextField = UITextField()
-    private let materialTextField = UITextField()
-    private let colorTextField = UITextField()
-    private let weightTextField = UITextField()
-    private let diameterTextField = UITextField()
-    private let printTempMinTextField = UITextField()
-    private let printTempMaxTextField = UITextField()
-    private let bedTempMinTextField = UITextField()
-    private let bedTempMaxTextField = UITextField()
-    private let fanSpeedTextField = UITextField()
-    private let printSpeedTextField = UITextField()
+    private let brandTextField = DropdownTextField()
+    private let materialTextField = DropdownTextField()
+    private let colorTextField = DropdownTextField()
+    private let weightTextField = DropdownTextField()
+    private let diameterTextField = DropdownTextField()
+    private let printTempMinTextField = DropdownTextField()
+    private let printTempMaxTextField = DropdownTextField()
+    private let bedTempMinTextField = DropdownTextField()
+    private let bedTempMaxTextField = DropdownTextField()
+    private let fanSpeedTextField = DropdownTextField()
+    private let printSpeedTextField = DropdownTextField()
     private let notesTextView = UITextView()
     private var colorSwatchView: UIView? // For color swatch updates
 
@@ -101,7 +110,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         // Update color swatch if color was selected
         if tag == 2 {
             if selected == "Add Custom Color..." {
-                showAddCustomColorAlert()
+                presentAddCustomColorView()
                 return
             }
             if let color = availableColors.first(where: { $0.name == selected })?.color {
@@ -111,9 +120,19 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         // Dismiss dropdown
         dismissKeyboard()
     }
+
+    // Present the custom color modal view
+    private func presentAddCustomColorView() {
+        let customColorVC = AddCustomColorViewController()
+        customColorVC.delegate = self
+        customColorVC.modalPresentationStyle = .formSheet
+        present(customColorVC, animated: true)
+    }
+
     // NFC
     private let nfcService = NFCService()
 
+    // MARK: - UIColor Hex Extension
     // MARK: - Properties
 
     weak var delegate: AddEditFilamentViewControllerDelegate?
@@ -131,74 +150,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     private var customColorSelected: UIColor = .systemBlue
 
     private func showAddCustomColorAlert() {
-        let alert = UIAlertController(title: "Add Custom Color", message: "Enter a color name and select a color.", preferredStyle: .alert)
-
-        alert.addTextField { textField in
-            textField.placeholder = "Color name"
-            textField.autocapitalizationType = .words
-        }
-
-        // Add hex input field
-        alert.addTextField { textField in
-            textField.placeholder = "Hex RGB (e.g. #FFAA00)"
-            textField.keyboardType = .asciiCapable
-        }
-
-        // Add color preview view
-        let previewSize: CGFloat = 24
-        let previewView = UIView(frame: CGRect(x: 0, y: 0, width: previewSize, height: previewSize))
-        previewView.layer.cornerRadius = previewSize / 2
-        previewView.layer.borderWidth = 1
-        previewView.layer.borderColor = UIColor.systemGray4.cgColor
-        previewView.backgroundColor = customColorSelected
-
-        // Add preview to alert
-        alert.view.addSubview(previewView)
-        previewView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            previewView.heightAnchor.constraint(equalToConstant: previewSize),
-            previewView.widthAnchor.constraint(equalToConstant: previewSize),
-            previewView.centerXAnchor.constraint(equalTo: alert.view.centerXAnchor, constant: 50),
-            previewView.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 120)
-        ])
-
-        // Add a color picker view controller
-        let colorPickerVC = UIColorPickerViewController()
-        colorPickerVC.selectedColor = customColorSelected
-        colorPickerVC.supportsAlpha = false
-        colorPickerVC.delegate = self
-
-        let pickColorAction = UIAlertAction(title: "Pick Color", style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            colorPickerVC.modalPresentationStyle = .pageSheet
-            self.present(colorPickerVC, animated: true)
-        }
-
-        let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
-            guard let self = self,
-                  let nameField = alert.textFields?[0],
-                  let colorName = nameField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !colorName.isEmpty else { return }
-
-            var color: UIColor = self.customColorSelected
-            if let hexField = alert.textFields?[1], let hexText = hexField.text, !hexText.isEmpty {
-                color = UIColor(hex: hexText) ?? self.customColorSelected
-            }
-
-            // Add to availableColors
-            self.availableColors.append((name: colorName, color: color))
-            self.colorTextField.text = colorName
-            self.updateColorSwatch(color)
-            self.dismissKeyboard()
-        }
-
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-
-        alert.addAction(pickColorAction)
-        alert.addAction(addAction)
-        alert.addAction(cancelAction)
-
-        present(alert, animated: true)
+        // Deprecated: now handled by AddCustomColorViewController
     }
 
     // Color management
@@ -517,8 +469,11 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         textField.font = .systemFont(ofSize: 16, weight: .medium)
         textField.borderStyle = .none
         textField.isUserInteractionEnabled = true
-        textField.tintColor = .clear // Hide cursor since these are dropdown-style
+        textField.tintColor = .clear // Hide text selection cursor
         textField.textColor = .label
+        if #available(iOS 13.4, *) {
+            addPointerInteraction(to: textField)
+        }
 
         // Add dropdown arrow with better styling
         let dropdownImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
@@ -564,6 +519,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         textField.isUserInteractionEnabled = true
         textField.tintColor = .clear // Hide cursor since these are dropdown-style
         textField.textColor = .label
+        if #available(iOS 13.4, *) {
+            addPointerInteraction(to: textField)
+        }
 
         // Create color swatch view
         let colorSwatchView = UIView()
@@ -1154,6 +1112,24 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
         // Picker selection logic removed for modal dropdowns
         // ...existing code...
     }
+
+    // Add pointer interaction to show pointer cursor for dropdown fields
+    @available(iOS 13.4, *)
+    private func addPointerInteraction(to textField: UITextField) {
+        let pointerInteraction = UIPointerInteraction(delegate: self)
+        textField.addInteraction(pointerInteraction)
+    }
+}
+
+// MARK: - UIPointerInteractionDelegate
+@available(iOS 13.4, *)
+extension AddEditFilamentViewController: UIPointerInteractionDelegate {
+    func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle? {
+        guard let view = interaction.view else { return nil }
+        // Show a hand pointer for dropdown fields
+        let targetedPreview = UITargetedPreview(view: view)
+        return UIPointerStyle(effect: .highlight(targetedPreview))
+    }
 }
 
 // MARK: - UITextFieldDelegate
@@ -1191,6 +1167,18 @@ extension AddEditFilamentViewController {
 
 // MARK: - UIColor Hex Extension
 extension UIColor {
+    var toHexString: String {
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        guard self.getRed(&r, green: &g, blue: &b, alpha: &a) else { return "" }
+        if a == 1.0 {
+            return String(format: "#%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
+        } else {
+            return String(format: "#%02X%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255), Int(a * 255))
+        }
+    }
     convenience init?(hex: String) {
         var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if hexString.hasPrefix("#") {
@@ -1207,5 +1195,19 @@ extension UIColor {
         let b = CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0
         let a = CGFloat(rgbValue & 0x000000FF) / 255.0
         self.init(red: r, green: g, blue: b, alpha: a)
+    }
+}
+
+// MARK: - AddCustomColorViewControllerDelegate
+extension AddEditFilamentViewController: AddCustomColorViewControllerDelegate {
+    func didAddCustomColor(name: String, color: UIColor) {
+        // Remove "Add Custom Color..." if present
+        if let idx = availableColors.firstIndex(where: { $0.name == "Add Custom Color..." }) {
+            availableColors.remove(at: idx)
+        }
+        availableColors.append((name: name, color: color))
+        availableColors.append((name: "Add Custom Color...", color: .clear))
+        colorTextField.text = name
+        updateColorSwatch(color)
     }
 }

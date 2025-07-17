@@ -173,7 +173,16 @@ class FilamentTableViewCell: UITableViewCell {
     func configure(with filament: Filament) {
         brandLabel.text = filament.brand
         materialLabel.text = filament.material
-        colorLabel.text = filament.color
+
+        // Show color name and hex value
+        let colorName = filament.color
+        let hexValue: String
+        if colorName.hasPrefix("#") {
+            hexValue = colorName.uppercased()
+        } else {
+            hexValue = hexFromColorName(colorName)
+        }
+        colorLabel.text = "\(colorName) \(hexValue)"
 
         temperatureLabel.text = "🌡️ \(filament.printMinTemperature)-\(filament.printMaxTemperature)°C / \(filament.bedMinTemperature)-\(filament.bedMaxTemperature)°C"
 
@@ -209,7 +218,6 @@ class FilamentTableViewCell: UITableViewCell {
 
     private func colorFromString(_ colorName: String) -> UIColor {
         let lowercased = colorName.lowercased()
-
         switch lowercased {
         case "red": return .systemRed
         case "blue": return .systemBlue
@@ -223,7 +231,59 @@ class FilamentTableViewCell: UITableViewCell {
         case "gray", "grey": return .systemGray
         case "brown": return .brown
         case "clear", "transparent": return .clear
-        default: return .systemGray2
+        default:
+            // Try to parse hex string
+            if colorName.hasPrefix("#") {
+                return UIColor(hex: colorName) ?? .systemGray2
+            }
+            return .systemGray2
         }
+    }
+
+    private func hexFromColorName(_ colorName: String) -> String {
+        let lowercased = colorName.lowercased()
+        switch lowercased {
+        case "red": return "#FF3B30"
+        case "blue": return "#007AFF"
+        case "green": return "#34C759"
+        case "yellow": return "#FFCC00"
+        case "orange": return "#FF9500"
+        case "purple": return "#AF52DE"
+        case "pink": return "#FF2D55"
+        case "black": return "#000000"
+        case "white": return "#FFFFFF"
+        case "gray", "grey": return "#8E8E93"
+        case "brown": return "#A2845E"
+        case "clear", "transparent": return "#00000000"
+        default:
+            // If it's already a hex string, return as is
+            if colorName.hasPrefix("#") {
+                return colorName.uppercased()
+            }
+            return "#8E8E93" // Default gray
+        }
+    }
+
+// UIColor(hex:) convenience initializer
+}
+
+// Add UIColor(hex:) initializer for hex parsing
+extension UIColor {
+    convenience init?(hex: String) {
+        var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if hexString.hasPrefix("#") {
+            hexString.remove(at: hexString.startIndex)
+        }
+        if hexString.count == 6 {
+            hexString += "FF" // Add alpha if missing
+        }
+        guard hexString.count == 8 else { return nil }
+        var rgbValue: UInt64 = 0
+        Scanner(string: hexString).scanHexInt64(&rgbValue)
+        let r = CGFloat((rgbValue & 0xFF000000) >> 24) / 255.0
+        let g = CGFloat((rgbValue & 0x00FF0000) >> 16) / 255.0
+        let b = CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0
+        let a = CGFloat(rgbValue & 0x000000FF) / 255.0
+        self.init(red: r, green: g, blue: b, alpha: a)
     }
 }
