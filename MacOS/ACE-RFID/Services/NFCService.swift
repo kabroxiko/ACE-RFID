@@ -101,17 +101,17 @@ class NFCService: NSObject {
         buffer[82] = bgr.2
         buffer[83] = 0x00 // reserved
         // Extruder temp (page 24, offset 96, min/max, 2 bytes each, little-endian)
-        let printTemp = Int(filament.printTemperature)
-        buffer[96] = UInt8(printTemp & 0xFF)
-        buffer[97] = UInt8((printTemp >> 8) & 0xFF)
-        buffer[98] = UInt8(printTemp & 0xFF)
-        buffer[99] = UInt8((printTemp >> 8) & 0xFF)
+        let printMinTemp = Int(filament.printMinTemperature)
+        buffer[96] = UInt8(printMinTemp & 0xFF)
+        buffer[97] = UInt8((printMinTemp >> 8) & 0xFF)
+        buffer[98] = UInt8(printMinTemp & 0xFF)
+        buffer[99] = UInt8((printMinTemp >> 8) & 0xFF)
         // Hotbed temp (page 29, offset 116, min/max, 2 bytes each, little-endian)
-        let bedTemp = Int(filament.bedTemperature)
-        buffer[116] = UInt8(bedTemp & 0xFF)
-        buffer[117] = UInt8((bedTemp >> 8) & 0xFF)
-        buffer[118] = UInt8(bedTemp & 0xFF)
-        buffer[119] = UInt8((bedTemp >> 8) & 0xFF)
+        let bedMinTemp = Int(filament.bedMinTemperature)
+        buffer[116] = UInt8(bedMinTemp & 0xFF)
+        buffer[117] = UInt8((bedMinTemp >> 8) & 0xFF)
+        buffer[118] = UInt8(bedMinTemp & 0xFF)
+        buffer[119] = UInt8((bedMinTemp >> 8) & 0xFF)
         // Filament param (page 30, offset 120, diameter/weight, 2 bytes each, little-endian)
         let diameter = Int(filament.diameter * 100) // e.g. 1.75 -> 175
         buffer[120] = UInt8(diameter & 0xFF)
@@ -168,16 +168,18 @@ class NFCService: NSObject {
         let b = data[80], g = data[81], r = data[82]
         let color = String(format: "#%02X%02X%02X", r, g, b)
         // Print temp (offset 96, 2 bytes LE)
-        let printTemp = Int(data[96]) | (Int(data[97]) << 8)
+        let printMinTemp = Int(data[96]) | (Int(data[97]) << 8)
+        let printMaxTemp = Int(data[98]) | (Int(data[99]) << 8)
         // Bed temp (offset 116, 2 bytes LE)
-        let bedTemp = Int(data[116]) | (Int(data[117]) << 8)
+        let bedMinTemp = Int(data[116]) | (Int(data[117]) << 8)
+        let bedMaxTemp = Int(data[118]) | (Int(data[119]) << 8)
         // Diameter (offset 120, 2 bytes LE)
         let diameterRaw = Int(data[120]) | (Int(data[121]) << 8)
         let diameter = Double(diameterRaw) / 100.0
         // Weight (offset 122, 2 bytes LE)
         let weight = Double(Int(data[122]) | (Int(data[123]) << 8))
         // Return Filament (adjust as needed for your model)
-        return Filament(brand: brand, material: material, color: color, weight: weight, diameter: diameter, printTemperature: printTemp, bedTemperature: bedTemp)
+        return Filament(brand: brand, material: material, color: color, weight: weight, diameter: diameter, printMinTemperature: printMinTemp, printMaxTemperature: printMaxTemp, bedMinTemperature: bedMinTemp, bedMaxTemperature: bedMaxTemp)
     }
 }
 

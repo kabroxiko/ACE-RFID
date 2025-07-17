@@ -16,8 +16,10 @@ struct Filament {
     var color: String
     var weight: Double // in grams
     var diameter: Double // in mm (typically 1.75 or 3.0)
-    var printTemperature: Int // in Celsius
-    var bedTemperature: Int // in Celsius
+    var printMinTemperature: Int // in Celsius
+    var printMaxTemperature: Int // in Celsius
+    var bedMinTemperature: Int // in Celsius
+    var bedMaxTemperature: Int // in Celsius
     var fanSpeed: Int // percentage (0-100)
     var printSpeed: Int // in mm/s
     var dateAdded: Date
@@ -32,8 +34,10 @@ struct Filament {
          color: String,
          weight: Double,
          diameter: Double = 1.75,
-         printTemperature: Int,
-         bedTemperature: Int,
+         printMinTemperature: Int,
+         printMaxTemperature: Int,
+         bedMinTemperature: Int,
+         bedMaxTemperature: Int,
          fanSpeed: Int = 100,
          printSpeed: Int = 50,
          dateAdded: Date = Date(),
@@ -48,8 +52,10 @@ struct Filament {
         self.color = color
         self.weight = weight
         self.diameter = diameter
-        self.printTemperature = printTemperature
-        self.bedTemperature = bedTemperature
+        self.printMinTemperature = printMinTemperature
+        self.printMaxTemperature = printMaxTemperature
+        self.bedMinTemperature = bedMinTemperature
+        self.bedMaxTemperature = bedMaxTemperature
         self.fanSpeed = fanSpeed
         self.printSpeed = printSpeed
         self.dateAdded = dateAdded
@@ -281,13 +287,21 @@ extension Filament: Codable {
 
 // MARK: - Predefined Values
 extension Filament {
-    /// Temperature values in multiples of 5 (160-300°C)
-    static var temperatureOptions: [Int] {
+    /// Temperature min values in multiples of 5 (160-300°C)
+    static var temperatureMinOptions: [Int] {
+        return Array(stride(from: 160, through: 300, by: 5))
+    }
+    /// Temperature max values in multiples of 5 (160-300°C)
+    static var temperatureMaxOptions: [Int] {
         return Array(stride(from: 160, through: 300, by: 5))
     }
 
-    /// Bed temperature values in multiples of 5 (0-120°C)
-    static var bedTemperatureOptions: [Int] {
+    /// Bed min temperature values in multiples of 5 (0-120°C)
+    static var bedMinTemperatureOptions: [Int] {
+        return Array(stride(from: 0, through: 120, by: 5))
+    }
+    /// Bed max temperature values in multiples of 5 (0-120°C)
+    static var bedMaxTemperatureOptions: [Int] {
         return Array(stride(from: 0, through: 120, by: 5))
     }
 

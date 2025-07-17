@@ -54,8 +54,10 @@ class CoreDataManager {
         filamentEntity.setValue(filament.color, forKey: "color")
         filamentEntity.setValue(filament.weight, forKey: "weight")
         filamentEntity.setValue(filament.diameter, forKey: "diameter")
-        filamentEntity.setValue(Int32(filament.printTemperature), forKey: "printTemperature")
-        filamentEntity.setValue(Int32(filament.bedTemperature), forKey: "bedTemperature")
+        filamentEntity.setValue(Int32(filament.printMinTemperature), forKey: "printMinTemperature")
+        filamentEntity.setValue(Int32(filament.printMaxTemperature), forKey: "printMaxTemperature")
+        filamentEntity.setValue(Int32(filament.bedMinTemperature), forKey: "bedMinTemperature")
+        filamentEntity.setValue(Int32(filament.bedMaxTemperature), forKey: "bedMaxTemperature")
         filamentEntity.setValue(Int32(filament.fanSpeed), forKey: "fanSpeed")
         filamentEntity.setValue(Int32(filament.printSpeed), forKey: "printSpeed")
         filamentEntity.setValue(filament.dateAdded, forKey: "dateAdded")
@@ -108,8 +110,10 @@ class CoreDataManager {
             entity.setValue(filament.color, forKey: "color")
             entity.setValue(filament.weight, forKey: "weight")
             entity.setValue(filament.diameter, forKey: "diameter")
-            entity.setValue(Int32(filament.printTemperature), forKey: "printTemperature")
-            entity.setValue(Int32(filament.bedTemperature), forKey: "bedTemperature")
+            entity.setValue(Int32(filament.printMinTemperature), forKey: "printMaxTemperature")
+            entity.setValue(Int32(filament.printMaxTemperature), forKey: "printMaxTemperature")
+            entity.setValue(Int32(filament.bedMinTemperature), forKey: "bedMinTemperature")
+            entity.setValue(Int32(filament.bedMaxTemperature), forKey: "bedMaxTemperature")
             entity.setValue(Int32(filament.fanSpeed), forKey: "fanSpeed")
             entity.setValue(Int32(filament.printSpeed), forKey: "printSpeed")
             entity.setValue(filament.lastUsed, forKey: "lastUsed")
@@ -151,8 +155,10 @@ class CoreDataManager {
 
         let weight = entity.value(forKey: "weight") as? Double ?? 0.0
         let diameter = entity.value(forKey: "diameter") as? Double ?? 1.75
-        let printTemperature = entity.value(forKey: "printTemperature") as? Int32 ?? 200
-        let bedTemperature = entity.value(forKey: "bedTemperature") as? Int32 ?? 60
+        let printMinTemperature = entity.value(forKey: "printMinTemperature") as? Int32 ?? 180
+        let printMaxTemperature = entity.value(forKey: "printMaxTemperature") as? Int32 ?? 210
+        let bedMinTemperature = entity.value(forKey: "bedMinTemperature") as? Int32 ?? 50
+        let bedMaxTemperature = entity.value(forKey: "bedMaxTemperature") as? Int32 ?? 60
         let fanSpeed = entity.value(forKey: "fanSpeed") as? Int32 ?? 100
         let printSpeed = entity.value(forKey: "printSpeed") as? Int32 ?? 50
         let lastUsed = entity.value(forKey: "lastUsed") as? Date
@@ -167,8 +173,10 @@ class CoreDataManager {
             color: color,
             weight: weight,
             diameter: diameter,
-            printTemperature: Int(printTemperature),
-            bedTemperature: Int(bedTemperature),
+            printMinTemperature: Int(printMinTemperature),
+            printMaxTemperature: Int(printMaxTemperature),
+            bedMinTemperature: Int(bedMinTemperature),
+            bedMaxTemperature: Int(bedMaxTemperature),
             fanSpeed: Int(fanSpeed),
             printSpeed: Int(printSpeed),
             dateAdded: dateAdded,

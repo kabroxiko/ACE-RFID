@@ -175,7 +175,7 @@ class FilamentTableViewCell: UITableViewCell {
         materialLabel.text = filament.material
         colorLabel.text = filament.color
 
-        temperatureLabel.text = "🌡️ \(filament.printTemperature)°C / \(filament.bedTemperature)°C"
+        temperatureLabel.text = "🌡️ \(filament.printMinTemperature)-\(filament.printMaxTemperature)°C / \(filament.bedMinTemperature)-\(filament.bedMaxTemperature)°C"
 
         let remainingPercentage = (filament.remainingWeight / filament.weight) * 100
         weightLabel.text = "⚖️ \(String(format: "%.0f", filament.remainingWeight))g (\(String(format: "%.0f", remainingPercentage))%)"

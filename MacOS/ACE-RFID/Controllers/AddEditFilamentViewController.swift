@@ -19,8 +19,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
     private let colorTextField = UITextField()
     private let weightTextField = UITextField()
     private let diameterTextField = UITextField()
-    private let printTemperatureTextField = UITextField()
-    private let bedTemperatureTextField = UITextField()
+    private let printTempMinTextField = UITextField()
+    private let printTempMaxTextField = UITextField()
+    private let bedTempMinTextField = UITextField()
+    private let bedTempMaxTextField = UITextField()
     private let fanSpeedTextField = UITextField()
     private let printSpeedTextField = UITextField()
     private let notesTextView = UITextView()
@@ -31,6 +33,15 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
     private let contentView = UIView()
     private let stackView = UIStackView()
 
+    // Assign unique tags for dropdown logic
+    private enum TempFieldTag: Int {
+        case printMin = 5
+        case printMax = 6
+        case bedMin = 7
+        case bedMax = 8
+        case fanSpeed = 9
+        case printSpeed = 10
+    }
     // MARK: - Custom Dropdown Logic
     @objc private func showDropdown(_ sender: UITextField) {
         view.endEditing(true)
@@ -47,13 +58,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
             options = Filament.weightOptions.map { $0 < 1000 ? String(format: "%.0f g", $0) : String(format: "%.1f kg", $0 / 1000) }
         case 4:
             options = Filament.diameterOptions.map { String(format: "%.2f mm", $0) }
-        case 5:
-            options = Filament.temperatureOptions.map { "\($0)°C" }
-        case 6:
-            options = Filament.bedTemperatureOptions.map { "\($0)°C" }
-        case 7:
+        case TempFieldTag.printMin.rawValue:
+            options = Filament.temperatureMinOptions.map { "\($0)°C" }
+        case TempFieldTag.printMax.rawValue:
+            options = Filament.temperatureMaxOptions.map { "\($0)°C" }
+        case TempFieldTag.bedMin.rawValue:
+            options = Filament.bedMinTemperatureOptions.map { "\($0)°C" }
+        case TempFieldTag.bedMax.rawValue:
+            options = Filament.bedMaxTemperatureOptions.map { "\($0)°C" }
+        case TempFieldTag.fanSpeed.rawValue:
             options = Filament.fanSpeedOptions.map { "\($0)%" }
-        case 8:
+        case TempFieldTag.printSpeed.rawValue:
             options = Filament.printSpeedOptions.map { "\($0) mm/s" }
         default:
             options = []
@@ -71,10 +86,12 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         case colorTextField: return 2
         case weightTextField: return 3
         case diameterTextField: return 4
-        case printTemperatureTextField: return 5
-        case bedTemperatureTextField: return 6
-        case fanSpeedTextField: return 7
-        case printSpeedTextField: return 8
+        case printTempMinTextField: return TempFieldTag.printMin.rawValue
+        case printTempMaxTextField: return TempFieldTag.printMax.rawValue
+        case bedTempMinTextField: return TempFieldTag.bedMin.rawValue
+        case bedTempMaxTextField: return TempFieldTag.bedMax.rawValue
+        case fanSpeedTextField: return TempFieldTag.fanSpeed.rawValue
+        case printSpeedTextField: return TempFieldTag.printSpeed.rawValue
         default: return -1
         }
     }
@@ -160,8 +177,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         colorTextField.text = filament.color
         weightTextField.text = String(format: "%.0f", filament.weight)
         diameterTextField.text = String(format: "%.2f", filament.diameter)
-        printTemperatureTextField.text = "\(filament.printTemperature)°C"
-        bedTemperatureTextField.text = "\(filament.bedTemperature)°C"
+        printTempMinTextField.text = "\(filament.printMinTemperature)°C"
+        printTempMaxTextField.text = "\(filament.printMaxTemperature)°C"
+        bedTempMinTextField.text = "\(filament.bedMinTemperature)°C"
+        bedTempMaxTextField.text = "\(filament.bedMaxTemperature)°C"
         fanSpeedTextField.text = "\(filament.fanSpeed)%"
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
@@ -174,8 +193,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
               let color = colorTextField.text, !color.isEmpty,
               let weightStr = weightTextField.text, let weight = Double(weightStr),
               let diameterStr = diameterTextField.text, let diameter = Double(diameterStr),
-              let printTempStr = printTemperatureTextField.text?.replacingOccurrences(of: "°C", with: ""), let printTemp = Int(printTempStr),
-              let bedTempStr = bedTemperatureTextField.text?.replacingOccurrences(of: "°C", with: ""), let bedTemp = Int(bedTempStr),
+              let printMinTempStr = printTempMinTextField.text?.replacingOccurrences(of: "°C", with: ""), let printMinTemp = Int(printMinTempStr),
+              let printMaxTempStr = printTempMaxTextField.text?.replacingOccurrences(of: "°C", with: ""), let printMaxTemp = Int(printMaxTempStr),
+              let bedMinTempStr = bedTempMinTextField.text?.replacingOccurrences(of: "°C", with: ""), let bedMinTemp = Int(bedMinTempStr),
+              let bedMaxTempStr = bedTempMaxTextField.text?.replacingOccurrences(of: "°C", with: ""), let bedMaxTemp = Int(bedMaxTempStr),
               let fanSpeedStr = fanSpeedTextField.text?.replacingOccurrences(of: "%", with: ""), let fanSpeed = Int(fanSpeedStr),
               let printSpeedStr = printSpeedTextField.text?.replacingOccurrences(of: " mm/s", with: ""), let printSpeed = Int(printSpeedStr)
         else { return nil }
@@ -186,8 +207,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
             color: color,
             weight: weight,
             diameter: diameter,
-            printTemperature: printTemp,
-            bedTemperature: bedTemp,
+            printMinTemperature: printMinTemp,
+            printMaxTemperature: printMaxTemp,
+            bedMinTemperature: bedMinTemp,
+            bedMaxTemperature: bedMaxTemp,
             fanSpeed: fanSpeed,
             printSpeed: printSpeed,
             notes: notesTextView.text
@@ -345,12 +368,19 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         diameterTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(weightTextField, leftLabel: "Weight", diameterTextField, rightLabel: "Diameter"))
 
-        // Print and Bed Temperature side by side
-        printTemperatureTextField.placeholder = "Select temperature"
-        printTemperatureTextField.delegate = self
-        bedTemperatureTextField.placeholder = "Select temperature"
-        bedTemperatureTextField.delegate = self
-        stackView.addArrangedSubview(createSideBySideFormFields(printTemperatureTextField, leftLabel: "Print Temperature", bedTemperatureTextField, rightLabel: "Bed Temperature"))
+        // Print Temperature Min/Max side by side (use class properties)
+        printTempMinTextField.placeholder = "Min"
+        printTempMinTextField.delegate = self
+        printTempMaxTextField.placeholder = "Max"
+        printTempMaxTextField.delegate = self
+        stackView.addArrangedSubview(createSideBySideFormFields(printTempMinTextField, leftLabel: "Print Temp Min", printTempMaxTextField, rightLabel: "Print Temp Max"))
+
+        // Bed Temperature Min/Max side by side (use class properties)
+        bedTempMinTextField.placeholder = "Min"
+        bedTempMinTextField.delegate = self
+        bedTempMaxTextField.placeholder = "Max"
+        bedTempMaxTextField.delegate = self
+        stackView.addArrangedSubview(createSideBySideFormFields(bedTempMinTextField, leftLabel: "Bed Temp Min", bedTempMaxTextField, rightLabel: "Bed Temp Max"))
 
         // Fan Speed and Print Speed side by side
         fanSpeedTextField.placeholder = "Select fan speed"
@@ -391,8 +421,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         // Create individual toolbars for each field to avoid constraint conflicts
         let textFields = [
             brandTextField, materialTextField, colorTextField, weightTextField,
-            diameterTextField, printTemperatureTextField, bedTemperatureTextField,
-            fanSpeedTextField, printSpeedTextField
+            diameterTextField, printTempMinTextField, printTempMaxTextField,
+            bedTempMinTextField, bedTempMaxTextField, fanSpeedTextField,
+            printSpeedTextField
         ]
 
         for textField in textFields {
@@ -637,9 +668,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
 
         // Format other fields
         diameterTextField.text = String(format: "%.2f mm", filament.diameter)
-        printTemperatureTextField.text = "\(filament.printTemperature)°C"
-        bedTemperatureTextField.text = "\(filament.bedTemperature)°C"
-        fanSpeedTextField.text = "\(filament.fanSpeed)%"
+        printTempMinTextField.text = "\(filament.printMinTemperature)°C"
+        printTempMaxTextField.text = "\(filament.printMaxTemperature)°C"
+        bedTempMinTextField.text = "\(filament.bedMinTemperature)°C"
+        bedTempMaxTextField.text = "\(filament.bedMaxTemperature)°C"
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
 
@@ -681,8 +713,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         let fanSpeed = defaultMaterial.defaultFanSpeed
         let printSpeed = defaultMaterial.defaultPrintSpeed
 
-        printTemperatureTextField.text = "\(printTemp)°C"
-        bedTemperatureTextField.text = "\(bedTemp)°C"
+        printTempMinTextField.text = "\(printTemp)°C"
+        printTempMaxTextField.text = "\(printTemp)°C"
+        bedTempMinTextField.text = "\(bedTemp)°C"
+        bedTempMaxTextField.text = "\(bedTemp)°C"
         fanSpeedTextField.text = "\(fanSpeed)%"
         printSpeedTextField.text = "\(printSpeed) mm/s"
 
@@ -729,14 +763,23 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         let diameterString = diameterText.replacingOccurrences(of: " mm", with: "")
         let diameter = Double(diameterString) ?? 1.75
 
-        // Parse temperatures from formatted text (e.g., "200°C")
-        let printTempText = printTemperatureTextField.text ?? "200"
-        let printTempString = printTempText.replacingOccurrences(of: "°C", with: "")
-        let printTemp = Int(printTempString) ?? 200
+        // Parse min print temperature
+        let printMinTempText = printTempMinTextField.text ?? "180"
+        let printMinTempString = printMinTempText.replacingOccurrences(of: "°C", with: "")
+        let printMinTemp = Int(printMinTempString) ?? 180
 
-        let bedTempText = bedTemperatureTextField.text ?? "60"
-        let bedTempString = bedTempText.replacingOccurrences(of: "°C", with: "")
-        let bedTemp = Int(bedTempString) ?? 60
+        // Parse max print temperature
+        let printMaxTempText = printTempMaxTextField.text ?? "210"
+        let printMaxTempString = printMaxTempText.replacingOccurrences(of: "°C", with: "")
+        let printMaxTemp = Int(printMaxTempString) ?? 210
+
+        let bedMinTempText = bedTempMinTextField.text ?? "50"
+        let bedMinTempString = bedMinTempText.replacingOccurrences(of: "°C", with: "")
+        let bedMinTemp = Int(bedMinTempString) ?? 50
+
+        let bedMaxTempText = bedTempMaxTextField.text ?? "60"
+        let bedMaxTempString = bedMaxTempText.replacingOccurrences(of: "°C", with: "")
+        let bedMaxTemp = Int(bedMaxTempString) ?? 60
 
         // Parse fan speed from formatted text (e.g., "100%")
         let fanSpeedText = fanSpeedTextField.text ?? "100"
@@ -762,8 +805,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
             updatedFilament.color = color
             updatedFilament.weight = weight
             updatedFilament.diameter = diameter
-            updatedFilament.printTemperature = printTemp
-            updatedFilament.bedTemperature = bedTemp
+            updatedFilament.printMinTemperature = printMinTemp
+            updatedFilament.printMaxTemperature = printMaxTemp
+            updatedFilament.bedMinTemperature = bedMinTemp
+            updatedFilament.bedMaxTemperature = bedMaxTemp
             updatedFilament.fanSpeed = fanSpeed
             updatedFilament.printSpeed = printSpeed
             updatedFilament.notes = notes?.isEmpty == true ? nil : notes
@@ -781,8 +826,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
                 color: color,
                 weight: weight,
                 diameter: diameter,
-                printTemperature: printTemp,
-                bedTemperature: bedTemp,
+                printMinTemperature: printMinTemp,
+                printMaxTemperature: printMaxTemp,
+                bedMinTemperature: bedMinTemp,
+                bedMaxTemperature: bedMaxTemp,
                 fanSpeed: fanSpeed,
                 printSpeed: printSpeed,
                 notes: notes?.isEmpty == true ? nil : notes
@@ -936,13 +983,17 @@ extension AddEditFilamentViewController: UIPickerViewDataSource {
             return Filament.weightOptions.count
         case 4: // Diameter picker
             return Filament.diameterOptions.count
-        case 5: // Print temperature picker
-            return Filament.temperatureOptions.count
-        case 6: // Bed temperature picker
-            return Filament.bedTemperatureOptions.count
-        case 7: // Fan speed picker
+        case 5: // Print min temperature picker
+            return Filament.temperatureMinOptions.count
+        case 6: // Print max temperature picker
+            return Filament.temperatureMaxOptions.count
+        case 7: // Bed min temperature picker
+            return Filament.bedMinTemperatureOptions.count
+        case 8: // Bed max temperature picker
+            return Filament.bedMaxTemperatureOptions.count
+        case 9: // Fan speed picker
             return Filament.fanSpeedOptions.count
-        case 8: // Print speed picker
+        case 10: // Print speed picker
             return Filament.printSpeedOptions.count
         default:
             return 0
@@ -1022,13 +1073,17 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
                 label.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
             case 4: // Diameter picker
                 label.text = String(format: "%.2f mm", Filament.diameterOptions[row])
-            case 5: // Print temperature picker
-                label.text = "\(Filament.temperatureOptions[row])°C"
-            case 6: // Bed temperature picker
-                label.text = "\(Filament.bedTemperatureOptions[row])°C"
-            case 7: // Fan speed picker
+            case 5: // Print Min temperature picker
+                label.text = "\(Filament.temperatureMinOptions[row])°C"
+            case 6: // Print Max temperature picker
+                label.text = "\(Filament.temperatureMaxOptions[row])°C"
+            case 7: // Bed Min temperature picker
+                label.text = "\(Filament.bedMinTemperatureOptions[row])°C"
+            case 8: // Bed Max temperature picker
+                label.text = "\(Filament.bedMaxTemperatureOptions[row])°C"
+            case 9: // Fan speed picker
                 label.text = "\(Filament.fanSpeedOptions[row])%"
-            case 8: // Print speed picker
+            case 10: // Print speed picker
                 label.text = "\(Filament.printSpeedOptions[row]) mm/s"
             default:
                 label.text = ""
@@ -1066,8 +1121,9 @@ extension AddEditFilamentViewController {
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
         let dropdownFields: [UITextField] = [
             brandTextField, materialTextField, colorTextField, weightTextField,
-            diameterTextField, printTemperatureTextField, bedTemperatureTextField,
-            fanSpeedTextField, printSpeedTextField
+            diameterTextField, printTempMinTextField, printTempMaxTextField,
+            bedTempMinTextField, bedTempMaxTextField, fanSpeedTextField,
+            printSpeedTextField
         ]
         if dropdownFields.contains(textField) {
             showDropdown(textField)
