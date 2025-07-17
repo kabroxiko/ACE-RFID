@@ -104,14 +104,16 @@ class NFCService: NSObject {
         let printMinTemp = Int(filament.printMinTemperature)
         buffer[96] = UInt8(printMinTemp & 0xFF)
         buffer[97] = UInt8((printMinTemp >> 8) & 0xFF)
-        buffer[98] = UInt8(printMinTemp & 0xFF)
-        buffer[99] = UInt8((printMinTemp >> 8) & 0xFF)
+        let printMaxTemp = Int(filament.printMaxTemperature)
+        buffer[98] = UInt8(printMaxTemp & 0xFF)
+        buffer[99] = UInt8((printMaxTemp >> 8) & 0xFF)
         // Hotbed temp (page 29, offset 116, min/max, 2 bytes each, little-endian)
         let bedMinTemp = Int(filament.bedMinTemperature)
         buffer[116] = UInt8(bedMinTemp & 0xFF)
         buffer[117] = UInt8((bedMinTemp >> 8) & 0xFF)
-        buffer[118] = UInt8(bedMinTemp & 0xFF)
-        buffer[119] = UInt8((bedMinTemp >> 8) & 0xFF)
+        let bedMaxTemp = Int(filament.bedMaxTemperature)
+        buffer[118] = UInt8(bedMaxTemp & 0xFF)
+        buffer[119] = UInt8((bedMaxTemp >> 8) & 0xFF)
         // Filament param (page 30, offset 120, diameter/weight, 2 bytes each, little-endian)
         let diameter = Int(filament.diameter * 100) // e.g. 1.75 -> 175
         buffer[120] = UInt8(diameter & 0xFF)
@@ -158,6 +160,13 @@ class NFCService: NSObject {
     // Decode Filament from Data (match encoded NFC structure to Filament model)
     static func decodeFilament(_ data: Data) -> Filament? {
         guard data.count >= 128 else { return nil }
+        // Debug: print raw bytes for temperature fields
+        print("[DEBUG] NFC decode raw bytes:")
+        print(String(format: "PrintMinTemp bytes: %02X %02X", data[96], data[97]))
+        print(String(format: "PrintMaxTemp bytes: %02X %02X", data[98], data[99]))
+        print(String(format: "BedMinTemp bytes: %02X %02X", data[116], data[117]))
+        print(String(format: "BedMaxTemp bytes: %02X %02X", data[118], data[119]))
+
         // SKU (offset 20, 16 bytes)
         let sku = String(bytes: data[20..<36], encoding: .utf8)?.trimmingCharacters(in: .controlCharacters.union(.whitespaces)) ?? ""
         // Brand (offset 40, 16 bytes)
@@ -170,9 +179,13 @@ class NFCService: NSObject {
         // Print temp (offset 96, 2 bytes LE)
         let printMinTemp = Int(data[96]) | (Int(data[97]) << 8)
         let printMaxTemp = Int(data[98]) | (Int(data[99]) << 8)
+        print("[DEBUG] Decoded PrintMinTemp: \(printMinTemp)")
+        print("[DEBUG] Decoded PrintMaxTemp: \(printMaxTemp)")
         // Bed temp (offset 116, 2 bytes LE)
         let bedMinTemp = Int(data[116]) | (Int(data[117]) << 8)
         let bedMaxTemp = Int(data[118]) | (Int(data[119]) << 8)
+        print("[DEBUG] Decoded BedMinTemp: \(bedMinTemp)")
+        print("[DEBUG] Decoded BedMaxTemp: \(bedMaxTemp)")
         // Diameter (offset 120, 2 bytes LE)
         let diameterRaw = Int(data[120]) | (Int(data[121]) << 8)
         let diameter = Double(diameterRaw) / 100.0

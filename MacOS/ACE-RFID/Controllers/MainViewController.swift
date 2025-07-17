@@ -96,6 +96,17 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             return
         }
         let buffer = [UInt8](data)
+        // Debug: print raw bytes for key fields
+        print("[DEBUG] Raw bytes for SKU: ", buffer[4..<20].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Raw bytes for Brand: ", buffer[20..<44].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Raw bytes for Material: ", buffer[44..<60].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Raw bytes for Color: ", buffer[65..<68].map { String(format: "%02X", $0) }.joined(separator: " "))
+        print("[DEBUG] Extruder Min bytes: %02X %02X", buffer[80], buffer[81])
+        print("[DEBUG] Extruder Max bytes: %02X %02X", buffer[82], buffer[83])
+        print("[DEBUG] Bed Min bytes: %02X %02X", buffer[100], buffer[101])
+        print("[DEBUG] Bed Max bytes: %02X %02X", buffer[102], buffer[103])
+        print("[DEBUG] Weight bytes: %02X %02X", buffer[106], buffer[107])
+
         // Helper to clean field
         func cleanField(_ str: String?) -> String {
             guard let s = str else { return "" }
@@ -109,12 +120,12 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         let materialName = cleanField(String(bytes: buffer[44..<60], encoding: .utf8))
         // Color: bytes 65..67 (3 bytes, hex)
         let colorHex = buffer[65..<68].map { String(format: "%02X", $0) }.joined()
-        // Extruder Min/Max: bytes 96..97, 98..99 (little-endian, scale 1)
-        let extMin = Int(buffer[96]) | (Int(buffer[97]) << 8)
-        let extMax = Int(buffer[98]) | (Int(buffer[99]) << 8)
-        // Bed Min/Max: bytes 116..117, 118..119 (little-endian, scale 1)
-        let bedMin = Int(buffer[116]) | (Int(buffer[117]) << 8)
-        let bedMax = Int(buffer[118]) | (Int(buffer[119]) << 8)
+        // Extruder Min/Max: bytes 80..81, 82..83 (little-endian, scale 1)
+        let extMin = Int(buffer[80]) | (Int(buffer[81]) << 8)
+        let extMax = Int(buffer[82]) | (Int(buffer[83]) << 8)
+        // Bed Min/Max: bytes 100..101, 102..103 (little-endian, scale 1)
+        let bedMin = Int(buffer[100]) | (Int(buffer[101]) << 8)
+        let bedMax = Int(buffer[102]) | (Int(buffer[103]) << 8)
         // Weight: bytes 106..107 (little-endian, scale 0.001)
         let weightRaw = Int(buffer[107]) << 8 | Int(buffer[106])
         // Filament weight lookup table (raw value to kg)
@@ -126,6 +137,17 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             50: "0.1 kg"
         ]
         let weightDisplay = weightTable[weightRaw] ?? String(format: "%.2f kg", Double(weightRaw) / 1000.0)
+
+        // Debug: print parsed values
+        print("[DEBUG] Parsed SKU: \(sku)")
+        print("[DEBUG] Parsed Brand: \(brand)")
+        print("[DEBUG] Parsed Material: \(materialName)")
+        print("[DEBUG] Parsed Color: #\(colorHex)")
+        print("[DEBUG] Parsed Ext Min: \(extMin)")
+        print("[DEBUG] Parsed Ext Max: \(extMax)")
+        print("[DEBUG] Parsed Bed Min: \(bedMin)")
+        print("[DEBUG] Parsed Bed Max: \(bedMax)")
+        print("[DEBUG] Parsed Weight: \(weightDisplay)")
 
         // Show parsed info as alert for now
         let info = "Brand: \(brand)\nSKU: \(sku)\nMaterial: \(materialName)\nColor: #\(colorHex)\nExt: \(extMin)-\(extMax)ºC\nBed: \(bedMin)-\(bedMax)ºC\nWeight: \(weightDisplay)"

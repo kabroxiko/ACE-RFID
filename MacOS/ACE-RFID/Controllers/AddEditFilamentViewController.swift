@@ -12,7 +12,7 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
     func didSaveFilament(_ filament: Filament)
 }
 
-class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCServiceDelegate {
+class AddEditFilamentViewController: UIViewController, UITextFieldDelegate {
     // MARK: - Form Fields
     private let brandTextField = UITextField()
     private let materialTextField = UITextField()
@@ -128,47 +128,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, NFCS
         // Use only predefined colors
         return Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
     }()
-
-    // Picker view logic removed for modal dropdown refactor
-    // MARK: - NFC Actions
-    @objc private func readFromNFC() {
-        nfcService.readTag()
-    }
-
-    @objc private func writeToNFC() {
-        guard let filament = buildFilamentFromForm() else {
-            showAlert(title: "Error", message: "Please fill all required fields before writing to NFC.")
-            return
-        }
-        let data = NFCService.encodeFilament(filament)
-        nfcService.writeTag(data: data)
-    }
-
-    // MARK: - NFCServiceDelegate
-    func nfcService(didRead data: Data) {
-        if let filament = NFCService.decodeFilament(data) {
-            DispatchQueue.main.async {
-                self.fillFormWithFilament(filament)
-                self.showAlert(title: "NFC Read", message: "Filament data loaded from NFC tag.")
-            }
-        } else {
-            DispatchQueue.main.async {
-                self.showAlert(title: "NFC Read Failed", message: "Could not decode filament data.")
-            }
-        }
-    }
-
-    func nfcService(didWrite success: Bool) {
-        DispatchQueue.main.async {
-            self.showAlert(title: success ? "NFC Write" : "NFC Write Failed", message: success ? "Filament data written to NFC tag." : "Failed to write to NFC tag.")
-        }
-    }
-
-    func nfcService(didFail error: Error) {
-        DispatchQueue.main.async {
-            self.showAlert(title: "NFC Error", message: error.localizedDescription)
-        }
-    }
 
     // Helper to fill form with filament
     private func fillFormWithFilament(_ filament: Filament) {
