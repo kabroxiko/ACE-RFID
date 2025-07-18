@@ -136,7 +136,7 @@ jobs:
       - name: Copy libnfc headers
         run: |
           mkdir -p $GITHUB_WORKSPACE/include
-          cp -R libnfc/include/* $GITHUB_WORKSPACE/include/
+          cp -R libnfc/include/nfc $GITHUB_WORKSPACE/include/
 
       - name: Symlink libnfc universal to expected name
         run: |
