@@ -20,14 +20,6 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-   <!-- LSRequiresIPhoneOS removed for Mac Catalyst compatibility -->
-   <!-- UIDeviceFamily removed; use TARGETED_DEVICE_FAMILY build setting instead -->
-   <key>UISupportedInterfaceOrientations~mac</key>
-   <array>
-	   <string>UIInterfaceOrientationPortrait</string>
-	   <string>UIInterfaceOrientationLandscapeLeft</string>
-	   <string>UIInterfaceOrientationLandscapeRight</string>
-   </array>
 	<key>NSNearFieldCommunicationUsageDescription</key>
 	<string>This app uses NFC to read and write filament information to RFID tags for your 3D printer.</string>
 	<key>UIApplicationSceneManifest</key>
@@ -48,7 +40,7 @@
 		</dict>
 	</dict>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string></string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
@@ -63,6 +55,12 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~mac</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>

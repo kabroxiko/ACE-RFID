@@ -14,6 +14,7 @@
 		142610552E298AA900E854B3 /* AddCustomColorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610542E298AA900E854B3 /* AddCustomColorViewController.swift */; };
 		142610592E29D9C400E854B3 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610582E29D9C400E854B3 /* Color.swift */; };
 		1426105B2E2A78E000E854B3 /* FancyAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1426105A2E2A78DF00E854B3 /* FancyAlert.swift */; };
+		1426105D2E2ABC7B00E854B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1426105C2E2ABC7B00E854B3 /* Assets.xcassets */; };
 		142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA09E2E1F3E6F00EB99CA /* NFCService.swift */; };
 		142CA0A42E1F7A1000EB99CA /* SerialPortPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */; };
 		142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */; };
@@ -50,6 +51,7 @@
 		142610542E298AA900E854B3 /* AddCustomColorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCustomColorViewController.swift; sourceTree = "<group>"; };
 		142610582E29D9C400E854B3 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		1426105A2E2A78DF00E854B3 /* FancyAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FancyAlert.swift; sourceTree = "<group>"; };
+		1426105C2E2ABC7B00E854B3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		142CA09E2E1F3E6F00EB99CA /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
 		142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerView.swift; sourceTree = "<group>"; };
 		142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerViewController.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 		3A1B2C3D4E5F6806 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1426105C2E2ABC7B00E854B3 /* Assets.xcassets */,
 				3A1B2C3D4E5F6729 /* LaunchScreen.storyboard */,
 				3A1B2C3D4E5F672A /* Info.plist */,
 			);
@@ -241,6 +244,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1426105D2E2ABC7B00E854B3 /* Assets.xcassets in Resources */,
 				3A1B2C3D4E5F670A /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -403,6 +407,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -440,6 +445,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

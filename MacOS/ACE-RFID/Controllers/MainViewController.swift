@@ -171,7 +171,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private func showFilamentSaveAlert(title: String, message: String) {
-        let circleIcon = UIImage(systemName: "circle")
+        // Removed unused circleIcon initialization
         let saveButton = FancyAlert.AlertButton(title: "Save as Filament", action: { [weak self] in
             guard let self = self else { return }
             let addViewController = AddEditFilamentViewController()
@@ -184,7 +184,6 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             on: self,
             title: title,
             message: message,
-            icon: circleIcon,
             buttons: [saveButton, cancelButton]
         )
     }
@@ -213,7 +212,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private func showFilamentOptions(for filament: Filament, at indexPath: IndexPath) {
-        let icon = UIImage(systemName: "circle")
+        // Removed unused icon initialization
         let editButton = FancyAlert.AlertButton(title: "Edit", action: { [weak self] in
             guard let self = self else { return }
             let editViewController = AddEditFilamentViewController()
@@ -233,7 +232,6 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             on: self,
             title: filament.brand + " " + filament.material,
             message: "",
-            icon: icon,
             buttons: [editButton, writeButton, deleteButton, cancelButton]
         )
     }
