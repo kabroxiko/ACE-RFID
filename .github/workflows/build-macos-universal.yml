@@ -138,16 +138,20 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/include
           cp -R libnfc/include/* $GITHUB_WORKSPACE/include/
 
+      - name: Symlink libnfc universal to expected name
+        run: |
+          ln -sf $GITHUB_WORKSPACE/libnfc_universal.dylib $GITHUB_WORKSPACE/libnfc.6.dylib
+
       - name: Build ACE-RFID.xcodeproj (Universal)
         run: |
           export LIBRARY_SEARCH_PATHS="$GITHUB_WORKSPACE"
           export HEADER_SEARCH_PATHS="$GITHUB_WORKSPACE/include"
           export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE"
-          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS"
+          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS"
 
       - name: Archive app
         run: |
-          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release -archivePath $GITHUB_WORKSPACE/ACE-RFID.xcarchive archive HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS"
+          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release -archivePath $GITHUB_WORKSPACE/ACE-RFID.xcarchive archive HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
