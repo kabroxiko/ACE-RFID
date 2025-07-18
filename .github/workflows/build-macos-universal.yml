@@ -85,6 +85,9 @@ jobs:
           export CC="clang -arch x86_64 -isysroot $SDKROOT"
           export LDFLAGS="-L$GITHUB_WORKSPACE -lusb-0.1.4 -lusb-1.0.0"
           export CPPFLAGS="-I$GITHUB_WORKSPACE/libusb_compat_x86_64/include -I$GITHUB_WORKSPACE/libusb_x86_64/include"
+          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/libusb_x86_64/lib/pkgconfig:$GITHUB_WORKSPACE/libusb_arm64/lib/pkgconfig"
+          ln -sf $GITHUB_WORKSPACE/libusb-1.0.0.dylib $GITHUB_WORKSPACE/libusb-1.0.dylib
+          ln -sf $GITHUB_WORKSPACE/libusb-1.0.0.dylib $GITHUB_WORKSPACE/libusb.dylib
           ./configure --host=x86_64-apple-darwin --prefix=$GITHUB_WORKSPACE/libnfc_x86_64
           make
           make install
@@ -98,6 +101,9 @@ jobs:
           export CC="clang -arch arm64 -isysroot $SDKROOT"
           export LDFLAGS="-L$GITHUB_WORKSPACE -lusb-0.1.4 -lusb-1.0.0"
           export CPPFLAGS="-I$GITHUB_WORKSPACE/libusb_compat_arm64/include -I$GITHUB_WORKSPACE/libusb_arm64/include"
+          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/libusb_x86_64/lib/pkgconfig:$GITHUB_WORKSPACE/libusb_arm64/lib/pkgconfig"
+          ln -sf $GITHUB_WORKSPACE/libusb-1.0.0.dylib $GITHUB_WORKSPACE/libusb-1.0.dylib
+          ln -sf $GITHUB_WORKSPACE/libusb-1.0.0.dylib $GITHUB_WORKSPACE/libusb.dylib
           ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libnfc_arm64 --disable-dependency-tracking
           make
           make install
