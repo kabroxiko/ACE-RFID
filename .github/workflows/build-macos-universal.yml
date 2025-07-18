@@ -173,6 +173,18 @@ jobs:
             if [ -n "$app_binary" ]; then
               echo "Checking architectures for $app_binary:"
               lipo -info "$app_binary"
+              # Copy libnfc.6.dylib into Frameworks directory of the app bundle
+              frameworks_dir=$(dirname "$app_binary")/../Frameworks
+              mkdir -p "$frameworks_dir"
+              cp $GITHUB_WORKSPACE/libnfc.6.dylib "$frameworks_dir/libnfc.6.dylib"
+              # Update ACE-RFID binary to use relative path for libnfc.6.dylib
+              install_name_tool -change /Users/*/libnfc.6.dylib @executable_path/../Frameworks/libnfc.6.dylib "$app_binary"
+              echo "Patched ACE-RFID binary to use @executable_path/../Frameworks/libnfc.6.dylib"
+              # Create DMG from .app
+              app_dir=$(dirname "$app_binary")/..
+              dmg_path="$GITHUB_WORKSPACE/ACE-RFID.dmg"
+              hdiutil create -volname "ACE-RFID" -srcfolder "$app_dir" -ov -format UDZO "$dmg_path"
+              echo "dmg_path=$dmg_path" >> $GITHUB_OUTPUT
             else
               echo "::warning::No ACE-RFID binary found in archive for lipo check."
             fi
@@ -183,3 +195,9 @@ jobs:
         with:
           name: ACE-RFID-macOS-build
           path: ${{ steps.find_xcarchive.outputs.archive_path }}
+
+      - name: Upload DMG package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ACE-RFID-macOS-dmg
+          path: ${{ steps.find_xcarchive.outputs.dmg_path }}
