@@ -805,9 +805,13 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     }
 
     private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        let okButton = FancyAlert.AlertButton(title: "OK", action: nil)
+        FancyAlert.show(
+            on: self,
+            title: title,
+            message: message,
+            buttons: [okButton]
+        )
     }
 
     private func updateColorSwatch(_ color: UIColor) {
@@ -816,33 +820,53 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
 
     private func showAddCustomBrandAlert() {
-        let alert = UIAlertController(title: "Add Custom Brand", message: "Enter the name of the filament brand", preferredStyle: .alert)
+        let alertVC = UIViewController()
+        alertVC.preferredContentSize = CGSize(width: 300, height: 140)
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 16
+        stack.translatesAutoresizingMaskIntoConstraints = false
 
-        alert.addTextField { textField in
-            textField.placeholder = "Brand name"
-            textField.autocapitalizationType = .words
-        }
+        let label = UILabel()
+        label.text = "Enter the name of the filament brand"
+        label.font = .systemFont(ofSize: 16)
+        label.textAlignment = .center
+        label.numberOfLines = 2
 
-        let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
+        let textField = UITextField()
+        textField.placeholder = "Brand name"
+        textField.autocapitalizationType = .words
+        textField.borderStyle = .roundedRect
+        textField.translatesAutoresizingMaskIntoConstraints = false
+
+        stack.addArrangedSubview(label)
+        stack.addArrangedSubview(textField)
+        alertVC.view.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: alertVC.view.topAnchor, constant: 24),
+            stack.leadingAnchor.constraint(equalTo: alertVC.view.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: alertVC.view.trailingAnchor, constant: -16),
+            stack.bottomAnchor.constraint(equalTo: alertVC.view.bottomAnchor, constant: -24)
+        ])
+
+        let addButton = FancyAlert.AlertButton(title: "Add", action: { [weak self] in
             guard let self = self,
-                  let textField = alert.textFields?.first,
                   let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !brandName.isEmpty else { return }
-
             if !self.availableBrands.contains(brandName) {
                 self.availableBrands.insert(brandName, at: self.availableBrands.count - 1)
             }
             self.brandTextField.text = brandName
             self.dismissKeyboard()
-        }
-
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
-            guard self != nil else { return }
-        }
-
-        alert.addAction(addAction)
-        alert.addAction(cancelAction)
-
+            alertVC.dismiss(animated: true)
+        })
+        let cancelButton = FancyAlert.AlertButton(title: "Cancel", action: { [weak alertVC] in
+            alertVC?.dismiss(animated: true)
+        })
+        let alert = UIAlertController(title: "Add Custom Brand", message: nil, preferredStyle: .alert)
+        alert.setValue(alertVC, forKey: "contentViewController")
+        alert.addAction(UIAlertAction(title: "Add", style: .default) { _ in addButton.action?() })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in cancelButton.action?() })
         present(alert, animated: true)
     }
 
