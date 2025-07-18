@@ -13,6 +13,7 @@
 		142610532E28740100E854B3 /* DropdownMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610522E28740100E854B3 /* DropdownMenuController.swift */; };
 		142610552E298AA900E854B3 /* AddCustomColorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610542E298AA900E854B3 /* AddCustomColorViewController.swift */; };
 		142610592E29D9C400E854B3 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142610582E29D9C400E854B3 /* Color.swift */; };
+		1426105B2E2A78E000E854B3 /* FancyAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1426105A2E2A78DF00E854B3 /* FancyAlert.swift */; };
 		142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA09E2E1F3E6F00EB99CA /* NFCService.swift */; };
 		142CA0A42E1F7A1000EB99CA /* SerialPortPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */; };
 		142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */; };
@@ -48,6 +49,7 @@
 		142610522E28740100E854B3 /* DropdownMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropdownMenuController.swift; sourceTree = "<group>"; };
 		142610542E298AA900E854B3 /* AddCustomColorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCustomColorViewController.swift; sourceTree = "<group>"; };
 		142610582E29D9C400E854B3 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		1426105A2E2A78DF00E854B3 /* FancyAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FancyAlert.swift; sourceTree = "<group>"; };
 		142CA09E2E1F3E6F00EB99CA /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
 		142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerView.swift; sourceTree = "<group>"; };
 		142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerViewController.swift; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 		3A1B2C3D4E5F6802 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				1426105A2E2A78DF00E854B3 /* FancyAlert.swift */,
 				142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */,
 				142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */,
 				3A1B2C3D4E5F6724 /* FilamentTableViewCell.swift */,
@@ -261,6 +264,7 @@
 				142CA0A52E1F7A1000EB99CA /* SerialPortPickerViewController.swift in Sources */,
 				3A1B2C3D4E5F6702 /* SceneDelegate.swift in Sources */,
 				3A1B2C3D4E5F6703 /* MainViewController.swift in Sources */,
+				1426105B2E2A78E000E854B3 /* FancyAlert.swift in Sources */,
 				142CA09F2E1F3E6F00EB99CA /* NFCService.swift in Sources */,
 				1426104C2E283A6900E854B3 /* NFCWrapper.c in Sources */,
 				1426104D2E283A6900E854B3 /* NFCManager.swift in Sources */,
