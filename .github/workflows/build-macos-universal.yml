@@ -185,6 +185,20 @@ jobs:
               dmg_path="$GITHUB_WORKSPACE/ACE-RFID.dmg"
               hdiutil create -volname "ACE-RFID" -srcfolder "$app_dir" -ov -format UDZO "$dmg_path"
               echo "dmg_path=$dmg_path" >> $GITHUB_OUTPUT
+              # Install create-dmg and create drag-to-install DMG
+              npm install -g create-dmg
+              # Prepare background image (optional, use default if not present)
+              bg_img="$GITHUB_WORKSPACE/docs/Filament/app_add.jpg"
+              if [ ! -f "$bg_img" ]; then
+                bg_img=""
+              fi
+              drag_dmg_path="$GITHUB_WORKSPACE/ACE-RFID-drag-to-install.dmg"
+              if [ -z "$bg_img" ]; then
+                create-dmg "$app_dir/ACE-RFID.app" "$GITHUB_WORKSPACE" --overwrite --dmg-title="ACE-RFID" --icon "ACE-RFID.app" 140 120 --app-drop-link 500 120 --window-size 640 400 --icon-size 128 --hide-extension "ACE-RFID.app" --out="$drag_dmg_path"
+              else
+                create-dmg "$app_dir/ACE-RFID.app" "$GITHUB_WORKSPACE" --overwrite --dmg-title="ACE-RFID" --icon "ACE-RFID.app" 140 120 --app-drop-link 500 120 --window-size 640 400 --icon-size 128 --background "$bg_img" --hide-extension "ACE-RFID.app" --out="$drag_dmg_path"
+              fi
+              echo "drag_dmg_path=$drag_dmg_path" >> $GITHUB_OUTPUT
             else
               echo "::warning::No ACE-RFID binary found in archive for lipo check."
             fi
@@ -201,3 +215,9 @@ jobs:
         with:
           name: ACE-RFID-macOS-dmg
           path: ${{ steps.find_xcarchive.outputs.dmg_path }}
+
+      - name: Upload Drag-to-Install DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ACE-RFID-macOS-drag-to-install-dmg
+          path: ${{ steps.find_xcarchive.outputs.drag_dmg_path }}
