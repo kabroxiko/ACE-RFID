@@ -9,7 +9,7 @@ struct Filament {
     var brand: String
     var material: String
     var color: Color
-    var weight: Double // in grams
+    var length: Double // in meters
     var diameter: Double // in mm (typically 1.75 or 3.0)
     var printMinTemperature: Int // in Celsius
     var printMaxTemperature: Int // in Celsius
@@ -18,17 +18,33 @@ struct Filament {
     var fanSpeed: Int // percentage (0-100)
     var printSpeed: Int // in mm/s
     var dateAdded: Date
-    var lastUsed: Date?
-    var remainingWeight: Double // in grams
-    var isFinished: Bool
     var notes: String?
+
+    /// Converts length (meters) to weight (grams) using a lookup table
+    var convertedWeight: Int {
+        // Example table: 330m = 1000g, 165m = 500g, etc
+        let table: [(length: Double, weight: Int)] = [
+            (330, 1000),
+            (165, 500),
+            (82.5, 250),
+            (66, 200),
+            (33, 100)
+        ]
+        for entry in table {
+            if length >= entry.length {
+                return entry.weight
+            }
+        }
+        // Fallback: proportional conversion (default 330m = 1000g)
+        return Int(round(length * (1000.0 / 330.0)))
+    }
 
     init(id: String = UUID().uuidString,
          sku: String,
          brand: String,
          material: String,
          color: Color,
-         weight: Double,
+         length: Double,
          diameter: Double = 1.75,
          printMinTemperature: Int,
          printMaxTemperature: Int,
@@ -37,9 +53,6 @@ struct Filament {
          fanSpeed: Int = 100,
          printSpeed: Int = 50,
          dateAdded: Date = Date(),
-         lastUsed: Date? = nil,
-         remainingWeight: Double? = nil,
-         isFinished: Bool = false,
          notes: String? = nil) {
 
         self.id = id
@@ -47,7 +60,7 @@ struct Filament {
         self.brand = brand
         self.material = material
         self.color = color
-        self.weight = weight
+        self.length = length
         self.diameter = diameter
         self.printMinTemperature = printMinTemperature
         self.printMaxTemperature = printMaxTemperature
@@ -56,9 +69,6 @@ struct Filament {
         self.fanSpeed = fanSpeed
         self.printSpeed = printSpeed
         self.dateAdded = dateAdded
-        self.lastUsed = lastUsed
-        self.remainingWeight = remainingWeight ?? weight
-        self.isFinished = isFinished
         self.notes = notes
     }
 }
@@ -97,7 +107,7 @@ extension Filament {
         try container.encode(brand, forKey: .brand)
         try container.encode(material, forKey: .material)
         try container.encode(color, forKey: .color)
-        try container.encode(weight, forKey: .weight)
+        try container.encode(length, forKey: .length)
         try container.encode(diameter, forKey: .diameter)
         try container.encode(printMinTemperature, forKey: .printMinTemperature)
         try container.encode(printMaxTemperature, forKey: .printMaxTemperature)
@@ -106,9 +116,6 @@ extension Filament {
         try container.encode(fanSpeed, forKey: .fanSpeed)
         try container.encode(printSpeed, forKey: .printSpeed)
         try container.encode(dateAdded, forKey: .dateAdded)
-        try container.encode(lastUsed, forKey: .lastUsed)
-        try container.encode(remainingWeight, forKey: .remainingWeight)
-        try container.encode(isFinished, forKey: .isFinished)
         try container.encode(notes, forKey: .notes)
     }
     enum Material: String, CaseIterable {
@@ -403,6 +410,7 @@ extension Filament {
         return Array(stride(from: 10, through: 150, by: 5))
     }
 
+
     static var weightOptions: [Double] {
         return [250, 500, 750, 1000, 1200, 1500, 2000, 2300, 2500, 3000, 5000, 10000]
     }
@@ -414,7 +422,7 @@ extension Filament {
 
 extension Filament {
     enum CodingKeys: String, CodingKey {
-        case id, sku, brand, material, color, weight, diameter, printMinTemperature, printMaxTemperature, bedMinTemperature, bedMaxTemperature, fanSpeed, printSpeed, dateAdded, lastUsed, remainingWeight, isFinished, notes
+        case id, sku, brand, material, color, length, diameter, printMinTemperature, printMaxTemperature, bedMinTemperature, bedMaxTemperature, fanSpeed, printSpeed, dateAdded, notes
     }
 
     init(from decoder: Decoder) throws {
@@ -424,7 +432,7 @@ extension Filament {
         brand = try container.decode(String.self, forKey: .brand)
         material = try container.decode(String.self, forKey: .material)
         color = try container.decode(Color.self, forKey: .color)
-        weight = try container.decode(Double.self, forKey: .weight)
+        length = try container.decode(Double.self, forKey: .length)
         diameter = try container.decode(Double.self, forKey: .diameter)
         printMinTemperature = try container.decode(Int.self, forKey: .printMinTemperature)
         printMaxTemperature = try container.decode(Int.self, forKey: .printMaxTemperature)
@@ -433,9 +441,6 @@ extension Filament {
         fanSpeed = try container.decode(Int.self, forKey: .fanSpeed)
         printSpeed = try container.decode(Int.self, forKey: .printSpeed)
         dateAdded = try container.decode(Date.self, forKey: .dateAdded)
-        lastUsed = try container.decodeIfPresent(Date.self, forKey: .lastUsed)
-        remainingWeight = try container.decode(Double.self, forKey: .remainingWeight)
-        isFinished = try container.decode(Bool.self, forKey: .isFinished)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
     }
 }

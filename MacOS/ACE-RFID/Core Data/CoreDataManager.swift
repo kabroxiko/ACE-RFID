@@ -45,7 +45,7 @@ class CoreDataManager {
         filamentEntity.setValue(filament.material, forKey: "material")
         filamentEntity.setValue(filament.color.name, forKey: "colorName")
         filamentEntity.setValue(filament.color.hex, forKey: "colorHex")
-        filamentEntity.setValue(filament.weight, forKey: "weight")
+        filamentEntity.setValue(filament.length, forKey: "length")
         filamentEntity.setValue(filament.diameter, forKey: "diameter")
         filamentEntity.setValue(Int32(filament.printMinTemperature), forKey: "printMinTemperature")
         filamentEntity.setValue(Int32(filament.printMaxTemperature), forKey: "printMaxTemperature")
@@ -54,9 +54,6 @@ class CoreDataManager {
         filamentEntity.setValue(Int32(filament.fanSpeed), forKey: "fanSpeed")
         filamentEntity.setValue(Int32(filament.printSpeed), forKey: "printSpeed")
         filamentEntity.setValue(filament.dateAdded, forKey: "dateAdded")
-        filamentEntity.setValue(filament.lastUsed, forKey: "lastUsed")
-        filamentEntity.setValue(filament.remainingWeight, forKey: "remainingWeight")
-        filamentEntity.setValue(filament.isFinished, forKey: "isFinished")
         filamentEntity.setValue(filament.notes, forKey: "notes")
 
         save()
@@ -103,7 +100,7 @@ class CoreDataManager {
             entity.setValue(filament.material, forKey: "material")
             entity.setValue(filament.color.name, forKey: "colorName")
             entity.setValue(filament.color.hex, forKey: "colorHex")
-            entity.setValue(filament.weight, forKey: "weight")
+            entity.setValue(filament.length, forKey: "length")
             entity.setValue(filament.diameter, forKey: "diameter")
             entity.setValue(Int32(filament.printMinTemperature), forKey: "printMinTemperature")
             entity.setValue(Int32(filament.printMaxTemperature), forKey: "printMaxTemperature")
@@ -111,9 +108,6 @@ class CoreDataManager {
             entity.setValue(Int32(filament.bedMaxTemperature), forKey: "bedMaxTemperature")
             entity.setValue(Int32(filament.fanSpeed), forKey: "fanSpeed")
             entity.setValue(Int32(filament.printSpeed), forKey: "printSpeed")
-            entity.setValue(filament.lastUsed, forKey: "lastUsed")
-            entity.setValue(filament.remainingWeight, forKey: "remainingWeight")
-            entity.setValue(filament.isFinished, forKey: "isFinished")
             entity.setValue(filament.notes, forKey: "notes")
 
             save()
@@ -149,7 +143,7 @@ class CoreDataManager {
             return nil
         }
 
-        let weight = entity.value(forKey: "weight") as? Double ?? 0.0
+        let length = entity.value(forKey: "length") as? Double ?? 0.0
         let diameter = entity.value(forKey: "diameter") as? Double ?? 1.75
         let printMinTemperature = entity.value(forKey: "printMinTemperature") as? Int32 ?? 180
         let printMaxTemperature = entity.value(forKey: "printMaxTemperature") as? Int32 ?? 210
@@ -157,9 +151,6 @@ class CoreDataManager {
         let bedMaxTemperature = entity.value(forKey: "bedMaxTemperature") as? Int32 ?? 60
         let fanSpeed = entity.value(forKey: "fanSpeed") as? Int32 ?? 100
         let printSpeed = entity.value(forKey: "printSpeed") as? Int32 ?? 50
-        let lastUsed = entity.value(forKey: "lastUsed") as? Date
-        let remainingWeight = entity.value(forKey: "remainingWeight") as? Double ?? weight
-        let isFinished = entity.value(forKey: "isFinished") as? Bool ?? false
         let notes = entity.value(forKey: "notes") as? String
 
         return Filament(
@@ -168,7 +159,7 @@ class CoreDataManager {
             brand: brand,
             material: material,
             color: Color(name: colorName, hex: colorHex),
-            weight: weight,
+            length: length,
             diameter: diameter,
             printMinTemperature: Int(printMinTemperature),
             printMaxTemperature: Int(printMaxTemperature),
@@ -177,9 +168,6 @@ class CoreDataManager {
             fanSpeed: Int(fanSpeed),
             printSpeed: Int(printSpeed),
             dateAdded: dateAdded,
-            lastUsed: lastUsed,
-            remainingWeight: remainingWeight,
-            isFinished: isFinished,
             notes: notes
         )
     }

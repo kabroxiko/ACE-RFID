@@ -101,9 +101,9 @@ class NFCService: NSObject {
         let diameter = Int(filament.diameter * 100) // e.g. 1.75 -> 175
         buffer[120] = UInt8(diameter & 0xFF)
         buffer[121] = UInt8((diameter >> 8) & 0xFF)
-        let weight = Int(filament.weight)
-        buffer[122] = UInt8(weight & 0xFF)
-        buffer[123] = UInt8((weight >> 8) & 0xFF)
+        let length = Int(filament.length * 100) // e.g. 1.75 -> 175
+        buffer[122] = UInt8(length & 0xFF)
+        buffer[123] = UInt8((length >> 8) & 0xFF)
         buffer[124] = 0xE8
         buffer[125] = 0x03
         buffer[126] = 0x00
@@ -149,7 +149,7 @@ class NFCService: NSObject {
         let extMax = Int(buffer[82]) | (Int(buffer[83]) << 8)
         let bedMin = Int(buffer[100]) | (Int(buffer[101]) << 8)
         let bedMax = Int(buffer[102]) | (Int(buffer[103]) << 8)
-        let weightRaw = Int(buffer[107]) << 8 | Int(buffer[106])
+        let lengthRaw = Int(buffer[107]) << 8 | Int(buffer[106])
         let diameterRaw = Int(buffer[121]) << 8 | Int(buffer[120])
         let diameter = Double(diameterRaw) / 100.0
 
@@ -159,13 +159,12 @@ class NFCService: NSObject {
             brand: brand,
             material: materialName,
             color: Color(name: "Custom", hex: "#" + colorHex),
-            weight: Double(weightRaw),
+            length: Double(lengthRaw),
             diameter: diameter,
             printMinTemperature: extMin,
             printMaxTemperature: extMax,
             bedMinTemperature: bedMin,
-            bedMaxTemperature: bedMax,
-            lastUsed: nil
+            bedMaxTemperature: bedMax
         )
         return filament
     }

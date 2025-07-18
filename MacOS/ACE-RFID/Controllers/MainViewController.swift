@@ -84,7 +84,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         }
         let filament = NFCService.decodeFilament(data)
 
-        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color.name) (\(filament.color.hex))\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nWeight: \(String(format: "%.2f kg", filament.weight / 1000.0))"
+        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color.name) (\(filament.color.hex))\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nLength: \(Int(filament.length))"
         DispatchQueue.main.async {
             self.showAlert(title: "NFC Tag Info", message: info)
         }
@@ -182,13 +182,6 @@ class MainViewController: UIViewController, NFCServiceDelegate {
 
         alert.addAction(UIAlertAction(title: "Write to Tag", style: .default) { _ in
             self.writeFilamentToTag(filament)
-        })
-
-        alert.addAction(UIAlertAction(title: "Mark as Used", style: .default) { _ in
-            var updatedFilament = filament
-            updatedFilament.lastUsed = Date()
-            CoreDataManager.shared.updateFilament(updatedFilament)
-            self.loadFilaments()
         })
 
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { _ in

@@ -1,4 +1,3 @@
-
 import UIKit
 
 class FilamentTableViewCell: UITableViewCell {
@@ -54,7 +53,7 @@ class FilamentTableViewCell: UITableViewCell {
         return label
     }()
 
-    private let weightLabel: UILabel = {
+    private let lengthLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .regular)
         label.textColor = .systemGreen
@@ -69,16 +68,6 @@ class FilamentTableViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
-    private let lastUsedLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 10, weight: .regular)
-        label.textColor = .tertiaryLabel
-        label.textAlignment = .right
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -101,9 +90,8 @@ class FilamentTableViewCell: UITableViewCell {
         containerView.addSubview(materialLabel)
         containerView.addSubview(colorLabel)
         containerView.addSubview(temperatureLabel)
-        containerView.addSubview(weightLabel)
+        containerView.addSubview(lengthLabel)
         containerView.addSubview(statusLabel)
-        containerView.addSubview(lastUsedLabel)
 
         setupConstraints()
     }
@@ -136,17 +124,9 @@ class FilamentTableViewCell: UITableViewCell {
             temperatureLabel.leadingAnchor.constraint(equalTo: brandLabel.leadingAnchor),
             temperatureLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
 
-            weightLabel.topAnchor.constraint(equalTo: temperatureLabel.topAnchor),
-            weightLabel.leadingAnchor.constraint(equalTo: temperatureLabel.trailingAnchor, constant: 16),
-            weightLabel.bottomAnchor.constraint(equalTo: temperatureLabel.bottomAnchor),
-
-            statusLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
-            statusLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60),
-
-            lastUsedLabel.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 4),
-            lastUsedLabel.trailingAnchor.constraint(equalTo: statusLabel.trailingAnchor),
-            lastUsedLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60)
+            lengthLabel.topAnchor.constraint(equalTo: temperatureLabel.topAnchor),
+            lengthLabel.leadingAnchor.constraint(equalTo: temperatureLabel.trailingAnchor, constant: 16),
+            lengthLabel.bottomAnchor.constraint(equalTo: temperatureLabel.bottomAnchor),
         ])
     }
 
@@ -161,28 +141,23 @@ class FilamentTableViewCell: UITableViewCell {
 
         temperatureLabel.text = "🌡️ \(filament.printMinTemperature)-\(filament.printMaxTemperature)°C / \(filament.bedMinTemperature)-\(filament.bedMaxTemperature)°C"
 
-        let remainingPercentage = (filament.remainingWeight / filament.weight) * 100
-        weightLabel.text = "⚖️ \(String(format: "%.0f", filament.remainingWeight))g (\(String(format: "%.0f", remainingPercentage))%)"
+        print("[DEBUG] Filament brand: \(filament.brand), material: \(filament.material)")
+        print("[DEBUG] Color: \(filament.color.name) (\(filament.color.hex))")
+        print("[DEBUG] Print temp: \(filament.printMinTemperature)-\(filament.printMaxTemperature)°C, Bed temp: \(filament.bedMinTemperature)-\(filament.bedMaxTemperature)°C")
+        print("[DEBUG] Length: \(filament.length), Converted weight: \(filament.convertedWeight)")
+        if filament.convertedWeight % 1000 == 0 {
+            print("[DEBUG] Displaying weight as kg: \(filament.convertedWeight / 1000) kg")
+        } else {
+            print("[DEBUG] Displaying weight as g: \(filament.convertedWeight) g")
+        }
+
+        let weight = filament.convertedWeight
+        if weight % 1000 == 0 {
+            lengthLabel.text = "⚖️ \(weight / 1000) kg"
+        } else {
+            lengthLabel.text = "⚖️ \(weight) g"
+        }
 
         colorIndicatorView.backgroundColor = filament.color.uiColor ?? .systemGray
-
-        if filament.isFinished {
-            statusLabel.text = "Finished"
-            statusLabel.textColor = .systemRed
-        } else if remainingPercentage < 10 {
-            statusLabel.text = "Low"
-            statusLabel.textColor = .systemOrange
-        } else {
-            statusLabel.text = "Available"
-            statusLabel.textColor = .systemGreen
-        }
-
-        if let lastUsed = filament.lastUsed {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .short
-            lastUsedLabel.text = "Used: \(formatter.string(from: lastUsed))"
-        } else {
-            lastUsedLabel.text = "Never used"
-        }
     }
 }

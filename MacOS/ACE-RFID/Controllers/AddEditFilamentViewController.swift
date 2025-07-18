@@ -144,7 +144,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         brandTextField.text = filament.brand
         materialTextField.text = filament.material
         colorTextField.text = filament.color.name
-        weightTextField.text = String(format: "%.0f", filament.weight)
+        weightTextField.text = String(format: "%.0f", filament.length)
         diameterTextField.text = String(format: "%.2f", filament.diameter)
         printTempMinTextField.text = "\(filament.printMinTemperature)°C"
         printTempMaxTextField.text = "\(filament.printMaxTemperature)°C"
@@ -161,7 +161,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
               let brand = brandTextField.text, !brand.isEmpty,
               let material = materialTextField.text, !material.isEmpty,
               let colorName = colorTextField.text, !colorName.isEmpty,
-              let weightStr = weightTextField.text, let weight = Double(weightStr),
+              let lengthStr = weightTextField.text, let length = Double(lengthStr),
               let diameterStr = diameterTextField.text, let diameter = Double(diameterStr),
               let printMinTempStr = printTempMinTextField.text?.replacingOccurrences(of: "°C", with: ""), let printMinTemp = Int(printMinTempStr),
               let printMaxTempStr = printTempMaxTextField.text?.replacingOccurrences(of: "°C", with: ""), let printMaxTemp = Int(printMaxTempStr),
@@ -179,7 +179,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             brand: brand,
             material: material,
             color: colorObj,
-            weight: weight,
+            length: length,
             diameter: diameter,
             printMinTemperature: printMinTemp,
             printMaxTemperature: printMaxTemp,
@@ -596,8 +596,12 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         materialTextField.text = filament.material
         colorTextField.text = filament.color.name
 
-        let weight = filament.weight
-        weightTextField.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
+        let weight = filament.convertedWeight
+        if weight % 1000 == 0 {
+            weightTextField.text = "\(weight / 1000) kg"
+        } else {
+            weightTextField.text = "\(weight) g"
+        }
 
         diameterTextField.text = String(format: "%.2f mm", filament.diameter)
         printTempMinTextField.text = "\(filament.printMinTemperature)°C"
@@ -666,15 +670,39 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         let colorObj = Color(name: colorName, hex: hex)
 
         let weightText = weightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "1000"
-        let weight: Double
-        if weightText.contains("kg") {
-            let weightString = weightText.replacingOccurrences(of: "kg", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-            weight = (Double(weightString) ?? 1.0) * 1000
-        } else if weightText.contains("g") {
-            let weightString = weightText.replacingOccurrences(of: "g", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-            weight = Double(weightString) ?? 1000
+        var length: Double = 0
+        // If editing, use filament.convertedWeight to get the weight, then convert back to length
+        if let filament = filament {
+            let weight = filament.convertedWeight
+            // Use lookup table: 1kg = 330m, 500g = 165m
+            if weight % 1000 == 0 {
+                length = (Double(weight) / 1000) * 330
+            } else if weight >= 500 {
+                length = (Double(weight) / 500) * 165
+            } else {
+                length = (Double(weight) / 500) * 165
+            }
         } else {
-            weight = Double(weightText) ?? 1000
+            // If not editing, parse from weightText
+            if weightText.contains("kg") {
+                let kgString = weightText.replacingOccurrences(of: "kg", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+                if let kg = Double(kgString) {
+                    length = kg * 330
+                }
+            } else if weightText.contains("g") {
+                let gString = weightText.replacingOccurrences(of: "g", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+                if let g = Double(gString) {
+                    if g >= 1000 {
+                        length = (g / 1000) * 330
+                    } else if g >= 500 {
+                        length = (g / 500) * 165
+                    } else {
+                        length = (g / 500) * 165
+                    }
+                }
+            } else {
+                length = Double(weightText) ?? 0
+            }
         }
 
         let diameterText = diameterTextField.text ?? "1.75"
@@ -710,12 +738,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         if isEditMode {
             var updatedFilament = filament!
 
-            let remainingPercentage = updatedFilament.weight > 0 ? (updatedFilament.remainingWeight / updatedFilament.weight) : 1.0
-
             updatedFilament.brand = brand
             updatedFilament.material = material
             updatedFilament.color = colorObj
-            updatedFilament.weight = weight
+            updatedFilament.length = length
             updatedFilament.diameter = diameter
             updatedFilament.printMinTemperature = printMinTemp
             updatedFilament.printMaxTemperature = printMaxTemp
@@ -725,8 +751,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             updatedFilament.printSpeed = printSpeed
             updatedFilament.notes = notes?.isEmpty == true ? nil : notes
 
-            updatedFilament.remainingWeight = weight * remainingPercentage
-
             CoreDataManager.shared.updateFilament(updatedFilament)
             delegate?.didSaveFilament(updatedFilament)
         } else {
@@ -734,8 +758,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
                 sku: sku,
                 brand: brand,
                 material: material,
-            color: colorObj,
-                weight: weight,
+                color: colorObj,
+                length: length,
                 diameter: diameter,
                 printMinTemperature: printMinTemp,
                 printMaxTemperature: printMaxTemp,
@@ -880,7 +904,7 @@ extension AddEditFilamentViewController: UIPickerViewDataSource {
             return Filament.Material.allCases.count
         case 2: // Color picker
             return availableColors.count
-        case 3: // Weight picker
+        case 3: // Length picker
             return Filament.weightOptions.count
         case 4: // Diameter picker
             return Filament.diameterOptions.count
