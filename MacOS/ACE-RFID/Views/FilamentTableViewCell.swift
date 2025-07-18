@@ -174,25 +174,20 @@ class FilamentTableViewCell: UITableViewCell {
         brandLabel.text = filament.brand
         materialLabel.text = filament.material
 
-        // Show color name and hex value
-        let colorName = filament.color
-        let hexValue: String
-        if colorName.hasPrefix("#") {
-            hexValue = colorName.uppercased()
-        } else {
-            hexValue = hexFromColorName(colorName)
-        }
-        colorLabel.text = "\(colorName) \(hexValue)"
+        // Always show color name and hex
+        let colorName = filament.color.name
+        let colorHex = filament.color.hex
+        colorLabel.text = "\(colorName) (\(colorHex))"
 
         temperatureLabel.text = "🌡️ \(filament.printMinTemperature)-\(filament.printMaxTemperature)°C / \(filament.bedMinTemperature)-\(filament.bedMaxTemperature)°C"
 
         let remainingPercentage = (filament.remainingWeight / filament.weight) * 100
         weightLabel.text = "⚖️ \(String(format: "%.0f", filament.remainingWeight))g (\(String(format: "%.0f", remainingPercentage))%)"
 
-        // Set color indicator
-        colorIndicatorView.backgroundColor = colorFromString(filament.color)
+        // Use color struct's uiColor for indicator
+        colorIndicatorView.backgroundColor = filament.color.uiColor ?? .systemGray
 
-        // Set status
+        // Status logic unchanged
         if filament.isFinished {
             statusLabel.text = "Finished"
             statusLabel.textColor = .systemRed
@@ -204,7 +199,7 @@ class FilamentTableViewCell: UITableViewCell {
             statusLabel.textColor = .systemGreen
         }
 
-        // Set last used
+        // Last used logic unchanged
         if let lastUsed = filament.lastUsed {
             let formatter = DateFormatter()
             formatter.dateStyle = .short
@@ -212,78 +207,5 @@ class FilamentTableViewCell: UITableViewCell {
         } else {
             lastUsedLabel.text = "Never used"
         }
-    }
-
-    // MARK: - Helper Methods
-
-    private func colorFromString(_ colorName: String) -> UIColor {
-        let lowercased = colorName.lowercased()
-        switch lowercased {
-        case "red": return .systemRed
-        case "blue": return .systemBlue
-        case "green": return .systemGreen
-        case "yellow": return .systemYellow
-        case "orange": return .systemOrange
-        case "purple": return .systemPurple
-        case "pink": return .systemPink
-        case "black": return .label
-        case "white": return .systemGray
-        case "gray", "grey": return .systemGray
-        case "brown": return .brown
-        case "clear", "transparent": return .clear
-        default:
-            // Try to parse hex string
-            if colorName.hasPrefix("#") {
-                return UIColor(hex: colorName) ?? .systemGray2
-            }
-            return .systemGray2
-        }
-    }
-
-    private func hexFromColorName(_ colorName: String) -> String {
-        let lowercased = colorName.lowercased()
-        switch lowercased {
-        case "red": return "#FF3B30"
-        case "blue": return "#007AFF"
-        case "green": return "#34C759"
-        case "yellow": return "#FFCC00"
-        case "orange": return "#FF9500"
-        case "purple": return "#AF52DE"
-        case "pink": return "#FF2D55"
-        case "black": return "#000000"
-        case "white": return "#FFFFFF"
-        case "gray", "grey": return "#8E8E93"
-        case "brown": return "#A2845E"
-        case "clear", "transparent": return "#00000000"
-        default:
-            // If it's already a hex string, return as is
-            if colorName.hasPrefix("#") {
-                return colorName.uppercased()
-            }
-            return "#8E8E93" // Default gray
-        }
-    }
-
-// UIColor(hex:) convenience initializer
-}
-
-// Add UIColor(hex:) initializer for hex parsing
-extension UIColor {
-    convenience init?(hex: String) {
-        var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        if hexString.hasPrefix("#") {
-            hexString.remove(at: hexString.startIndex)
-        }
-        if hexString.count == 6 {
-            hexString += "FF" // Add alpha if missing
-        }
-        guard hexString.count == 8 else { return nil }
-        var rgbValue: UInt64 = 0
-        Scanner(string: hexString).scanHexInt64(&rgbValue)
-        let r = CGFloat((rgbValue & 0xFF000000) >> 24) / 255.0
-        let g = CGFloat((rgbValue & 0x00FF0000) >> 16) / 255.0
-        let b = CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0
-        let a = CGFloat(rgbValue & 0x000000FF) / 255.0
-        self.init(red: r, green: g, blue: b, alpha: a)
     }
 }

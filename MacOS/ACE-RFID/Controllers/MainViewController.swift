@@ -108,7 +108,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         print("[DEBUG] Parsed SKU: \(filament.sku)")
         print("[DEBUG] Parsed Brand: \(filament.brand)")
         print("[DEBUG] Parsed Material: \(filament.material)")
-        print("[DEBUG] Parsed Color: \(filament.color)")
+        print("[DEBUG] Parsed Color: \(filament.color.name) [Hex: \(filament.color.hex)]")
         print("[DEBUG] Parsed Ext Min: \(filament.printMinTemperature)")
         print("[DEBUG] Parsed Ext Max: \(filament.printMaxTemperature)")
         print("[DEBUG] Parsed Bed Min: \(filament.bedMinTemperature)")
@@ -116,7 +116,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         print("[DEBUG] Parsed Weight: \(filament.weight)g")
 
         // Show parsed info as alert for now
-        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color)\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nWeight: \(String(format: "%.2f kg", filament.weight / 1000.0))"
+        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color.name) (\(filament.color.hex))\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nWeight: \(String(format: "%.2f kg", filament.weight / 1000.0))"
         DispatchQueue.main.async {
             self.showAlert(title: "NFC Tag Info", message: info)
         }

@@ -14,7 +14,7 @@ struct Filament {
     var sku: String
     var brand: String
     var material: String
-    var color: String
+    var color: Color
     var weight: Double // in grams
     var diameter: Double // in mm (typically 1.75 or 3.0)
     var printMinTemperature: Int // in Celsius
@@ -33,7 +33,7 @@ struct Filament {
          sku: String,
          brand: String,
          material: String,
-         color: String,
+         color: Color,
          weight: Double,
          diameter: Double = 1.75,
          printMinTemperature: Int,
@@ -69,8 +69,56 @@ struct Filament {
     }
 }
 
+/// Represents a color with both name and hex value
+struct Color: Codable, Equatable {
+    var name: String
+    var hex: String
+
+    init(name: String, hex: String) {
+        self.name = name
+        self.hex = hex
+    }
+
+    // Convenience: create from UIColor
+    init(name: String, uiColor: UIColor) {
+        self.name = name
+        self.hex = uiColor.toHexString
+    }
+
+    // Convenience: create from hex only
+    init(hex: String) {
+        self.name = hex
+        self.hex = hex
+    }
+
+    var uiColor: UIColor? {
+        return UIColor(hex: self.hex)
+    }
+}
+
 // MARK: - Filament Material Types
 extension Filament {
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(sku, forKey: .sku)
+        try container.encode(brand, forKey: .brand)
+        try container.encode(material, forKey: .material)
+        try container.encode(color, forKey: .color)
+        try container.encode(weight, forKey: .weight)
+        try container.encode(diameter, forKey: .diameter)
+        try container.encode(printMinTemperature, forKey: .printMinTemperature)
+        try container.encode(printMaxTemperature, forKey: .printMaxTemperature)
+        try container.encode(bedMinTemperature, forKey: .bedMinTemperature)
+        try container.encode(bedMaxTemperature, forKey: .bedMaxTemperature)
+        try container.encode(fanSpeed, forKey: .fanSpeed)
+        try container.encode(printSpeed, forKey: .printSpeed)
+        try container.encode(dateAdded, forKey: .dateAdded)
+        try container.encode(lastUsed, forKey: .lastUsed)
+        try container.encode(remainingWeight, forKey: .remainingWeight)
+        try container.encode(isFinished, forKey: .isFinished)
+        try container.encode(notes, forKey: .notes)
+    }
     enum Material: String, CaseIterable {
         case pla = "PLA"
         case abs = "ABS"
@@ -83,7 +131,22 @@ extension Filament {
         case water = "Water Soluble"
         case other = "Other"
 
-        var defaultPrintTemperature: Int {
+        var defaultMinPrintTemperature: Int {
+            switch self {
+            case .pla: return 180
+            case .abs: return 220
+            case .petg: return 210
+            case .tpu: return 200
+            case .wood: return 180
+            case .metal: return 190
+            case .carbon: return 230
+            case .glow: return 180
+            case .water: return 180
+            case .other: return 180
+            }
+        }
+
+        var defaultMaxPrintTemperature: Int {
             switch self {
             case .pla: return 200
             case .abs: return 240
@@ -98,7 +161,22 @@ extension Filament {
             }
         }
 
-        var defaultBedTemperature: Int {
+        var defaultMinBedTemperature: Int {
+            switch self {
+            case .pla: return 50
+            case .abs: return 80
+            case .petg: return 70
+            case .tpu: return 50
+            case .wood: return 60
+            case .metal: return 60
+            case .carbon: return 80
+            case .glow: return 60
+            case .water: return 60
+            case .other: return 60
+            }
+        }
+
+        var defaultMaxBedTemperature: Int {
             switch self {
             case .pla: return 60
             case .abs: return 80
@@ -187,7 +265,7 @@ extension Filament {
 
 // MARK: - Filament Color Types
 extension Filament {
-    enum Color: String, CaseIterable {
+    enum FilamentColorType: String, CaseIterable {
         case black = "Black"
         case white = "White"
         case red = "Red"
@@ -240,12 +318,41 @@ extension Filament {
             }
         }
 
+        /// Returns a Color object with name and hex for each enum case
+        var colorObject: Color {
+            switch self {
+            case .black: return Color(name: self.rawValue, hex: "#000000")
+            case .white: return Color(name: self.rawValue, hex: "#FFFFFF")
+            case .red: return Color(name: self.rawValue, hex: "#FF0000")
+            case .blue: return Color(name: self.rawValue, hex: "#0000FF")
+            case .green: return Color(name: self.rawValue, hex: "#00FF00")
+            case .yellow: return Color(name: self.rawValue, hex: "#FFFF00")
+            case .orange: return Color(name: self.rawValue, hex: "#FFA500")
+            case .purple: return Color(name: self.rawValue, hex: "#800080")
+            case .pink: return Color(name: self.rawValue, hex: "#FF69B4")
+            case .gray: return Color(name: self.rawValue, hex: "#808080")
+            case .brown: return Color(name: self.rawValue, hex: "#A52A2A")
+            case .transparent: return Color(name: self.rawValue, hex: "#00000000")
+            case .translucent: return Color(name: self.rawValue, hex: "#F5F5F5")
+            case .silver: return Color(name: self.rawValue, hex: "#C0C0C0")
+            case .gold: return Color(name: self.rawValue, hex: "#FFD700")
+            case .bronze: return Color(name: self.rawValue, hex: "#CD7F32")
+            case .copper: return Color(name: self.rawValue, hex: "#B87333")
+            case .rainbow: return Color(name: self.rawValue, hex: "#6F00FF")
+            case .glow: return Color(name: self.rawValue, hex: "#39FF14")
+            case .marble: return Color(name: self.rawValue, hex: "#E0DFDB")
+            case .wood: return Color(name: self.rawValue, hex: "#C19A6B")
+            case .carbon: return Color(name: self.rawValue, hex: "#2D2D2D")
+            case .custom: return Color(name: self.rawValue, hex: "#0000FF") // Default for custom
+            }
+        }
+
         /// Returns all available colors (predefined colors only)
         static var allAvailableColors: [(name: String, color: UIColor)] {
             var colors: [(name: String, color: UIColor)] = []
 
             // Add predefined colors (excluding .custom)
-            for color in Color.allCases.filter({ $0 != .custom }) {
+            for color in FilamentColorType.allCases.filter({ $0 != .custom }) {
                 colors.append((color.rawValue, color.displayColor))
             }
 
@@ -324,5 +431,33 @@ extension Filament {
     /// Common diameter values in mm
     static var diameterOptions: [Double] {
         return [1.75, 2.85, 3.0]
+    }
+}
+
+extension Filament {
+    enum CodingKeys: String, CodingKey {
+        case id, sku, brand, material, color, weight, diameter, printMinTemperature, printMaxTemperature, bedMinTemperature, bedMaxTemperature, fanSpeed, printSpeed, dateAdded, lastUsed, remainingWeight, isFinished, notes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        sku = try container.decode(String.self, forKey: .sku)
+        brand = try container.decode(String.self, forKey: .brand)
+        material = try container.decode(String.self, forKey: .material)
+        color = try container.decode(Color.self, forKey: .color)
+        weight = try container.decode(Double.self, forKey: .weight)
+        diameter = try container.decode(Double.self, forKey: .diameter)
+        printMinTemperature = try container.decode(Int.self, forKey: .printMinTemperature)
+        printMaxTemperature = try container.decode(Int.self, forKey: .printMaxTemperature)
+        bedMinTemperature = try container.decode(Int.self, forKey: .bedMinTemperature)
+        bedMaxTemperature = try container.decode(Int.self, forKey: .bedMaxTemperature)
+        fanSpeed = try container.decode(Int.self, forKey: .fanSpeed)
+        printSpeed = try container.decode(Int.self, forKey: .printSpeed)
+        dateAdded = try container.decode(Date.self, forKey: .dateAdded)
+        lastUsed = try container.decodeIfPresent(Date.self, forKey: .lastUsed)
+        remainingWeight = try container.decode(Double.self, forKey: .remainingWeight)
+        isFinished = try container.decode(Bool.self, forKey: .isFinished)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
     }
 }

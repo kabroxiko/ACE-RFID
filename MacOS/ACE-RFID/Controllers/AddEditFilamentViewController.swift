@@ -156,7 +156,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     // Color management
     private lazy var availableColors: [(name: String, color: UIColor)] = {
         // Use only predefined colors, plus custom color option
-        var colors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
+        var colors = Filament.FilamentColorType.allCases.map { ($0.rawValue, $0.displayColor) }
         colors.append((name: "Add Custom Color...", color: .clear))
         return colors
     }()
@@ -165,7 +165,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     private func fillFormWithFilament(_ filament: Filament) {
         brandTextField.text = filament.brand
         materialTextField.text = filament.material
-        colorTextField.text = filament.color
+        colorTextField.text = filament.color.name
         weightTextField.text = String(format: "%.0f", filament.weight)
         diameterTextField.text = String(format: "%.2f", filament.diameter)
         printTempMinTextField.text = "\(filament.printMinTemperature)°C"
@@ -175,6 +175,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         fanSpeedTextField.text = "\(filament.fanSpeed)%"
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
+        // Update color swatch
+        updateColorSwatch(filament.color.uiColor ?? .systemBlue)
     }
 
     // Helper to build filament from form
@@ -182,7 +184,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         guard let sku = filament?.sku, !sku.isEmpty,
               let brand = brandTextField.text, !brand.isEmpty,
               let material = materialTextField.text, !material.isEmpty,
-              let color = colorTextField.text, !color.isEmpty,
+              let colorName = colorTextField.text, !colorName.isEmpty,
               let weightStr = weightTextField.text, let weight = Double(weightStr),
               let diameterStr = diameterTextField.text, let diameter = Double(diameterStr),
               let printMinTempStr = printTempMinTextField.text?.replacingOccurrences(of: "°C", with: ""), let printMinTemp = Int(printMinTempStr),
@@ -193,11 +195,15 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
               let printSpeedStr = printSpeedTextField.text?.replacingOccurrences(of: " mm/s", with: ""), let printSpeed = Int(printSpeedStr)
         else { return nil }
 
+        // Get hex from availableColors or fallback to systemBlue
+        let hex = availableColors.first(where: { $0.name == colorName })?.color.toHexString ?? UIColor.systemBlue.toHexString
+        let colorObj = Color(name: colorName, hex: hex)
+
         return Filament(
             sku: sku,
             brand: brand,
             material: material,
-            color: color,
+            color: colorObj,
             weight: weight,
             diameter: diameter,
             printMinTemperature: printMinTemp,
@@ -238,7 +244,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
     private func refreshColors() {
         // Only reload if colors actually changed to avoid unnecessary work
-        let newColors = Filament.Color.allCases.map { ($0.rawValue, $0.displayColor) }
+        let newColors = Filament.FilamentColorType.allCases.map { ($0.rawValue, $0.displayColor) }
 
         let hasChanged = newColors.count != availableColors.count ||
                         !zip(newColors, availableColors).allSatisfy { $0.0.0 == $0.1.0 }
@@ -659,7 +665,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
         brandTextField.text = filament.brand
         materialTextField.text = filament.material
-        colorTextField.text = filament.color
+        colorTextField.text = filament.color.name
 
         // Format weight display
         let weight = filament.weight
@@ -675,7 +681,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         notesTextView.text = filament.notes
 
         // Update color swatch to match selected color
-        if let selectedColor = availableColors.first(where: { $0.name == filament.color })?.color {
+        if let selectedColor = availableColors.first(where: { $0.name == filament.color.name })?.color {
             updateColorSwatch(selectedColor)
         }
     }
@@ -692,9 +698,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         // Picker selection logic removed for modal dropdowns
 
         // Set default color (Black)
-        let defaultColor = Filament.Color.black
+        let defaultColor = Filament.FilamentColorType.black
         colorTextField.text = defaultColor.rawValue
-        // Set default color swatch to match default color
         updateColorSwatch(defaultColor.displayColor)
 
         // Set default weight and diameter with proper formatting
@@ -707,15 +712,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         // Picker selection logic removed for modal dropdowns
 
         // Apply material-based defaults for temperatures and speeds with proper formatting
-        let printTemp = defaultMaterial.defaultPrintTemperature
-        let bedTemp = defaultMaterial.defaultBedTemperature
+        let printMinTemp = defaultMaterial.defaultMinPrintTemperature
+        let printMaxTemp = defaultMaterial.defaultMaxPrintTemperature
+        let bedMinTemp = defaultMaterial.defaultMinBedTemperature
+        let bedMaxTemp = defaultMaterial.defaultMaxBedTemperature
         let fanSpeed = defaultMaterial.defaultFanSpeed
         let printSpeed = defaultMaterial.defaultPrintSpeed
 
-        printTempMinTextField.text = "\(printTemp)°C"
-        printTempMaxTextField.text = "\(printTemp)°C"
-        bedTempMinTextField.text = "\(bedTemp)°C"
-        bedTempMaxTextField.text = "\(bedTemp)°C"
+        printTempMinTextField.text = "\(printMinTemp)°C"
+        printTempMaxTextField.text = "\(printMaxTemp)°C"
+        bedTempMinTextField.text = "\(bedMinTemp)°C"
+        bedTempMaxTextField.text = "\(bedMaxTemp)°C"
         fanSpeedTextField.text = "\(fanSpeed)%"
         printSpeedTextField.text = "\(printSpeed) mm/s"
 
@@ -742,7 +749,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         let sku = filament?.sku ?? ""
         let brand = brandTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let material = materialTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let color = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let colorName = colorTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let hex = availableColors.first(where: { $0.name == colorName })?.color.toHexString ?? UIColor.systemBlue.toHexString
+        let colorObj = Color(name: colorName, hex: hex)
 
         // Parse weight from formatted text (e.g., "1000 g", "1.0 kg", or just numbers)
         let weightText = weightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "1000"
@@ -802,7 +811,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
             updatedFilament.brand = brand
             updatedFilament.material = material
-            updatedFilament.color = color
+            updatedFilament.color = colorObj
             updatedFilament.weight = weight
             updatedFilament.diameter = diameter
             updatedFilament.printMinTemperature = printMinTemp
@@ -824,7 +833,7 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
                 sku: sku,
                 brand: brand,
                 material: material,
-                color: color,
+            color: colorObj,
                 weight: weight,
                 diameter: diameter,
                 printMinTemperature: printMinTemp,
@@ -1166,37 +1175,6 @@ extension AddEditFilamentViewController {
 }
 
 // MARK: - UIColor Hex Extension
-extension UIColor {
-    var toHexString: String {
-        var r: CGFloat = 0
-        var g: CGFloat = 0
-        var b: CGFloat = 0
-        var a: CGFloat = 0
-        guard self.getRed(&r, green: &g, blue: &b, alpha: &a) else { return "" }
-        if a == 1.0 {
-            return String(format: "#%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
-        } else {
-            return String(format: "#%02X%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255), Int(a * 255))
-        }
-    }
-    convenience init?(hex: String) {
-        var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        if hexString.hasPrefix("#") {
-            hexString.remove(at: hexString.startIndex)
-        }
-        if hexString.count == 6 {
-            hexString += "FF" // Add alpha if missing
-        }
-        guard hexString.count == 8 else { return nil }
-        var rgbValue: UInt64 = 0
-        Scanner(string: hexString).scanHexInt64(&rgbValue)
-        let r = CGFloat((rgbValue & 0xFF000000) >> 24) / 255.0
-        let g = CGFloat((rgbValue & 0x00FF0000) >> 16) / 255.0
-        let b = CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0
-        let a = CGFloat(rgbValue & 0x000000FF) / 255.0
-        self.init(red: r, green: g, blue: b, alpha: a)
-    }
-}
 
 // MARK: - AddCustomColorViewControllerDelegate
 extension AddEditFilamentViewController: AddCustomColorViewControllerDelegate {
@@ -1209,5 +1187,7 @@ extension AddEditFilamentViewController: AddCustomColorViewControllerDelegate {
         availableColors.append((name: "Add Custom Color...", color: .clear))
         colorTextField.text = name
         updateColorSwatch(color)
+        // Optionally, set colorObj for new custom color
+        // let colorObj = Color(name: name, hex: color.toHexString)
     }
 }

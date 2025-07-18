@@ -52,7 +52,8 @@ class CoreDataManager {
         filamentEntity.setValue(filament.sku, forKey: "sku")
         filamentEntity.setValue(filament.brand, forKey: "brand")
         filamentEntity.setValue(filament.material, forKey: "material")
-        filamentEntity.setValue(filament.color, forKey: "color")
+        filamentEntity.setValue(filament.color.name, forKey: "colorName")
+        filamentEntity.setValue(filament.color.hex, forKey: "colorHex")
         filamentEntity.setValue(filament.weight, forKey: "weight")
         filamentEntity.setValue(filament.diameter, forKey: "diameter")
         filamentEntity.setValue(Int32(filament.printMinTemperature), forKey: "printMinTemperature")
@@ -109,10 +110,11 @@ class CoreDataManager {
             entity.setValue(filament.sku, forKey: "sku")
             entity.setValue(filament.brand, forKey: "brand")
             entity.setValue(filament.material, forKey: "material")
-            entity.setValue(filament.color, forKey: "color")
+            entity.setValue(filament.color.name, forKey: "colorName")
+            entity.setValue(filament.color.hex, forKey: "colorHex")
             entity.setValue(filament.weight, forKey: "weight")
             entity.setValue(filament.diameter, forKey: "diameter")
-            entity.setValue(Int32(filament.printMinTemperature), forKey: "printMaxTemperature")
+            entity.setValue(Int32(filament.printMinTemperature), forKey: "printMinTemperature")
             entity.setValue(Int32(filament.printMaxTemperature), forKey: "printMaxTemperature")
             entity.setValue(Int32(filament.bedMinTemperature), forKey: "bedMinTemperature")
             entity.setValue(Int32(filament.bedMaxTemperature), forKey: "bedMaxTemperature")
@@ -151,7 +153,8 @@ class CoreDataManager {
               let sku = entity.value(forKey: "sku") as? String,
               let brand = entity.value(forKey: "brand") as? String,
               let material = entity.value(forKey: "material") as? String,
-              let color = entity.value(forKey: "color") as? String,
+              let colorName = entity.value(forKey: "colorName") as? String,
+              let colorHex = entity.value(forKey: "colorHex") as? String,
               let dateAdded = entity.value(forKey: "dateAdded") as? Date else {
             return nil
         }
@@ -174,7 +177,7 @@ class CoreDataManager {
             sku: sku,
             brand: brand,
             material: material,
-            color: color,
+            color: Color(name: colorName, hex: colorHex),
             weight: weight,
             diameter: diameter,
             printMinTemperature: Int(printMinTemperature),

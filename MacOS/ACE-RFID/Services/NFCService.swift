@@ -141,16 +141,17 @@ class NFCService: NSObject {
     }
 
     // Helper: Convert color string (e.g. "#00FF00" or "Black") to BGR tuple
-    private static func colorStringToBGR(_ color: String) -> (UInt8, UInt8, UInt8) {
+    private static func colorStringToBGR(_ color: Color) -> (UInt8, UInt8, UInt8) {
         // Hex format: #RRGGBB
-        if color.hasPrefix("#") && color.count == 7 {
-            let r = UInt8(color[color.index(color.startIndex, offsetBy: 1)...color.index(color.startIndex, offsetBy: 2)], radix: 16) ?? 0
-            let g = UInt8(color[color.index(color.startIndex, offsetBy: 3)...color.index(color.startIndex, offsetBy: 4)], radix: 16) ?? 0
-            let b = UInt8(color[color.index(color.startIndex, offsetBy: 5)...color.index(color.startIndex, offsetBy: 6)], radix: 16) ?? 0
+        let hex = color.hex
+        if hex.hasPrefix("#") && hex.count == 7 {
+            let r = UInt8(hex[hex.index(hex.startIndex, offsetBy: 1)...hex.index(hex.startIndex, offsetBy: 2)], radix: 16) ?? 0
+            let g = UInt8(hex[hex.index(hex.startIndex, offsetBy: 3)...hex.index(hex.startIndex, offsetBy: 4)], radix: 16) ?? 0
+            let b = UInt8(hex[hex.index(hex.startIndex, offsetBy: 5)...hex.index(hex.startIndex, offsetBy: 6)], radix: 16) ?? 0
             return (b, g, r)
         }
         // Named colors (add more as needed)
-        switch color.lowercased() {
+        switch color.name.lowercased() {
         case "black": return (0, 0, 0)
         case "white": return (255, 255, 255)
         case "red": return (0, 0, 255)
@@ -203,7 +204,7 @@ class NFCService: NSObject {
             sku: sku,
             brand: brand,
             material: materialName,
-            color: "#" + colorHex,
+            color: Color(name: "Custom", hex: "#" + colorHex),
             weight: Double(weightRaw),
             diameter: diameter,
             printMinTemperature: extMin,
