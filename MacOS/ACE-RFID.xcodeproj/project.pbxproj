@@ -52,6 +52,7 @@
 		142610582E29D9C400E854B3 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		1426105A2E2A78DF00E854B3 /* FancyAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FancyAlert.swift; sourceTree = "<group>"; };
 		1426105C2E2ABC7B00E854B3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		142610602E2B027E00E854B3 /* ModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
 		142CA09E2E1F3E6F00EB99CA /* NFCService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCService.swift; sourceTree = "<group>"; };
 		142CA0A22E1F7A1000EB99CA /* SerialPortPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerView.swift; sourceTree = "<group>"; };
 		142CA0A32E1F7A1000EB99CA /* SerialPortPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPortPickerViewController.swift; sourceTree = "<group>"; };
@@ -89,10 +90,19 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		142610612E2B027E00E854B3 /* ACE-RFIDTests */ = {
+			isa = PBXGroup;
+			children = (
+				142610602E2B027E00E854B3 /* ModelTests.swift */,
+			);
+			path = "ACE-RFIDTests";
+			sourceTree = "<group>";
+		};
 		3A1B2C3D4E5F67FE = {
 			isa = PBXGroup;
 			children = (
 				3A1B2C3D4E5F67FF /* ACE-RFID */,
+				142610612E2B027E00E854B3 /* ACE-RFIDTests */,
 				1426103B2E28285100E854B3 /* Frameworks */,
 				3A1B2C3D4E5F6800 /* Products */,
 			);
