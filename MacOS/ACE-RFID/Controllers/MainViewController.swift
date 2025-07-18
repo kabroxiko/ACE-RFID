@@ -95,7 +95,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         #endif
         DispatchQueue.main.async {
             let msg = success ? "Filament data written to NFC tag." : "Failed to write filament to NFC tag."
-            self.showAlert(title: "NFC Write Result", message: msg)
+            //self.showAlert(title: "NFC Write Result", message: msg)
         }
     }
 
@@ -192,17 +192,25 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         messageLabel.numberOfLines = 0
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let okButton = UIButton(type: .system)
-        okButton.setTitle("OK", for: .normal)
-        okButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        okButton.tintColor = .systemBlue
-        okButton.translatesAutoresizingMaskIntoConstraints = false
-        okButton.addTarget(self, action: #selector(dismissCustomAlert), for: .touchUpInside)
+        let closeButton = UIButton(type: .system)
+        closeButton.setTitle("Close", for: .normal)
+        closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        closeButton.tintColor = .systemRed
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.addTarget(self, action: #selector(dismissCustomAlert), for: .touchUpInside)
+
+        let saveButton = UIButton(type: .system)
+        saveButton.setTitle("Save as Filament", for: .normal)
+        saveButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        saveButton.tintColor = .systemBlue
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        saveButton.addTarget(self, action: #selector(MainViewController.saveAsFilamentFromAlert), for: .touchUpInside)
 
         alertView.addSubview(iconImageView)
         alertView.addSubview(titleLabel)
         alertView.addSubview(messageLabel)
-        alertView.addSubview(okButton)
+        alertView.addSubview(closeButton)
+        alertView.addSubview(saveButton)
 
 
         let overlay = UIView()
@@ -221,7 +229,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             alertView.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
             alertView.centerYAnchor.constraint(equalTo: overlay.centerYAnchor),
             alertView.widthAnchor.constraint(equalToConstant: 320),
-            alertView.heightAnchor.constraint(greaterThanOrEqualToConstant: 180),
+            alertView.heightAnchor.constraint(greaterThanOrEqualToConstant: 200),
 
             iconImageView.topAnchor.constraint(equalTo: alertView.topAnchor, constant: 24),
             iconImageView.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
@@ -236,9 +244,12 @@ class MainViewController: UIViewController, NFCServiceDelegate {
             messageLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
 
-            okButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
-            okButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
-            okButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -16)
+            saveButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
+            saveButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+
+            closeButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 12),
+            closeButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+            closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -16)
         ])
 
         // Animate in
@@ -252,6 +263,16 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private static var overlayKey: UInt8 = 0
+
+    @objc func saveAsFilamentFromAlert() {
+        // Dismiss alert first
+        dismissCustomAlert()
+        // Present AddEditFilamentViewController
+        let addViewController = AddEditFilamentViewController()
+        addViewController.delegate = self
+        let navigationController = UINavigationController(rootViewController: addViewController)
+        present(navigationController, animated: true)
+    }
 
     @objc private func dismissCustomAlert() {
         if let overlay = objc_getAssociatedObject(self, &MainViewController.overlayKey) as? UIView {
