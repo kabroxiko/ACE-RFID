@@ -4,7 +4,19 @@ class FancyAlert {
     private static var overlayKey: UInt8 = 0
     private static var currentViewController: UIViewController?
 
-    static func show(on viewController: UIViewController, title: String, message: String, showSaveButton: Bool = false, saveAction: (() -> Void)? = nil) {
+    struct AlertButton {
+        let title: String
+        let action: (() -> Void)?
+        // Remove style property or set as needed, default system style is fine
+    }
+
+    static func show(
+        on viewController: UIViewController,
+        title: String,
+        message: String,
+        icon: UIImage? = UIImage(systemName: "exclamationmark.triangle"),
+        buttons: [AlertButton] = [AlertButton(title: "OK", action: nil)]
+    ) {
         let alertView = UIView()
         alertView.backgroundColor = UIColor.systemBackground
         alertView.layer.cornerRadius = 16
@@ -14,7 +26,7 @@ class FancyAlert {
         alertView.layer.shadowOffset = CGSize(width: 0, height: 4)
         alertView.translatesAutoresizingMaskIntoConstraints = false
 
-        let iconImageView = UIImageView(image: UIImage(systemName: "radiowaves.left"))
+        let iconImageView = UIImageView(image: icon)
         iconImageView.tintColor = .systemBlue
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -33,33 +45,24 @@ class FancyAlert {
         messageLabel.numberOfLines = 0
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let closeButton = UIButton(type: .system)
-        closeButton.setTitle("Close", for: .normal)
-        closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        closeButton.tintColor = .systemRed
-        closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.addAction(UIAction { _ in
-            FancyAlert.dismissCustomAlert()
-        }, for: .touchUpInside)
+        var buttonViews: [UIButton] = []
+        for button in buttons {
+            let btn = UIButton(type: .system)
+            btn.setTitle(button.title, for: .normal)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+            btn.tintColor = .systemBlue
+            btn.translatesAutoresizingMaskIntoConstraints = false
+            btn.addAction(UIAction { _ in
+                FancyAlert.dismissCustomAlert()
+                button.action?()
+            }, for: .touchUpInside)
+            alertView.addSubview(btn)
+            buttonViews.append(btn)
+        }
 
         alertView.addSubview(iconImageView)
         alertView.addSubview(titleLabel)
         alertView.addSubview(messageLabel)
-        alertView.addSubview(closeButton)
-
-        var saveButton: UIButton?
-        if showSaveButton {
-            let button = UIButton(type: .system)
-            button.setTitle("Save as Filament", for: .normal)
-            button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-            button.tintColor = .systemBlue
-            button.translatesAutoresizingMaskIntoConstraints = false
-            button.addAction(UIAction { _ in
-                FancyAlert.saveAsFilamentFromAlert()
-            }, for: .touchUpInside)
-            alertView.addSubview(button)
-            saveButton = button
-        }
 
         let overlay = UIView()
         overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
@@ -92,21 +95,14 @@ class FancyAlert {
             messageLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
         ]
-        if let saveButton = saveButton {
-            constraints.append(contentsOf: [
-                saveButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
-                saveButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
-                closeButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 12),
-                closeButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
-                closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -16)
-            ])
-        } else {
-            constraints.append(contentsOf: [
-                closeButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
-                closeButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
-                closeButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -16)
-            ])
+        // Stack buttons vertically, spacing 12 between each
+        var previousAnchor: NSLayoutYAxisAnchor = messageLabel.bottomAnchor
+        for btn in buttonViews {
+            constraints.append(btn.topAnchor.constraint(equalTo: previousAnchor, constant: 20))
+            constraints.append(btn.centerXAnchor.constraint(equalTo: alertView.centerXAnchor))
+            previousAnchor = btn.bottomAnchor
         }
+        constraints.append(previousAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -16))
         NSLayoutConstraint.activate(constraints)
 
         alertView.alpha = 0
@@ -129,14 +125,5 @@ class FancyAlert {
             objc_setAssociatedObject(viewController, &FancyAlert.overlayKey, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         FancyAlert.currentViewController = nil
-    }
-
-    static func saveAsFilamentFromAlert() {
-        guard let viewController = FancyAlert.currentViewController as? MainViewController else { return }
-        dismissCustomAlert()
-        let addViewController = AddEditFilamentViewController()
-        addViewController.delegate = viewController
-        let navigationController = UINavigationController(rootViewController: addViewController)
-        viewController.present(navigationController, animated: true)
     }
 }

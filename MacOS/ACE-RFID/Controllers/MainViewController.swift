@@ -86,7 +86,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
 
         let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color.name) (\(filament.color.hex))\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nLength: \(Int(filament.length)) m\nDiameter: \(filament.diameter) mm"
         DispatchQueue.main.async {
-            self.showAlert(title: "NFC Tag Info", message: info)
+            self.showFilamentSaveAlert(title: "NFC Tag Info", message: info)
         }
     }
 
@@ -164,7 +164,31 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private func showAlert(title: String, message: String) {
-        FancyAlert.show(on: self, title: title, message: message, showSaveButton: true)
+        let circleIcon = UIImage(systemName: "circle")
+        FancyAlert.show(
+            on: self,
+            title: title,
+            message: message
+        )
+    }
+
+    private func showFilamentSaveAlert(title: String, message: String) {
+        let circleIcon = UIImage(systemName: "circle")
+        let saveButton = FancyAlert.AlertButton(title: "Save as Filament", action: { [weak self] in
+            guard let self = self else { return }
+            let addViewController = AddEditFilamentViewController()
+            addViewController.delegate = self
+            let navigationController = UINavigationController(rootViewController: addViewController)
+            self.present(navigationController, animated: true)
+        })
+        let cancelButton = FancyAlert.AlertButton(title: "Cancel", action: nil)
+        FancyAlert.show(
+            on: self,
+            title: title,
+            message: message,
+            icon: circleIcon,
+            buttons: [saveButton, cancelButton]
+        )
     }
 
     private static var overlayKey: UInt8 = 0
