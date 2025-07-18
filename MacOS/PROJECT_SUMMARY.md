@@ -92,7 +92,6 @@ ACE-RFID/
 
 ### Data Models
 ```swift
-// Enhanced Filament struct with all necessary properties
 struct Filament {
     enum Brand: String, CaseIterable
     enum Material: String, CaseIterable
@@ -100,7 +99,6 @@ struct Filament {
     // Full filament properties with intelligent defaults
 }
 
-// Custom color management
 class CustomColorManager {
     static func saveCustomColor(UIColor, name: String)
     static func getCustomColors() -> [(name: String, color: UIColor)]

@@ -1,9 +1,3 @@
-//
-//  AddEditFilamentViewController.swift
-//  ACE-RFID
-//
-//  Created by Copilot on 07/03/2025.
-//
 
 import UIKit
 // Custom UITextField subclass for dropdowns
@@ -22,7 +16,6 @@ protocol AddEditFilamentViewControllerDelegate: AnyObject {
 }
 
 class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UIColorPickerViewControllerDelegate {
-    // MARK: - Form Fields
     private let brandTextField = DropdownTextField()
     private let materialTextField = DropdownTextField()
     private let colorTextField = DropdownTextField()
@@ -37,12 +30,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     private let notesTextView = UITextView()
     private var colorSwatchView: UIView? // For color swatch updates
 
-    // MARK: - UI Containers
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stackView = UIStackView()
 
-    // Assign unique tags for dropdown logic
     private enum TempFieldTag: Int {
         case printMin = 5
         case printMax = 6
@@ -51,7 +42,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         case fanSpeed = 9
         case printSpeed = 10
     }
-    // MARK: - Custom Dropdown Logic
     @objc private func showDropdown(_ sender: UITextField) {
         view.endEditing(true)
         let tag = dropdownTag(for: sender)
@@ -107,7 +97,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
     private func handleDropdownSelection(_ selected: String, for textField: UITextField, tag: Int) {
         textField.text = selected
-        // Update color swatch if color was selected
         if tag == 2 {
             if selected == "Add Custom Color..." {
                 presentAddCustomColorView()
@@ -117,11 +106,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
                 updateColorSwatch(color)
             }
         }
-        // Dismiss dropdown
         dismissKeyboard()
     }
 
-    // Present the custom color modal view
     private func presentAddCustomColorView() {
         let customColorVC = AddCustomColorViewController()
         customColorVC.delegate = self
@@ -129,39 +116,30 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         present(customColorVC, animated: true)
     }
 
-    // NFC
     private let nfcService = NFCService()
 
-    // MARK: - UIColor Hex Extension
-    // MARK: - Properties
 
     weak var delegate: AddEditFilamentViewControllerDelegate?
     var filament: Filament?
     private var isEditMode: Bool { return filament != nil }
 
-    // Brand management
     private lazy var availableBrands: [String] = {
         var brands = Filament.Brand.allCases.map { $0.rawValue }.sorted()
         brands.append("Add Custom Brand...")
         return brands
     }()
 
-    // MARK: - Custom Color Management
     private var customColorSelected: UIColor = .systemBlue
 
     private func showAddCustomColorAlert() {
-        // Deprecated: now handled by AddCustomColorViewController
     }
 
-    // Color management
     private lazy var availableColors: [(name: String, color: UIColor)] = {
-        // Use only predefined colors, plus custom color option
         var colors = Filament.FilamentColorType.allCases.map { ($0.rawValue, $0.displayColor) }
         colors.append((name: "Add Custom Color...", color: .clear))
         return colors
     }()
 
-    // Helper to fill form with filament
     private func fillFormWithFilament(_ filament: Filament) {
         brandTextField.text = filament.brand
         materialTextField.text = filament.material
@@ -175,11 +153,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         fanSpeedTextField.text = "\(filament.fanSpeed)%"
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
-        // Update color swatch
         updateColorSwatch(filament.color.uiColor ?? .systemBlue)
     }
 
-    // Helper to build filament from form
     private func buildFilamentFromForm() -> Filament? {
         guard let sku = filament?.sku, !sku.isEmpty,
               let brand = brandTextField.text, !brand.isEmpty,
@@ -195,7 +171,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
               let printSpeedStr = printSpeedTextField.text?.replacingOccurrences(of: " mm/s", with: ""), let printSpeed = Int(printSpeedStr)
         else { return nil }
 
-        // Get hex from availableColors or fallback to systemBlue
         let hex = availableColors.first(where: { $0.name == colorName })?.color.toHexString ?? UIColor.systemBlue.toHexString
         let colorObj = Color(name: colorName, hex: hex)
 
@@ -216,20 +191,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         )
     }
 
-    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupNavigationBar()
         fillFormWithFilament()
-        // Removed addNFCButtons() and preWarmPickers() calls (not needed for modal dropdowns)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         registerKeyboardNotifications()
-        // Refresh colors in case custom colors were added elsewhere
         refreshColors()
     }
 
@@ -238,12 +210,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         unregisterKeyboardNotifications()
     }
 
-    // MARK: - Picker Performance Optimization
 
-    // Picker pre-warm and getCachedPickerView removed for modal dropdown refactor
 
     private func refreshColors() {
-        // Only reload if colors actually changed to avoid unnecessary work
         let newColors = Filament.FilamentColorType.allCases.map { ($0.rawValue, $0.displayColor) }
 
         let hasChanged = newColors.count != availableColors.count ||
@@ -251,17 +220,13 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
         if hasChanged {
             availableColors = newColors
-            // Picker logic removed for modal dropdowns
         }
     }
 
-    // MARK: - Setup
 
     private func setupUI() {
-        // Enhanced background with gradient
         view.backgroundColor = .systemBackground
 
-        // Add subtle gradient background
         let gradientLayer = CAGradientLayer()
         gradientLayer.colors = [
             UIColor.systemBackground.cgColor,
@@ -270,13 +235,11 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         gradientLayer.locations = [0, 1]
         view.layer.insertSublayer(gradientLayer, at: 0)
 
-        // Update gradient frame when view layout changes - optimized
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             gradientLayer.frame = self.view.bounds
         }
 
-        // Scroll view setup with enhanced styling
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = true
         scrollView.alwaysBounceVertical = true
@@ -285,7 +248,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.backgroundColor = .clear
 
-        // Stack view setup with enhanced spacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
         stackView.spacing = 24 // Increased spacing for better visual hierarchy
@@ -295,10 +257,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         scrollView.addSubview(contentView)
         contentView.addSubview(stackView)
 
-        // Setup form fields
         setupFormFields()
 
-        // Enhanced constraints with better margins
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -321,11 +281,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     private func setupNavigationBar() {
         title = isEditMode ? "Edit Filament" : "Add Filament"
 
-        // Enhance navigation bar appearance
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .automatic
 
-        // Enhanced cancel button
         let cancelButton = UIBarButtonItem(
             title: "Cancel",
             style: .plain,
@@ -335,7 +293,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         cancelButton.tintColor = .systemRed
         navigationItem.leftBarButtonItem = cancelButton
 
-        // Enhanced save button
         let saveButton = UIBarButtonItem(
             title: "Save",
             style: .done,
@@ -347,53 +304,45 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     }
 
     private func setupFormFields() {
-        // Brand section
         stackView.addArrangedSubview(createSectionLabel("Brand"))
         brandTextField.placeholder = "Enter brand name or select from list"
         brandTextField.delegate = self
         stackView.addArrangedSubview(createFormField(brandTextField))
 
-        // Material and Color side by side
         materialTextField.placeholder = "Select material"
         materialTextField.delegate = self
         colorTextField.placeholder = "Select color"
         colorTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(materialTextField, leftLabel: "Material", colorTextField, rightLabel: "Color"))
 
-        // Weight and Diameter side by side
         weightTextField.placeholder = "Select weight"
         weightTextField.delegate = self
         diameterTextField.placeholder = "Select diameter"
         diameterTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(weightTextField, leftLabel: "Weight", diameterTextField, rightLabel: "Diameter"))
 
-        // Print Temperature Min/Max side by side (use class properties)
         printTempMinTextField.placeholder = "Min"
         printTempMinTextField.delegate = self
         printTempMaxTextField.placeholder = "Max"
         printTempMaxTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(printTempMinTextField, leftLabel: "Print Temp Min", printTempMaxTextField, rightLabel: "Print Temp Max"))
 
-        // Bed Temperature Min/Max side by side (use class properties)
         bedTempMinTextField.placeholder = "Min"
         bedTempMinTextField.delegate = self
         bedTempMaxTextField.placeholder = "Max"
         bedTempMaxTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(bedTempMinTextField, leftLabel: "Bed Temp Min", bedTempMaxTextField, rightLabel: "Bed Temp Max"))
 
-        // Fan Speed and Print Speed side by side
         fanSpeedTextField.placeholder = "Select fan speed"
         fanSpeedTextField.delegate = self
         printSpeedTextField.placeholder = "Select print speed"
         printSpeedTextField.delegate = self
         stackView.addArrangedSubview(createSideBySideFormFields(fanSpeedTextField, leftLabel: "Fan Speed", printSpeedTextField, rightLabel: "Print Speed"))
 
-        // Notes section
         stackView.addArrangedSubview(createSectionLabel("Notes"))
         setupNotesTextView()
         stackView.addArrangedSubview(notesTextView)
 
-        // Add toolbar to all text fields for easy dismissal
         addToolbarToPickers()
     }
 
@@ -407,7 +356,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         notesTextView.translatesAutoresizingMaskIntoConstraints = false
         notesTextView.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
 
-        // Add subtle shadow for consistency
         notesTextView.layer.shadowColor = UIColor.black.cgColor
         notesTextView.layer.shadowOffset = CGSize(width: 0, height: 1)
         notesTextView.layer.shadowOpacity = 0.05
@@ -417,7 +365,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     }
 
     private func addToolbarToPickers() {
-        // Create individual toolbars for each field to avoid constraint conflicts
         let textFields = [
             brandTextField, materialTextField, colorTextField, weightTextField,
             diameterTextField, printTempMinTextField, printTempMaxTextField,
@@ -429,7 +376,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             textField.inputAccessoryView = createInputToolbar()
         }
 
-        // Add toolbar to notes text view
         notesTextView.inputAccessoryView = createInputToolbar()
     }
 
@@ -451,7 +397,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         label.textColor = .systemBlue
         label.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add subtle margin at bottom
         label.heightAnchor.constraint(greaterThanOrEqualToConstant: 22).isActive = true
 
         return label
@@ -465,7 +410,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         containerView.layer.borderColor = UIColor.systemGray5.cgColor
         containerView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add subtle shadow for depth
         containerView.layer.shadowColor = UIColor.black.cgColor
         containerView.layer.shadowOffset = CGSize(width: 0, height: 1)
         containerView.layer.shadowOpacity = 0.05
@@ -481,7 +425,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             addPointerInteraction(to: textField)
         }
 
-        // Add dropdown arrow with better styling
         let dropdownImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
         dropdownImageView.tintColor = .systemBlue
         dropdownImageView.contentMode = .scaleAspectFit
@@ -513,7 +456,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         containerView.layer.borderColor = UIColor.systemGray5.cgColor
         containerView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add subtle shadow for depth
         containerView.layer.shadowColor = UIColor.black.cgColor
         containerView.layer.shadowOffset = CGSize(width: 0, height: 1)
         containerView.layer.shadowOpacity = 0.05
@@ -529,7 +471,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             addPointerInteraction(to: textField)
         }
 
-        // Create color swatch view
         let colorSwatchView = UIView()
         colorSwatchView.layer.cornerRadius = 12
         colorSwatchView.layer.borderWidth = 2
@@ -537,13 +478,11 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         colorSwatchView.backgroundColor = .systemBlue // Default color
         colorSwatchView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add subtle shadow to make it more visible
         colorSwatchView.layer.shadowColor = UIColor.black.cgColor
         colorSwatchView.layer.shadowOffset = CGSize(width: 0, height: 1)
         colorSwatchView.layer.shadowOpacity = 0.3
         colorSwatchView.layer.shadowRadius = 2
 
-        // Add dropdown arrow with better styling
         let dropdownImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
         dropdownImageView.tintColor = .systemBlue
         dropdownImageView.contentMode = .scaleAspectFit
@@ -571,11 +510,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             dropdownImageView.heightAnchor.constraint(equalToConstant: 18)
         ])
 
-        // Store the color swatch view reference for later updates
         containerView.tag = 999 // Special tag to identify color field container
         colorSwatchView.tag = 1000 // Special tag to identify color swatch
 
-        // Cache the color swatch for fast access
         self.colorSwatchView = colorSwatchView
 
         return containerView
@@ -585,14 +522,12 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Create horizontal stack view
         let horizontalStack = UIStackView()
         horizontalStack.axis = .horizontal
         horizontalStack.spacing = 16
         horizontalStack.distribution = .fillEqually
         horizontalStack.translatesAutoresizingMaskIntoConstraints = false
 
-        // Create left side container
         let leftContainer = UIView()
         let leftLabelView = createFieldLabel(leftLabel)
         let leftFieldView = createFormField(leftField)
@@ -601,7 +536,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         leftContainer.addSubview(leftFieldView)
         leftContainer.translatesAutoresizingMaskIntoConstraints = false
 
-        // Create right side container
         let rightContainer = UIView()
         let rightLabelView = createFieldLabel(rightLabel)
         let rightFieldView = rightField == colorTextField ? createColorFormField(rightField) : createFormField(rightField)
@@ -610,20 +544,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         rightContainer.addSubview(rightFieldView)
         rightContainer.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add containers to horizontal stack
         horizontalStack.addArrangedSubview(leftContainer)
         horizontalStack.addArrangedSubview(rightContainer)
 
         containerView.addSubview(horizontalStack)
 
         NSLayoutConstraint.activate([
-            // Horizontal stack constraints
             horizontalStack.topAnchor.constraint(equalTo: containerView.topAnchor),
             horizontalStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             horizontalStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             horizontalStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
 
-            // Left container constraints
             leftLabelView.topAnchor.constraint(equalTo: leftContainer.topAnchor),
             leftLabelView.leadingAnchor.constraint(equalTo: leftContainer.leadingAnchor),
             leftLabelView.trailingAnchor.constraint(equalTo: leftContainer.trailingAnchor),
@@ -633,7 +564,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             leftFieldView.trailingAnchor.constraint(equalTo: leftContainer.trailingAnchor),
             leftFieldView.bottomAnchor.constraint(equalTo: leftContainer.bottomAnchor),
 
-            // Right container constraints
             rightLabelView.topAnchor.constraint(equalTo: rightContainer.topAnchor),
             rightLabelView.leadingAnchor.constraint(equalTo: rightContainer.leadingAnchor),
             rightLabelView.trailingAnchor.constraint(equalTo: rightContainer.trailingAnchor),
@@ -658,7 +588,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
 
     private func fillFormWithFilament() {
         guard let filament = filament else {
-            // Set default values for new filament
             setDefaultValues()
             return
         }
@@ -667,11 +596,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         materialTextField.text = filament.material
         colorTextField.text = filament.color.name
 
-        // Format weight display
         let weight = filament.weight
         weightTextField.text = weight < 1000 ? String(format: "%.0f g", weight) : String(format: "%.1f kg", weight / 1000)
 
-        // Format other fields
         diameterTextField.text = String(format: "%.2f mm", filament.diameter)
         printTempMinTextField.text = "\(filament.printMinTemperature)°C"
         printTempMaxTextField.text = "\(filament.printMaxTemperature)°C"
@@ -680,38 +607,28 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         printSpeedTextField.text = "\(filament.printSpeed) mm/s"
         notesTextView.text = filament.notes
 
-        // Update color swatch to match selected color
         if let selectedColor = availableColors.first(where: { $0.name == filament.color.name })?.color {
             updateColorSwatch(selectedColor)
         }
     }
 
     private func setDefaultValues() {
-        // Set default brand (first one - Anycubic)
         let defaultBrand = Filament.Brand.anycubic
         brandTextField.text = defaultBrand.rawValue
-        // Picker selection logic removed for modal dropdowns
 
-        // Set default material (PLA)
         let defaultMaterial = Filament.Material.pla
         materialTextField.text = defaultMaterial.rawValue
-        // Picker selection logic removed for modal dropdowns
 
-        // Set default color (Black)
         let defaultColor = Filament.FilamentColorType.black
         colorTextField.text = defaultColor.rawValue
         updateColorSwatch(defaultColor.displayColor)
 
-        // Set default weight and diameter with proper formatting
         let defaultWeight = defaultBrand.defaultWeight
         weightTextField.text = defaultWeight < 1000 ? String(format: "%.0f g", defaultWeight) : String(format: "%.1f kg", defaultWeight / 1000)
-        // Picker selection logic removed for modal dropdowns
 
         let defaultDiameter = defaultBrand.defaultDiameter
         diameterTextField.text = String(format: "%.2f mm", defaultDiameter)
-        // Picker selection logic removed for modal dropdowns
 
-        // Apply material-based defaults for temperatures and speeds with proper formatting
         let printMinTemp = defaultMaterial.defaultMinPrintTemperature
         let printMaxTemp = defaultMaterial.defaultMaxPrintTemperature
         let bedMinTemp = defaultMaterial.defaultMinBedTemperature
@@ -726,18 +643,13 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         fanSpeedTextField.text = "\(fanSpeed)%"
         printSpeedTextField.text = "\(printSpeed) mm/s"
 
-        // Set picker selections for temperatures and speeds
-        // Picker selection logic removed for modal dropdowns
     }
 
     private func initializeBrands() {
-        // Start with predefined brands (sorted alphabetically)
         availableBrands = Filament.Brand.sortedCases.map { $0.rawValue }
-        // Add "Add Custom Brand..." option at the end
         availableBrands.append("Add Custom Brand...")
     }
 
-    // MARK: - Actions
 
     @objc private func cancelTapped() {
         dismiss(animated: true)
@@ -753,7 +665,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         let hex = availableColors.first(where: { $0.name == colorName })?.color.toHexString ?? UIColor.systemBlue.toHexString
         let colorObj = Color(name: colorName, hex: hex)
 
-        // Parse weight from formatted text (e.g., "1000 g", "1.0 kg", or just numbers)
         let weightText = weightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "1000"
         let weight: Double
         if weightText.contains("kg") {
@@ -763,21 +674,17 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             let weightString = weightText.replacingOccurrences(of: "g", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
             weight = Double(weightString) ?? 1000
         } else {
-            // Handle plain numbers (assume grams)
             weight = Double(weightText) ?? 1000
         }
 
-        // Parse diameter from formatted text (e.g., "1.75 mm")
         let diameterText = diameterTextField.text ?? "1.75"
         let diameterString = diameterText.replacingOccurrences(of: " mm", with: "")
         let diameter = Double(diameterString) ?? 1.75
 
-        // Parse min print temperature
         let printMinTempText = printTempMinTextField.text ?? "180"
         let printMinTempString = printMinTempText.replacingOccurrences(of: "°C", with: "")
         let printMinTemp = Int(printMinTempString) ?? 180
 
-        // Parse max print temperature
         let printMaxTempText = printTempMaxTextField.text ?? "210"
         let printMaxTempString = printMaxTempText.replacingOccurrences(of: "°C", with: "")
         let printMaxTemp = Int(printMaxTempString) ?? 210
@@ -790,12 +697,10 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         let bedMaxTempString = bedMaxTempText.replacingOccurrences(of: "°C", with: "")
         let bedMaxTemp = Int(bedMaxTempString) ?? 60
 
-        // Parse fan speed from formatted text (e.g., "100%")
         let fanSpeedText = fanSpeedTextField.text ?? "100"
         let fanSpeedString = fanSpeedText.replacingOccurrences(of: "%", with: "")
         let fanSpeed = Int(fanSpeedString) ?? 100
 
-        // Parse print speed from formatted text (e.g., "50 mm/s")
         let printSpeedText = printSpeedTextField.text ?? "50"
         let printSpeedString = printSpeedText.replacingOccurrences(of: " mm/s", with: "")
         let printSpeed = Int(printSpeedString) ?? 50
@@ -803,10 +708,8 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         let notes = notesTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if isEditMode {
-            // Update existing filament
             var updatedFilament = filament!
 
-            // Calculate the remaining percentage before updating weight
             let remainingPercentage = updatedFilament.weight > 0 ? (updatedFilament.remainingWeight / updatedFilament.weight) : 1.0
 
             updatedFilament.brand = brand
@@ -822,13 +725,11 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
             updatedFilament.printSpeed = printSpeed
             updatedFilament.notes = notes?.isEmpty == true ? nil : notes
 
-            // Update remaining weight to maintain the same percentage
             updatedFilament.remainingWeight = weight * remainingPercentage
 
             CoreDataManager.shared.updateFilament(updatedFilament)
             delegate?.didSaveFilament(updatedFilament)
         } else {
-            // Create new filament
             let newFilament = Filament(
                 sku: sku,
                 brand: brand,
@@ -856,7 +757,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         view.endEditing(true)
     }
 
-    // MARK: - Validation
 
     private func validateForm() -> Bool {
         guard let brand = brandTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -887,11 +787,9 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     }
 
     private func updateColorSwatch(_ color: UIColor) {
-        // Use cached reference for instant updates
         colorSwatchView?.backgroundColor = color
     }
 
-    // MARK: - Custom Brand Management
 
     private func showAddCustomBrandAlert() {
         let alert = UIAlertController(title: "Add Custom Brand", message: "Enter the name of the filament brand", preferredStyle: .alert)
@@ -907,20 +805,15 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
                   let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !brandName.isEmpty else { return }
 
-            // Check if brand already exists
             if !self.availableBrands.contains(brandName) {
-                // Insert before "Add Custom Brand..." option
                 self.availableBrands.insert(brandName, at: self.availableBrands.count - 1)
             }
-            // Set the custom brand as selected
             self.brandTextField.text = brandName
             self.dismissKeyboard()
         }
 
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
-            // Reset picker to first item (or current selection)
-            guard let self = self else { return }
-            // Picker selection logic removed for modal dropdowns
+            guard self != nil else { return }
         }
 
         alert.addAction(addAction)
@@ -929,7 +822,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
         present(alert, animated: true)
     }
 
-    // MARK: - Keyboard Handling
 
     private func registerKeyboardNotifications() {
         NotificationCenter.default.addObserver(
@@ -973,7 +865,6 @@ class AddEditFilamentViewController: UIViewController, UITextFieldDelegate, UICo
     }
 }
 
-// MARK: - UIPickerViewDataSource
 
 extension AddEditFilamentViewController: UIPickerViewDataSource {
 
@@ -1011,13 +902,11 @@ extension AddEditFilamentViewController: UIPickerViewDataSource {
     }
 }
 
-// MARK: - UIPickerViewDelegate
 
 extension AddEditFilamentViewController: UIPickerViewDelegate {
 
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
         if pickerView.tag == 2 { // Color picker
-            // Reuse views for better performance
             let containerView: UIView
             let colorIndicator: UIView
             let label: UILabel
@@ -1062,7 +951,6 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
 
             return containerView
         } else {
-            // Reuse labels for other pickers
             let label: UILabel
             if let reusableView = view as? UILabel {
                 label = reusableView
@@ -1104,7 +992,6 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
     }
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        // This method is now only used as fallback for older iOS versions
         switch pickerView.tag {
         case 0: // Brand picker
             return availableBrands[row]
@@ -1118,11 +1005,8 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
     }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        // Picker selection logic removed for modal dropdowns
-        // ...existing code...
     }
 
-    // Add pointer interaction to show pointer cursor for dropdown fields
     @available(iOS 13.4, *)
     private func addPointerInteraction(to textField: UITextField) {
         let pointerInteraction = UIPointerInteraction(delegate: self)
@@ -1130,22 +1014,18 @@ extension AddEditFilamentViewController: UIPickerViewDelegate {
     }
 }
 
-// MARK: - UIPointerInteractionDelegate
 @available(iOS 13.4, *)
 extension AddEditFilamentViewController: UIPointerInteractionDelegate {
     func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle? {
         guard let view = interaction.view else { return nil }
-        // Show a hand pointer for dropdown fields
         let targetedPreview = UITargetedPreview(view: view)
         return UIPointerStyle(effect: .highlight(targetedPreview))
     }
 }
 
-// MARK: - UITextFieldDelegate
 
 extension AddEditFilamentViewController {
 
-    // Show dropdown for dropdown fields and prevent keyboard
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
         let dropdownFields: [UITextField] = [
             brandTextField, materialTextField, colorTextField, weightTextField,
@@ -1164,22 +1044,17 @@ extension AddEditFilamentViewController {
             guard let brandName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !brandName.isEmpty else { return }
 
-            // Check if this is a new custom brand
             if !availableBrands.contains(brandName) && brandName != "Add Custom Brand..." {
-                // Insert before "Add Custom Brand..." option
                 availableBrands.insert(brandName, at: availableBrands.count - 1)
-                // Picker logic removed for modal dropdowns
             }
         }
     }
 }
 
-// MARK: - UIColor Hex Extension
 
 // MARK: - AddCustomColorViewControllerDelegate
 extension AddEditFilamentViewController: AddCustomColorViewControllerDelegate {
     func didAddCustomColor(name: String, color: UIColor) {
-        // Remove "Add Custom Color..." if present
         if let idx = availableColors.firstIndex(where: { $0.name == "Add Custom Color..." }) {
             availableColors.remove(at: idx)
         }
@@ -1187,7 +1062,5 @@ extension AddEditFilamentViewController: AddCustomColorViewControllerDelegate {
         availableColors.append((name: "Add Custom Color...", color: .clear))
         colorTextField.text = name
         updateColorSwatch(color)
-        // Optionally, set colorObj for new custom color
-        // let colorObj = Color(name: name, hex: color.toHexString)
     }
 }

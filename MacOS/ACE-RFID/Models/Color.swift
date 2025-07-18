@@ -1,3 +1,5 @@
+import UIKit
+
 extension UIColor {
     var toHexString: String {
         var r: CGFloat = 0
@@ -12,7 +14,6 @@ extension UIColor {
         }
     }
 }
-import UIKit
 
 extension UIColor {
     convenience init?(hex: String) {

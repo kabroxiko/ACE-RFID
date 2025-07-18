@@ -1,9 +1,3 @@
-//
-//  CoreDataManager.swift
-//  ACE-RFID
-//
-//  Created by Copilot on 07/03/2025.
-//
 
 import Foundation
 import CoreData
@@ -14,7 +8,6 @@ class CoreDataManager {
 
     private init() {}
 
-    // MARK: - Core Data Stack
 
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "FilamentDataModel")
@@ -30,7 +23,6 @@ class CoreDataManager {
         return persistentContainer.viewContext
     }
 
-    // MARK: - Core Data Operations
 
     func save() {
         if context.hasChanges {
@@ -42,7 +34,6 @@ class CoreDataManager {
         }
     }
 
-    // MARK: - Filament CRUD Operations
 
     func saveFilament(_ filament: Filament) {
         let entity = NSEntityDescription.entity(forEntityName: "FilamentEntity", in: context)!
@@ -146,7 +137,6 @@ class CoreDataManager {
         }
     }
 
-    // MARK: - Helper Methods
 
     private func convertEntityToFilament(_ entity: NSManagedObject) -> Filament? {
         guard let id = entity.value(forKey: "id") as? String,

@@ -58,19 +58,15 @@ int nfc_write_card_content(const char *conn_str, const char *hexstr) {
     if (nfc_initiator_select_passive_target(pnd, nm, NULL, 0, &nt) > 0) {
         uint8_t buf[128] = {0};
         int buflen = hexstr_to_bytes(hexstr, buf, sizeof(buf));
-        fprintf(stderr, "[DEBUG] nfc_write_card_content: buflen=%d\n", buflen);
-        fprintf(stderr, "[DEBUG] nfc_write_card_content: buf(hex) = ");
         for (int i = 0; i < buflen; i++) fprintf(stderr, "%02X ", buf[i]);
         fprintf(stderr, "\n");
         int pagecount = (buflen < 128) ? buflen / 4 : 32;
         int status = 0;
         for (int page = 4; page < 4 + pagecount; page++) {
             uint8_t cmd[6] = {0xA2, page, buf[(page-4)*4], buf[(page-4)*4+1], buf[(page-4)*4+2], buf[(page-4)*4+3]};
-            fprintf(stderr, "[DEBUG] Write page %d: cmd = ", page);
             for (int j = 0; j < 6; j++) fprintf(stderr, "%02X ", cmd[j]);
             fprintf(stderr, "\n");
             int res = nfc_initiator_transceive_bytes(pnd, cmd, 6, NULL, 0, 0);
-            fprintf(stderr, "[DEBUG] Write page %d result: %d\n", page, res);
             if (res < 0) {
                 fprintf(stderr, "[ERROR] Write page %d failed: %s\n", page, nfc_strerror(pnd));
                 status = -10;
@@ -138,10 +134,7 @@ int nfc_get_firmware_version(const char *conn_str, char *buf, size_t buf_len) {
         return -3;
     }
     char *info = NULL;
-    int info_len = nfc_device_get_information_about(pnd, &info);
-    printf("[DEBUG] nfc_device_get_information_about returned len=%d\n", info_len);
     if (info) {
-        printf("[DEBUG] info string: %s\n", info);
         snprintf(buf, buf_len, "%s", info);
         nfc_free(info);
     } else {
@@ -171,21 +164,16 @@ int nfc_read_card_content(const char *conn_str, char *buf, size_t buf_len) {
     }
     const nfc_modulation nm = { .nmt = NMT_ISO14443A, .nbr = NBR_106 };
     if (nfc_initiator_select_passive_target(pnd, nm, NULL, 0, &nt) > 0) {
-        // Card type detection
         size_t out_len = 0;
         uint8_t atqa0 = nt.nti.nai.abtAtqa[0];
         uint8_t atqa1 = nt.nti.nai.abtAtqa[1];
         uint8_t sak = nt.nti.nai.btSak;
-        fprintf(stderr, "[DEBUG] ATQA: %02X %02X, SAK: %02X\n", atqa0, atqa1, sak);
-        // Mifare Classic: ATQA 0x00 0x04, SAK 0x08 or 0x28
-        // Mifare Ultralight: ATQA 0x00 0x44, SAK 0x00
         if (atqa1 == 0x04 && (sak == 0x08 || sak == 0x28)) {
             out_len += snprintf(buf + out_len, buf_len - out_len, "Card type: Mifare Classic 1K\n");
             for (int block = 0; block < 64; block++) {
                 uint8_t data[16];
                 memset(data, 0, sizeof(data));
                 int res = nfc_initiator_transceive_bytes(pnd, (const uint8_t[]){0x30, block}, 2, data, sizeof(data), 0);
-                fprintf(stderr, "[DEBUG] Block %d read result: %d\n", block, res);
                 if (res < 0) {
                     fprintf(stderr, "[ERROR] Block %d read error: libnfc error code %d, command=[0x30, 0x%02X]\n", block, res, block);
                     fprintf(stderr, "[ERROR] libnfc: %s\n", nfc_strerror(pnd));
@@ -211,7 +199,6 @@ int nfc_read_card_content(const char *conn_str, char *buf, size_t buf_len) {
             for (int page = 4; page < 36; page++) {
                 uint8_t data[16] = {0};
                 int res = nfc_initiator_transceive_bytes(pnd, (const uint8_t[]){0x30, page}, 2, data, sizeof(data), 0);
-                fprintf(stderr, "[DEBUG] Page %d read result: %d\n", page, res);
                 if (res < 0) {
                     fprintf(stderr, "[ERROR] Page %d read error: libnfc error code %d, command=[0x30, 0x%02X]\n", page, res, page);
                     fprintf(stderr, "[ERROR] libnfc: %s\n", nfc_strerror(pnd));
@@ -221,9 +208,7 @@ int nfc_read_card_content(const char *conn_str, char *buf, size_t buf_len) {
                     for (int i = 0; i < 4 && i < res && rawpos < sizeof(rawbuf); i++) rawbuf[rawpos++] = data[i];
                 }
             }
-            fprintf(stderr, "[DEBUG] Ultralight rawbuf length: %d\n", rawpos);
-            // Copy only the first 128 bytes of rawbuf to buf (for Swift)
-            int copylen = (sizeof(rawbuf) < buf_len) ? sizeof(rawbuf) : (buf_len < 128 ? buf_len : 128);
+            int copylen = (sizeof(rawbuf) < buf_len) ? (int)sizeof(rawbuf) : ((buf_len < 128) ? (int)buf_len : 128);
             memcpy(buf, rawbuf, copylen);
             out_len = copylen;
         } else {

@@ -1,9 +1,3 @@
-//
-//  Filament.swift
-//  ACE-RFID
-//
-//  Created by Copilot on 07/03/2025.
-//
 
 import Foundation
 import UIKit
@@ -79,13 +73,11 @@ struct Color: Codable, Equatable {
         self.hex = hex
     }
 
-    // Convenience: create from UIColor
     init(name: String, uiColor: UIColor) {
         self.name = name
         self.hex = uiColor.toHexString
     }
 
-    // Convenience: create from hex only
     init(hex: String) {
         self.name = hex
         self.hex = hex
@@ -254,7 +246,6 @@ extension Filament {
             return 1.75 // Most common diameter
         }
 
-        /// Returns brands sorted alphabetically by display name, with Generic at the end
         static var sortedCases: [Brand] {
             let brands = allCases.filter { $0 != .generic }
             let sortedBrands = brands.sorted { $0.rawValue.localizedCaseInsensitiveCompare($1.rawValue) == .orderedAscending }
@@ -318,7 +309,6 @@ extension Filament {
             }
         }
 
-        /// Returns a Color object with name and hex for each enum case
         var colorObject: Color {
             switch self {
             case .black: return Color(name: self.rawValue, hex: "#000000")
@@ -347,11 +337,9 @@ extension Filament {
             }
         }
 
-        /// Returns all available colors (predefined colors only)
         static var allAvailableColors: [(name: String, color: UIColor)] {
             var colors: [(name: String, color: UIColor)] = []
 
-            // Add predefined colors (excluding .custom)
             for color in FilamentColorType.allCases.filter({ $0 != .custom }) {
                 colors.append((color.rawValue, color.displayColor))
             }
@@ -363,7 +351,6 @@ extension Filament {
 
 // MARK: - JSON Conversion for NFC Storage
 extension Filament: Codable {
-    /// Convert filament data to JSON string for NFC tag storage
     func toJSONString() -> String? {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -377,7 +364,6 @@ extension Filament: Codable {
         }
     }
 
-    /// Create filament from JSON string read from NFC tag
     static func fromJSONString(_ jsonString: String) -> Filament? {
         guard let data = jsonString.data(using: .utf8) else { return nil }
 
@@ -395,40 +381,32 @@ extension Filament: Codable {
 
 // MARK: - Predefined Values
 extension Filament {
-    /// Temperature min values in multiples of 5 (160-300°C)
     static var temperatureMinOptions: [Int] {
         return Array(stride(from: 160, through: 300, by: 5))
     }
-    /// Temperature max values in multiples of 5 (160-300°C)
     static var temperatureMaxOptions: [Int] {
         return Array(stride(from: 160, through: 300, by: 5))
     }
 
-    /// Bed min temperature values in multiples of 5 (0-120°C)
     static var bedMinTemperatureOptions: [Int] {
         return Array(stride(from: 0, through: 120, by: 5))
     }
-    /// Bed max temperature values in multiples of 5 (0-120°C)
     static var bedMaxTemperatureOptions: [Int] {
         return Array(stride(from: 0, through: 120, by: 5))
     }
 
-    /// Fan speed values in multiples of 5 (0-100%)
     static var fanSpeedOptions: [Int] {
         return Array(stride(from: 0, through: 100, by: 5))
     }
 
-    /// Print speed values in multiples of 5 (10-150 mm/s)
     static var printSpeedOptions: [Int] {
         return Array(stride(from: 10, through: 150, by: 5))
     }
 
-    /// Common weight values in grams
     static var weightOptions: [Double] {
         return [250, 500, 750, 1000, 1200, 1500, 2000, 2300, 2500, 3000, 5000, 10000]
     }
 
-    /// Common diameter values in mm
     static var diameterOptions: [Double] {
         return [1.75, 2.85, 3.0]
     }
