@@ -158,8 +158,20 @@ jobs:
         run: |
           xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release -archivePath $GITHUB_WORKSPACE/ACE-RFID.xcarchive archive HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS" OTHER_CFLAGS="-I$GITHUB_WORKSPACE/include" OTHER_SWIFT_FLAGS="-I$GITHUB_WORKSPACE/include" OTHER_LDFLAGS="-L$GITHUB_WORKSPACE"
 
+      - name: Find .xcarchive file
+        id: find_xcarchive
+        run: |
+          set -e
+          found=$(find $GITHUB_WORKSPACE -name '*.xcarchive' | head -n 1)
+          if [ -z "$found" ]; then
+            echo "::warning::No .xcarchive file found after archive step."
+          else
+            echo "Found archive: $found"
+            echo "archive_path=$found" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ACE-RFID-macOS-build
-          path: $GITHUB_WORKSPACE/ACE-RFID.xcarchive
+          path: ${{ steps.find_xcarchive.outputs.archive_path }}
