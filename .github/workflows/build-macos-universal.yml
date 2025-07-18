@@ -142,16 +142,21 @@ jobs:
         run: |
           ln -sf $GITHUB_WORKSPACE/libnfc_universal.dylib $GITHUB_WORKSPACE/libnfc.6.dylib
 
+      - name: Copy libnfc.6.dylib to Xcode project dir
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/MacOS/ACE-RFID
+          cp $GITHUB_WORKSPACE/libnfc.6.dylib $GITHUB_WORKSPACE/MacOS/ACE-RFID/
+
       - name: Build ACE-RFID.xcodeproj (Universal)
         run: |
           export LIBRARY_SEARCH_PATHS="$GITHUB_WORKSPACE"
           export HEADER_SEARCH_PATHS="$GITHUB_WORKSPACE/include"
           export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE"
-          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS" OTHER_CFLAGS="-I$GITHUB_WORKSPACE/include" OTHER_SWIFT_FLAGS="-I$GITHUB_WORKSPACE/include"
+          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS" OTHER_CFLAGS="-I$GITHUB_WORKSPACE/include" OTHER_SWIFT_FLAGS="-I$GITHUB_WORKSPACE/include" OTHER_LDFLAGS="-L$GITHUB_WORKSPACE"
 
       - name: Archive app
         run: |
-          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release -archivePath $GITHUB_WORKSPACE/ACE-RFID.xcarchive archive HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS" OTHER_CFLAGS="-I$GITHUB_WORKSPACE/include" OTHER_SWIFT_FLAGS="-I$GITHUB_WORKSPACE/include"
+          xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release -archivePath $GITHUB_WORKSPACE/ACE-RFID.xcarchive archive HEADER_SEARCH_PATHS="$HEADER_SEARCH_PATHS" LIBRARY_SEARCH_PATHS="$LIBRARY_SEARCH_PATHS" OTHER_CFLAGS="-I$GITHUB_WORKSPACE/include" OTHER_SWIFT_FLAGS="-I$GITHUB_WORKSPACE/include" OTHER_LDFLAGS="-L$GITHUB_WORKSPACE"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
