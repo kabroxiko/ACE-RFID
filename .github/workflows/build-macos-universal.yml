@@ -35,8 +35,10 @@ jobs:
         run: |
           cd libusb
           make clean
+          export MACOSX_DEPLOYMENT_TARGET=11.0
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
           export CC="clang -arch arm64 -isysroot $SDKROOT"
-          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libusb_arm64
+          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libusb_arm64 --disable-dependency-tracking
           make
           make install
 
@@ -61,10 +63,12 @@ jobs:
         run: |
           cd libusb-compat-0.1
           make clean
+          export MACOSX_DEPLOYMENT_TARGET=11.0
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
           export CC="clang -arch arm64 -isysroot $SDKROOT"
           export LDFLAGS="-L$GITHUB_WORKSPACE -lusb-1.0.0"
           export CPPFLAGS="-I$GITHUB_WORKSPACE/libusb_arm64/include"
-          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libusb_compat_arm64
+          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libusb_compat_arm64 --disable-dependency-tracking
           make
           make install
 
@@ -89,10 +93,12 @@ jobs:
         run: |
           cd libnfc
           make clean
+          export MACOSX_DEPLOYMENT_TARGET=11.0
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
           export CC="clang -arch arm64 -isysroot $SDKROOT"
           export LDFLAGS="-L$GITHUB_WORKSPACE -lusb-0.1.4 -lusb-1.0.0"
           export CPPFLAGS="-I$GITHUB_WORKSPACE/libusb_compat_arm64/include -I$GITHUB_WORKSPACE/libusb_arm64/include"
-          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libnfc_arm64
+          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libnfc_arm64 --disable-dependency-tracking
           make
           make install
 
