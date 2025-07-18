@@ -213,32 +213,29 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private func showFilamentOptions(for filament: Filament, at indexPath: IndexPath) {
-        let alert = UIAlertController(title: filament.brand + " " + filament.material, message: nil, preferredStyle: .actionSheet)
-
-        alert.addAction(UIAlertAction(title: "Edit", style: .default) { _ in
+        let icon = UIImage(systemName: "circle")
+        let editButton = FancyAlert.AlertButton(title: "Edit", action: { [weak self] in
+            guard let self = self else { return }
             let editViewController = AddEditFilamentViewController()
             editViewController.filament = filament
             editViewController.delegate = self
             let navigationController = UINavigationController(rootViewController: editViewController)
             self.present(navigationController, animated: true)
         })
-
-        alert.addAction(UIAlertAction(title: "Write to Tag", style: .default) { _ in
-            self.writeFilamentToTag(filament)
+        let writeButton = FancyAlert.AlertButton(title: "Write to Tag", action: { [weak self] in
+            self?.writeFilamentToTag(filament)
         })
-
-        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { _ in
-            self.confirmDelete(filament: filament)
+        let deleteButton = FancyAlert.AlertButton(title: "Delete", action: { [weak self] in
+            self?.confirmDelete(filament: filament)
         })
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        if let popover = alert.popoverPresentationController {
-            popover.sourceView = tableView.cellForRow(at: indexPath)
-            popover.sourceRect = tableView.cellForRow(at: indexPath)?.bounds ?? CGRect.zero
-        }
-
-        present(alert, animated: true)
+        let cancelButton = FancyAlert.AlertButton(title: "Cancel", action: nil)
+        FancyAlert.show(
+            on: self,
+            title: filament.brand + " " + filament.material,
+            message: "",
+            icon: icon,
+            buttons: [editButton, writeButton, deleteButton, cancelButton]
+        )
     }
 
     private func writeFilamentToTag(_ filament: Filament) {
