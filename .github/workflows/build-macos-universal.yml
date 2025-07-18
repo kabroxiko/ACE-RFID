@@ -22,7 +22,7 @@ jobs:
 
       - name: Install libusb
         run: |
-          brew install libusb
+          brew reinstall libusb
 
       - name: Install libusb-compat
         run: |
