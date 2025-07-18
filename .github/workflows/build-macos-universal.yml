@@ -168,6 +168,14 @@ jobs:
           else
             echo "Found archive: $found"
             echo "archive_path=$found" >> $GITHUB_OUTPUT
+            # Try to find the main app binary inside the archive and check its architectures
+            app_binary=$(find "$found" -type f -name ACE-RFID -print | head -n 1)
+            if [ -n "$app_binary" ]; then
+              echo "Checking architectures for $app_binary:"
+              lipo -info "$app_binary"
+            else
+              echo "::warning::No ACE-RFID binary found in archive for lipo check."
+            fi
           fi
 
       - name: Upload build artifacts
