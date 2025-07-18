@@ -84,7 +84,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         }
         let filament = NFCService.decodeFilament(data)
 
-        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color.name) (\(filament.color.hex))\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nLength: \(Int(filament.length))"
+        let info = "SKU: \(filament.sku)\nBrand: \(filament.brand)\nMaterial: \(filament.material)\nColor: \(filament.color.name) (\(filament.color.hex))\nExt: \(Int(filament.printMinTemperature))-\(Int(filament.printMaxTemperature))ºC\nBed: \(Int(filament.bedMinTemperature))-\(Int(filament.bedMaxTemperature))ºC\nLength: \(Int(filament.length)) m\nDiameter: \(filament.diameter) mm"
         DispatchQueue.main.async {
             self.showAlert(title: "NFC Tag Info", message: info)
         }
@@ -164,9 +164,104 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        let alertView = UIView()
+        alertView.backgroundColor = UIColor.systemBackground
+        alertView.layer.cornerRadius = 16
+        alertView.layer.shadowColor = UIColor.black.cgColor
+        alertView.layer.shadowOpacity = 0.2
+        alertView.layer.shadowRadius = 8
+        alertView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        alertView.translatesAutoresizingMaskIntoConstraints = false
+
+        let iconImageView = UIImageView(image: UIImage(systemName: "radiowaves.left"))
+        iconImageView.tintColor = .systemBlue
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let messageLabel = UILabel()
+        messageLabel.text = message
+        messageLabel.font = UIFont.systemFont(ofSize: 16)
+        messageLabel.textColor = .secondaryLabel
+        messageLabel.textAlignment = .center
+        messageLabel.numberOfLines = 0
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let okButton = UIButton(type: .system)
+        okButton.setTitle("OK", for: .normal)
+        okButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        okButton.tintColor = .systemBlue
+        okButton.translatesAutoresizingMaskIntoConstraints = false
+        okButton.addTarget(self, action: #selector(dismissCustomAlert), for: .touchUpInside)
+
+        alertView.addSubview(iconImageView)
+        alertView.addSubview(titleLabel)
+        alertView.addSubview(messageLabel)
+        alertView.addSubview(okButton)
+
+
+        let overlay = UIView()
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.tag = 9999
+        overlay.addSubview(alertView)
+        view.addSubview(overlay)
+
+        NSLayoutConstraint.activate([
+            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: view.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            alertView.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+            alertView.centerYAnchor.constraint(equalTo: overlay.centerYAnchor),
+            alertView.widthAnchor.constraint(equalToConstant: 320),
+            alertView.heightAnchor.constraint(greaterThanOrEqualToConstant: 180),
+
+            iconImageView.topAnchor.constraint(equalTo: alertView.topAnchor, constant: 24),
+            iconImageView.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 40),
+            iconImageView.heightAnchor.constraint(equalToConstant: 40),
+
+            titleLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+
+            messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            messageLabel.leadingAnchor.constraint(equalTo: alertView.leadingAnchor, constant: 16),
+            messageLabel.trailingAnchor.constraint(equalTo: alertView.trailingAnchor, constant: -16),
+
+            okButton.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 20),
+            okButton.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+            okButton.bottomAnchor.constraint(equalTo: alertView.bottomAnchor, constant: -16)
+        ])
+
+        // Animate in
+        alertView.alpha = 0
+        UIView.animate(withDuration: 0.25) {
+            alertView.alpha = 1
+        }
+
+        // Store overlay for dismissal
+        objc_setAssociatedObject(self, &MainViewController.overlayKey, overlay, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+
+    private static var overlayKey: UInt8 = 0
+
+    @objc private func dismissCustomAlert() {
+        if let overlay = objc_getAssociatedObject(self, &MainViewController.overlayKey) as? UIView {
+            UIView.animate(withDuration: 0.2, animations: {
+                overlay.alpha = 0
+            }, completion: { _ in
+                overlay.removeFromSuperview()
+            })
+            objc_setAssociatedObject(self, &MainViewController.overlayKey, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
     }
 
     private func showFilamentOptions(for filament: Filament, at indexPath: IndexPath) {

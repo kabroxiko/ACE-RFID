@@ -150,7 +150,7 @@ class NFCService: NSObject {
         let bedMin = Int(buffer[100]) | (Int(buffer[101]) << 8)
         let bedMax = Int(buffer[102]) | (Int(buffer[103]) << 8)
         let lengthRaw = Int(buffer[107]) << 8 | Int(buffer[106])
-        let diameterRaw = Int(buffer[121]) << 8 | Int(buffer[120])
+        let diameterRaw = Int(buffer[105]) << 8 | Int(buffer[104])
         let diameter = Double(diameterRaw) / 100.0
 
         let filament = Filament(
