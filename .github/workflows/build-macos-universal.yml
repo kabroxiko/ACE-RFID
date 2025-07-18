@@ -20,13 +20,29 @@ jobs:
           brew update
           brew install autoconf automake libtool pkg-config
 
-      - name: Install libusb
+      - name: Build libusb-compat for x86_64
         run: |
-          brew reinstall libusb
+          git clone https://github.com/libusb/libusb-compat-0.1.git
+          cd libusb-compat-0.1
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+          export CC="clang -arch x86_64 -isysroot $SDKROOT"
+          ./bootstrap.sh
+          ./configure --host=x86_64-apple-darwin --prefix=$GITHUB_WORKSPACE/libusb_compat_x86_64
+          make
+          make install
 
-      - name: Install libusb-compat
+      - name: Build libusb-compat for arm64
         run: |
-          brew install libusb-compat
+          cd libusb-compat-0.1
+          make clean
+          export CC="clang -arch arm64 -isysroot $SDKROOT"
+          ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libusb_compat_arm64
+          make
+          make install
+
+      - name: Create universal libusb-compat
+        run: |
+          lipo -create $GITHUB_WORKSPACE/libusb_compat_x86_64/lib/libusb-0.1.4.dylib $GITHUB_WORKSPACE/libusb_compat_arm64/lib/libusb-0.1.4.dylib -output $GITHUB_WORKSPACE/libusb-0.1.4.dylib
 
       - name: Build libnfc for x86_64
         run: |
@@ -35,6 +51,8 @@ jobs:
           autoreconf -vis || true
           export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
           export CC="clang -arch x86_64 -isysroot $SDKROOT"
+          export LDFLAGS="-L$GITHUB_WORKSPACE -lusb-0.1.4"
+          export CPPFLAGS="-I$GITHUB_WORKSPACE/libusb_compat_x86_64/include"
           ./configure --host=x86_64-apple-darwin --prefix=$GITHUB_WORKSPACE/libnfc_x86_64
           make
           make install
@@ -44,6 +62,8 @@ jobs:
           cd libnfc
           make clean
           export CC="clang -arch arm64 -isysroot $SDKROOT"
+          export LDFLAGS="-L$GITHUB_WORKSPACE -lusb-0.1.4"
+          export CPPFLAGS="-I$GITHUB_WORKSPACE/libusb_compat_arm64/include"
           ./configure --host=arm-apple-darwin --prefix=$GITHUB_WORKSPACE/libnfc_arm64
           make
           make install
@@ -55,6 +75,7 @@ jobs:
       - name: Build ACE-RFID.xcodeproj (Universal)
         run: |
           export LIBRARY_SEARCH_PATHS="$GITHUB_WORKSPACE"
+          export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE"
           xcodebuild -project MacOS/ACE-RFID.xcodeproj -scheme ACE-RFID -configuration Release ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO
 
       - name: Archive app
