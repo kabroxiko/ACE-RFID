@@ -94,8 +94,7 @@ class MainViewController: UIViewController, NFCServiceDelegate {
         #if targetEnvironment(macCatalyst)
         #endif
         DispatchQueue.main.async {
-            let msg = success ? "Filament data written to NFC tag." : "Failed to write filament to NFC tag."
-            //self.showAlert(title: "NFC Write Result", message: msg)
+            //self.showAlert(title: "NFC Write Result", message: success ? "Filament data written to NFC tag." : "Failed to write filament to NFC tag.")
         }
     }
 
@@ -164,7 +163,6 @@ class MainViewController: UIViewController, NFCServiceDelegate {
     }
 
     private func showAlert(title: String, message: String) {
-        let circleIcon = UIImage(systemName: "circle")
         FancyAlert.show(
             on: self,
             title: title,
