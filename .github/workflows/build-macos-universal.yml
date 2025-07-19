@@ -177,9 +177,14 @@ jobs:
               frameworks_dir=$(dirname "$app_binary")/../Frameworks
               mkdir -p "$frameworks_dir"
               cp $GITHUB_WORKSPACE/libnfc.6.dylib "$frameworks_dir/libnfc.6.dylib"
-              # Update ACE-RFID binary to use relative path for libnfc.6.dylib
-              install_name_tool -change /Users/*/libnfc.6.dylib @executable_path/../Frameworks/libnfc.6.dylib "$app_binary"
-              echo "Patched ACE-RFID binary to use @executable_path/../Frameworks/libnfc.6.dylib"
+              # Detect actual referenced path for libnfc.6.dylib and patch binary
+              referenced_path=$(otool -L "$app_binary" | grep libnfc.6.dylib | grep -v @executable_path | awk '{print $1}')
+              if [ -z "$referenced_path" ]; then
+                echo "ERROR: Could not find referenced libnfc.6.dylib path in binary."
+                exit 1
+              fi
+              install_name_tool -change "$referenced_path" @executable_path/../Frameworks/libnfc.6.dylib "$app_binary"
+              echo "Patched ACE-RFID binary to use @executable_path/../Frameworks/libnfc.6.dylib (was $referenced_path)"
               # Create DMG from .app using correct path
               app_path="$found/Products/Applications/ACE-RFID.app"
               dmg_path="$GITHUB_WORKSPACE/ACE-RFID.dmg"
