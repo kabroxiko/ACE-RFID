@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
     env:
       DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
     steps:
@@ -179,6 +179,8 @@ jobs:
               cp $GITHUB_WORKSPACE/libnfc.6.dylib "$frameworks_dir/libnfc.6.dylib"
               # Copy libusb-0.1.4.dylib into Frameworks directory of the app bundle
               cp $GITHUB_WORKSPACE/libusb-0.1.4.dylib "$frameworks_dir/libusb-0.1.4.dylib"
+              # Copy libusb-1.0.0.dylib into Frameworks directory of the app bundle
+              cp $GITHUB_WORKSPACE/libusb-1.0.0.dylib "$frameworks_dir/libusb-1.0.0.dylib"
               # Print all referenced libnfc.6.dylib paths for debug
               echo "Referenced libnfc.6.dylib paths in binary:"
               otool -L "$app_binary" | grep libnfc.6.dylib
@@ -192,8 +194,14 @@ jobs:
                 echo "Patching $referenced_path in libnfc.6.dylib to @executable_path/../Frameworks/libusb-0.1.4.dylib"
                 install_name_tool -change "$referenced_path" @executable_path/../Frameworks/libusb-0.1.4.dylib "$frameworks_dir/libnfc.6.dylib"
               done
+              # Patch libnfc.6.dylib to reference bundled libusb-1.0.0.dylib
+              for referenced_path in $(otool -L "$frameworks_dir/libnfc.6.dylib" | grep libusb-1.0.0.dylib | grep -v @executable_path | awk '{print $1}'); do
+                echo "Patching $referenced_path in libnfc.6.dylib to @executable_path/../Frameworks/libusb-1.0.0.dylib"
+                install_name_tool -change "$referenced_path" @executable_path/../Frameworks/libusb-1.0.0.dylib "$frameworks_dir/libnfc.6.dylib"
+              done
               echo "Patched all libnfc.6.dylib references to @executable_path/../Frameworks/libnfc.6.dylib"
               echo "Patched all libusb-0.1.4.dylib references in libnfc.6.dylib to @executable_path/../Frameworks/libusb-0.1.4.dylib"
+              echo "Patched all libusb-1.0.0.dylib references in libnfc.6.dylib to @executable_path/../Frameworks/libusb-1.0.0.dylib"
               # Re-sign the app bundle after patching
               codesign --force --deep --sign "${{ secrets.MAC_CERTIFICATE_IDENTITY }}" "$found/Products/Applications/ACE-RFID.app"
               echo "Re-signed ACE-RFID.app after install_name_tool patching."
