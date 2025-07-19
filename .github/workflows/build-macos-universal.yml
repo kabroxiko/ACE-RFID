@@ -186,6 +186,9 @@ jobs:
                 install_name_tool -change "$referenced_path" @executable_path/../Frameworks/libnfc.6.dylib "$app_binary"
               done
               echo "Patched all libnfc.6.dylib references to @executable_path/../Frameworks/libnfc.6.dylib"
+              # Re-sign the app bundle after patching
+              codesign --force --deep --sign "${{ secrets.MAC_CERTIFICATE_IDENTITY }}" "$found/Products/Applications/ACE-RFID.app"
+              echo "Re-signed ACE-RFID.app after install_name_tool patching."
               # Create DMG from .app using correct path
               app_path="$found/Products/Applications/ACE-RFID.app"
               dmg_path="$GITHUB_WORKSPACE/ACE-RFID.dmg"
